@@ -630,3 +630,126 @@ function FormulaFooter() {
     </div>
   );
 }
+
+function RiderCard({ crewSize }: { crewSize: number }) {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-lg">Hospitality & technical rider</h3>
+        <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+          Team of {crewSize}
+        </span>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Provided by promoter at the venue prior to artist arrival. Auto-attached to the
+        performance agreement.
+      </p>
+      <div className="mt-4 space-y-4">
+        {DEFAULT_RIDER.map((section) => (
+          <div key={section.category}>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {section.category}
+            </div>
+            <ul className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">
+              {section.items.map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ochre" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TermsCard() {
+  const [open, setOpen] = useState<string | null>("1");
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
+      <div className="flex items-baseline justify-between">
+        <h3 className="font-display text-lg">Terms & conditions</h3>
+        <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          Seed template · Penya Play
+        </span>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Accepted quote auto-populates a performance agreement with these clauses. Every
+        artist–manager split is recorded in-platform — no verbal agreements.
+      </p>
+      <div className="mt-5 divide-y divide-border rounded-xl border border-border">
+        {DEFAULT_TERMS.map((clause) => {
+          const isOpen = open === clause.n;
+          return (
+            <div key={clause.n}>
+              <button
+                type="button"
+                onClick={() => setOpen(isOpen ? null : clause.n)}
+                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-secondary font-display text-xs">
+                    {clause.n}
+                  </span>
+                  <span className="text-sm font-medium">{clause.title}</span>
+                </span>
+                <span
+                  className={cn(
+                    "text-muted-foreground transition-transform",
+                    isOpen && "rotate-180",
+                  )}
+                >
+                  ⌄
+                </span>
+              </button>
+              {isOpen && (
+                <div className="border-t border-border bg-secondary/40 px-4 py-3">
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    {clause.body.map((b, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-ochre" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function BankingCard() {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
+      <div className="flex items-baseline justify-between">
+        <h3 className="font-display text-lg">Banking details</h3>
+        <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          Off-platform reference
+        </span>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Held in the current-practice quote. On the platform, deposit and balance flow
+        through escrow and are auto-split per recorded manager agreement.
+      </p>
+      <dl className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+        {[
+          ["Account name", BANKING.accountName],
+          ["Bank", BANKING.bank],
+          ["Type", BANKING.accountType],
+          ["Account number", BANKING.accountNumber],
+        ].map(([k, v]) => (
+          <div key={k} className="rounded-lg bg-secondary/60 px-3 py-2">
+            <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</dt>
+            <dd className="mt-0.5 font-medium tabular-nums">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
