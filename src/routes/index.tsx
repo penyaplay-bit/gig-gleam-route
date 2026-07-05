@@ -147,6 +147,22 @@ function QuoteEngineDemo() {
                 </Field>
               </div>
 
+              <Field label="Transport & accommodation">
+                <SegGroup
+                  value={transportMode}
+                  onChange={(v) => setTransportMode(v as TransportMode)}
+                  options={[
+                    { value: "engine", label: "Engine-priced" },
+                    { value: "excluded", label: "Promoter arranges" },
+                  ]}
+                />
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  {transportMode === "engine"
+                    ? "Travel and accommodation are itemised in the quote and paid via platform escrow."
+                    : "Current-practice mode. Quote covers performance fee only; promoter arranges transport & accommodation directly (per Ntate Stunna's live template)."}
+                </p>
+              </Field>
+
               <div className="flex flex-col gap-3 rounded-xl bg-secondary p-4">
                 <Toggle
                   checked={eventEndsAfter10pm}
@@ -158,7 +174,7 @@ function QuoteEngineDemo() {
                   checked={applyProximity}
                   onChange={setApplyProximity}
                   label="Apply proximity engine"
-                  hint="Scan artist's confirmed dates for routing discounts"
+                  hint={transportMode === "excluded" ? "Only active in engine-priced mode" : "Scan artist's confirmed dates for routing discounts"}
                 />
               </div>
 
@@ -166,7 +182,12 @@ function QuoteEngineDemo() {
             </div>
           </section>
 
-          <QuotePanel quote={quote} />
+          <div className="space-y-6">
+            <QuotePanel quote={quote} transportMode={transportMode} date={date} />
+            <RiderCard crewSize={quote.crewSize} />
+            <TermsCard />
+            <BankingCard />
+          </div>
         </div>
 
         <FormulaFooter />
