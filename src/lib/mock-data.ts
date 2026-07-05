@@ -119,7 +119,7 @@ export const ARTISTS: Artist[] = [
     name: "Ntate Stunna",
     tagline: "Famo · anchor artist",
     homeCityId: "maseru",
-    basePerformanceFee: 85000,
+    basePerformanceFee: 34000,
     photo: "◆",
     driverAllowance: 500,
     perDiem: 450,
