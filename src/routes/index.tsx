@@ -14,7 +14,8 @@ import {
   type SetLength,
   type VehicleClass,
 } from "@/lib/mock-data";
-import { calculateQuote, formatMoney, roadDistance } from "@/lib/quote-engine";
+import { calculateQuote, formatMoney, roadDistance, type TransportMode } from "@/lib/quote-engine";
+import { BANKING, DEFAULT_RIDER, DEFAULT_TERMS } from "@/lib/quote-terms";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
