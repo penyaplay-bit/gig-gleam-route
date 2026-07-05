@@ -18,6 +18,8 @@ import {
   type VehicleClass,
 } from "./mock-data";
 
+export type TransportMode = "engine" | "excluded";
+
 export interface QuoteInput {
   artistId: string;
   destinationCityId: string;
@@ -28,6 +30,7 @@ export interface QuoteInput {
   vehicleClass: VehicleClass;
   eventEndsAfter10pm: boolean;
   applyProximity: boolean;
+  transportMode: TransportMode;
   partySizeOverride?: number;
 }
 
