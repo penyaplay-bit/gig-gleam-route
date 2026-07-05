@@ -97,9 +97,13 @@ export const DEFAULT_TERMS: TermsClause[] = [
   },
 ];
 
+// SECURITY: never ship real banking details in client-side code — anyone
+// with the preview link can read them from the JS bundle. In production,
+// per-artist payout details live server-side and render into the PDF via a
+// server endpoint only.
 export const BANKING = {
   accountName: "PENYA PLAY PRODUCTIONS PTY LTD",
   bank: "FNB / RMB",
   accountType: "Business Cheque Account",
-  accountNumber: "6318 2765 231",
+  accountNumber: "•••• •••• ••• (issued on confirmed booking)",
 };
