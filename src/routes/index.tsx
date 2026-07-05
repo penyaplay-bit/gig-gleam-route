@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ARTISTS,
   CITIES,
@@ -38,6 +38,46 @@ export const Route = createFileRoute("/")({
   }),
   component: QuoteEngineDemo,
 });
+
+/** Scroll-triggered reveal. Children fade/lift in when they enter the
+ * viewport. Delay staggers siblings. Respects prefers-reduced-motion
+ * via the .reveal CSS. */
+function Reveal({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.12 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div
+      ref={ref}
+      className={`reveal ${inView ? "in" : ""} ${className}`}
+      style={{ ["--reveal-delay" as string]: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
 
 function QuoteEngineDemo() {
   const [artistId, setArtistId] = useState(ARTISTS[0].id);
@@ -78,6 +118,7 @@ function QuoteEngineDemo() {
         <Hero />
 
         <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+          <Reveal>
           <section className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-sm">
             <SectionLabel index={1} title="Booking request" />
             <div className="mt-6 space-y-6">
@@ -182,16 +223,27 @@ function QuoteEngineDemo() {
               <ArtistTourCard bookings={artistBookings} />
             </div>
           </section>
+          </Reveal>
 
           <div className="space-y-6">
-            <QuotePanel quote={quote} transportMode={transportMode} date={date} />
-            <RiderCard crewSize={quote.crewSize} />
-            <TermsCard />
-            <BankingCard />
+            <Reveal delay={80}>
+              <QuotePanel quote={quote} transportMode={transportMode} date={date} />
+            </Reveal>
+            <Reveal delay={140}>
+              <RiderCard crewSize={quote.crewSize} />
+            </Reveal>
+            <Reveal delay={200}>
+              <TermsCard />
+            </Reveal>
+            <Reveal delay={260}>
+              <BankingCard />
+            </Reveal>
           </div>
         </div>
 
-        <FormulaFooter />
+        <Reveal delay={100}>
+          <FormulaFooter />
+        </Reveal>
       </main>
     </div>
   );
@@ -207,8 +259,8 @@ function Header() {
             <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-magenta" style={{ animation: "hud-pulse 1.8s ease-in-out infinite" }} />
           </div>
           <div>
-            <div className="font-display text-lg leading-none tracking-tight">PENYA<span className="text-ochre">/</span>BOOKINGS</div>
-            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">quote_engine.exe · online</div>
+            <div className="font-display text-lg leading-none tracking-tight">PENYA<span className="text-ochre">PLAY</span> BOOKINGS</div>
+            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">press play · home of entertainment</div>
           </div>
         </div>
         <div className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground md:flex md:items-center md:gap-2">
@@ -222,23 +274,19 @@ function Header() {
 
 function Hero() {
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl reveal in">
       <div className="inline-flex items-center gap-2 rounded-full border border-ochre/40 bg-ochre-soft px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-ochre">
         <span className="h-1.5 w-1.5 rounded-full bg-ochre" style={{ animation: "hud-pulse 1.6s ease-in-out infinite" }} />
-        LVL_01 · algorithmic travel pricing
+        Algorithmic travel pricing · LS + SA
       </div>
       <h1 className="mt-5 font-display text-4xl font-bold leading-[1.02] tracking-tight md:text-6xl">
-        The quote is{" "}
-        <span className="relative inline-block">
-          <span className="relative z-10 text-ochre">calculated</span>
-          <span className="absolute inset-x-0 bottom-1 -z-0 h-3 bg-ochre/20 blur-sm" />
-        </span>
-        ,<br />not guessed.
+        Press play on a price that's{" "}
+        <span className="text-goldleaf">calculated</span>,<br />not guessed.
       </h1>
       <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
         Move any input on the left. The itemised quote on the right{" "}
         <span className="text-foreground">recalculates in real-time</span> — distance, fuel, vehicle,
-        and the proximity combo that unlocks when the artist is already booked near your venue.
+        and the routing discount that unlocks when the artist is already booked near your venue.
       </p>
     </div>
   );
@@ -486,7 +534,7 @@ function QuotePanel({
       <div className="mt-6 flex items-baseline justify-between gap-4">
         <div>
           <div className="text-xs uppercase tracking-wider text-muted-foreground">Total payable</div>
-          <div className="font-display text-4xl md:text-5xl tabular-nums">
+          <div className="font-display text-4xl md:text-5xl tabular-nums text-goldleaf">
             {formatMoney(quote.total)}
           </div>
         </div>

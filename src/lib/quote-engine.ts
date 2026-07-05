@@ -141,7 +141,17 @@ function computeTravelBlock(
   const vehicle = VEHICLES[vehicleClass];
   const route = roadDistance(origin.id, destination.id);
   const roundKm = route.km * 2;
-  const vehicleDays = Math.max(1, Math.ceil(route.hours / 8 + 1 + route.hours / 8));
+
+  // Accommodation decided first — it drives the day count.
+  const needsAccommodation =
+    route.km > 350 || (eventEndsAfter10pm && route.km > 150);
+
+  // Day trip: round-trip drive fits alongside the event in one day and no
+  // overnight is triggered. Otherwise: driving days (8h/day) + event day.
+  const vehicleDays =
+    !needsAccommodation && route.hours * 2 <= 9
+      ? 1
+      : Math.max(2, Math.ceil((route.hours * 2) / 8) + 1);
 
   const litres = roundKm / vehicle.kmPerLitre;
   const fuelPrice = fuelPriceFor(origin);
@@ -149,8 +159,6 @@ function computeTravelBlock(
   const vehicleCost = vehicle.dayRate * vehicleDays;
   const driverCost = artist.driverAllowance * vehicleDays;
 
-  const needsAccommodation =
-    route.km > 350 || (eventEndsAfter10pm && route.km > 150);
   const roomsNeeded = Math.ceil(crewSize / 2);
   const accomCost = needsAccommodation ? artist.accomPerRoom * roomsNeeded : 0;
   const perDiemDays = vehicleDays;
@@ -256,12 +264,26 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
   let proximityMatch: ProximityMatch | undefined;
   let discountLine: QuoteLine | undefined;
 
+  // Date-conflict check — runs regardless of transport mode or proximity
+  // toggle. A same-day confirmed booking is a conflict, never a discount.
+  const sameDay = CONFIRMED_BOOKINGS.find(
+    (b) => b.artistId === artist.id && b.date === input.date,
+  );
+  if (sameDay) {
+    warnings.push(
+      `CONFLICT: artist already confirmed in ${CITY_BY_ID[sameDay.cityId].name} on ${sameDay.date} (${sameDay.label}). This date cannot be booked without manager approval.`,
+    );
+  }
+
   if (
+    !sameDay &&
     input.transportMode === "engine" &&
     input.applyProximity &&
     artist.discountPolicy !== "off"
   ) {
-    const candidates = CONFIRMED_BOOKINGS.filter((b) => b.artistId === artist.id)
+    const candidates = CONFIRMED_BOOKINGS.filter(
+      (b) => b.artistId === artist.id && b.date !== input.date,
+    )
       .map((b) => {
         const distKm = roadDistance(b.cityId, destination.id).km;
         const daysAway = daysBetween(b.date, input.date);

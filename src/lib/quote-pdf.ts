@@ -5,7 +5,7 @@ import { BANKING, DEFAULT_RIDER, DEFAULT_TERMS } from "./quote-terms";
 
 type Quote = ReturnType<typeof calculateQuote>;
 
-const LIME: [number, number, number] = [172, 230, 45];
+const GOLD: [number, number, number] = [212, 175, 85];
 const INK: [number, number, number] = [22, 22, 28];
 const MUTED: [number, number, number] = [110, 110, 118];
 const RULE: [number, number, number] = [220, 220, 224];
@@ -57,7 +57,7 @@ export function downloadQuotePdf(quote: Quote, date: string) {
   // ============ Header band ============
   doc.setFillColor(...INK);
   doc.rect(0, 0, W, 90, "F");
-  doc.setFillColor(...LIME);
+  doc.setFillColor(...GOLD);
   doc.rect(M, 28, 34, 34, "F");
   doc.setTextColor(...INK);
   doc.setFont("helvetica", "bold");
@@ -65,14 +65,14 @@ export function downloadQuotePdf(quote: Quote, date: string) {
   doc.text("P", M + 11, 52);
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(14);
-  doc.text("PENYA / BOOKINGS", M + 46, 46);
+  doc.text("PENYAPLAY BOOKINGS", M + 46, 46);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(200, 200, 205);
-  doc.text("Quote engine · working demo", M + 46, 60);
+  doc.text("Press play · home of entertainment", M + 46, 60);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.setTextColor(...LIME);
+  doc.setTextColor(...GOLD);
   doc.text(`REF · ${ref}`, W - M, 46, { align: "right" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
@@ -104,7 +104,7 @@ export function downloadQuotePdf(quote: Quote, date: string) {
 
   // ============ Total banner ============
   doc.setFillColor(248, 250, 240);
-  doc.setDrawColor(...LIME);
+  doc.setDrawColor(...GOLD);
   doc.setLineWidth(1);
   doc.roundedRect(M, y, W - 2 * M, 68, 8, 8, "FD");
   setMuted();
