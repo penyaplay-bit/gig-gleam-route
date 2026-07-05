@@ -15,6 +15,7 @@ import {
   type VehicleClass,
 } from "@/lib/mock-data";
 import { calculateQuote, formatMoney, roadDistance, type TransportMode } from "@/lib/quote-engine";
+import { downloadQuotePdf } from "@/lib/quote-pdf";
 import { BANKING, DEFAULT_RIDER, DEFAULT_TERMS } from "@/lib/quote-terms";
 import { cn } from "@/lib/utils";
 
@@ -451,11 +452,21 @@ function QuotePanel({
     <section className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-quote">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <SectionLabel index={2} title="Itemised quote" />
-        <div className="text-right text-[11px] uppercase tracking-wider text-muted-foreground">
-          <div>Ref · <span className="text-foreground">{ref}</span></div>
-          <div className="mt-0.5">
-            {transportMode === "excluded" ? "Current-practice format" : "Engine-priced format"}
+        <div className="flex items-start gap-3">
+          <div className="text-right text-[11px] uppercase tracking-wider text-muted-foreground">
+            <div>Ref · <span className="text-foreground">{ref}</span></div>
+            <div className="mt-0.5">
+              {transportMode === "excluded" ? "Current-practice format" : "Engine-priced format"}
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => downloadQuotePdf(quote, date)}
+            className="group inline-flex items-center gap-1.5 rounded-lg bg-ochre px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-foreground transition-all hover:brightness-110 glow-lime"
+            title="Download itemised quote + rider + T&Cs as PDF"
+          >
+            <span>↓ PDF</span>
+          </button>
         </div>
       </div>
 
