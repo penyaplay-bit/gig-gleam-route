@@ -127,10 +127,10 @@
   font-size: 0.875rem;
   color: var(--color-foreground);
   transition: border-color 150ms, box-shadow 150ms;
-}
 
-@utility input:focus {
-  outline: none;
-  border-color: var(--color-ochre);
-  box-shadow: 0 0 0 3px oklch(0.68 0.16 55 / 0.2);
+  &:focus {
+    outline: none;
+    border-color: var(--color-ochre);
+    box-shadow: 0 0 0 3px oklch(0.68 0.16 55 / 0.2);
+  }
 }
