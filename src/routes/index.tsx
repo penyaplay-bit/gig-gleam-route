@@ -421,16 +421,53 @@ function ArtistTourCard({
   );
 }
 
-function QuotePanel({ quote }: { quote: ReturnType<typeof calculateQuote> }) {
+function makeQuoteRef(artistId: string, cityId: string, date: string): string {
+  const clean = date.replace(/-/g, "");
+  return `${artistId.slice(0, 2).toUpperCase()}-${cityId.slice(0, 4).toUpperCase()}-${clean}`;
+}
+
+function QuotePanel({
+  quote,
+  transportMode,
+  date,
+}: {
+  quote: ReturnType<typeof calculateQuote>;
+  transportMode: TransportMode;
+  date: string;
+}) {
   const route = roadDistance(quote.originCity.id, quote.destination.id);
+  const ref = makeQuoteRef(quote.artist.id, quote.destination.id, date);
+  const deposit = Math.round(quote.total / 2);
+  const balance = quote.total - deposit;
 
   return (
     <section className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-quote">
-      <SectionLabel index={2} title="Itemised quote" />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <SectionLabel index={2} title="Itemised quote" />
+        <div className="text-right text-[11px] uppercase tracking-wider text-muted-foreground">
+          <div>Ref · <span className="text-foreground">{ref}</span></div>
+          <div className="mt-0.5">
+            {transportMode === "excluded" ? "Current-practice format" : "Engine-priced format"}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-4 rounded-xl bg-secondary/60 p-4 text-xs">
+        <div>
+          <div className="uppercase tracking-wider text-muted-foreground">From</div>
+          <div className="mt-1 font-medium">Penya Play Productions</div>
+          <div className="text-muted-foreground">on behalf of {quote.artist.name}</div>
+        </div>
+        <div>
+          <div className="uppercase tracking-wider text-muted-foreground">Event</div>
+          <div className="mt-1 font-medium">{quote.destination.name}</div>
+          <div className="text-muted-foreground tabular-nums">{date}</div>
+        </div>
+      </div>
 
       <div className="mt-6 flex items-baseline justify-between gap-4">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">Total</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Total payable</div>
           <div className="font-display text-4xl md:text-5xl tabular-nums">
             {formatMoney(quote.total)}
           </div>
@@ -443,6 +480,15 @@ function QuotePanel({ quote }: { quote: ReturnType<typeof calculateQuote> }) {
             {route.km} km · {route.hours.toFixed(1)} h drive
           </div>
         </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+        <span className="rounded-full bg-secondary px-2.5 py-1 tabular-nums">
+          50% deposit · {formatMoney(deposit)} on confirmation
+        </span>
+        <span className="rounded-full bg-secondary px-2.5 py-1 tabular-nums">
+          Balance · {formatMoney(balance)} T-7 days
+        </span>
       </div>
 
       {quote.proximityMatch && (
