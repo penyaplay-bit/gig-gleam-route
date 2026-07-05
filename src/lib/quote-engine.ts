@@ -18,6 +18,8 @@ import {
   type VehicleClass,
 } from "./mock-data";
 
+export type TransportMode = "engine" | "excluded";
+
 export interface QuoteInput {
   artistId: string;
   destinationCityId: string;
@@ -28,6 +30,7 @@ export interface QuoteInput {
   vehicleClass: VehicleClass;
   eventEndsAfter10pm: boolean;
   applyProximity: boolean;
+  transportMode: TransportMode;
   partySizeOverride?: number;
 }
 
@@ -247,13 +250,17 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
     input.eventEndsAfter10pm,
   );
 
-  // Proximity scan
+  // Proximity scan (only relevant when engine is pricing travel)
   let usedTravel = baseTravel;
   let originCity = homeCity;
   let proximityMatch: ProximityMatch | undefined;
   let discountLine: QuoteLine | undefined;
 
-  if (input.applyProximity && artist.discountPolicy !== "off") {
+  if (
+    input.transportMode === "engine" &&
+    input.applyProximity &&
+    artist.discountPolicy !== "off"
+  ) {
     const candidates = CONFIRMED_BOOKINGS.filter((b) => b.artistId === artist.id)
       .map((b) => {
         const distKm = roadDistance(b.cityId, destination.id).km;
@@ -303,21 +310,39 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
     }
   }
 
+  // Travel/logistics rendering respects the transport mode.
+  const isExcluded = input.transportMode === "excluded";
+  const travelLinesOut: QuoteLine[] = isExcluded
+    ? [
+        {
+          key: "transport-excluded",
+          label: "Transport",
+          detail: "Excluded — to be arranged and covered by the promoter",
+          amount: 0,
+        },
+        {
+          key: "accom-excluded",
+          label: "Accommodation",
+          detail: `Excluded — promoter arranges for artist + team of ${crewSize}`,
+          amount: 0,
+        },
+      ]
+    : (proximityMatch ? usedTravel : baseTravel).lines;
+  const travelCost = isExcluded ? 0 : (proximityMatch ? usedTravel : baseTravel).totalCost;
+
   // Warnings
   const requires4x4 = roadDistance(originCity.id, destination.id).requires4x4;
-  if (requires4x4 && input.vehicleClass !== "4x4") {
+  if (!isExcluded && requires4x4 && input.vehicleClass !== "4x4") {
     warnings.push("Highland route detected — 4×4 recommended for reliability.");
   }
-  if (VEHICLES[input.vehicleClass].seats < crewSize) {
+  if (!isExcluded && VEHICLES[input.vehicleClass].seats < crewSize) {
     warnings.push(
       `Selected vehicle seats ${VEHICLES[input.vehicleClass].seats}; crew is ${crewSize}. Consider Quantum.`,
     );
   }
 
   const commissionPct = 10;
-  const subtotal =
-    performanceFee +
-    (proximityMatch ? usedTravel.totalCost : baseTravel.totalCost);
+  const subtotal = performanceFee + travelCost;
   const commission = Math.round((performanceFee * commissionPct) / 100);
   const total = subtotal + commission;
 
@@ -330,12 +355,12 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
     driveHours: (proximityMatch ? usedTravel : baseTravel).driveHours,
     vehicleDays: (proximityMatch ? usedTravel : baseTravel).vehicleDays,
     crewSize,
-    needsAccommodation: (proximityMatch ? usedTravel : baseTravel).needsAccommodation,
+    needsAccommodation: isExcluded ? false : (proximityMatch ? usedTravel : baseTravel).needsAccommodation,
     performanceLines,
-    travelLines: (proximityMatch ? usedTravel : baseTravel).lines,
+    travelLines: travelLinesOut,
     extrasLines: [],
-    discountLine,
-    proximityMatch,
+    discountLine: isExcluded ? undefined : discountLine,
+    proximityMatch: isExcluded ? undefined : proximityMatch,
     peakMultiplierApplied: peak?.multiplier,
     subtotal,
     commissionPct,
