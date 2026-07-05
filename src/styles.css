@@ -1,23 +1,23 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
-@import "@fontsource/fraunces/400.css";
-@import "@fontsource/fraunces/500.css";
-@import "@fontsource/fraunces/600.css";
-@import "@fontsource/fraunces/700.css";
+@import "@fontsource-variable/space-grotesk";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Penya Bookings — quote engine demo.
- * Palette: warm cream ground, deep charcoal ink, ochre accent, evergreen support.
- * Fonts: Fraunces (display, editorial serif) + Inter (UI).
+ * Penya Bookings — neo-arcade quote engine.
+ * Palette: obsidian ground, electric lime accent, cyan support, hot magenta pop.
+ * Fonts: Space Grotesk (display) + Inter (UI) + JetBrains Mono (numbers).
+ * Vibe: Gen-Z gamified, futuristic HUD, but calm and legible.
  */
 
 @theme inline {
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -53,38 +53,44 @@
   --color-ink: var(--ink);
   --color-parchment: var(--parchment);
   --color-parchment-deep: var(--parchment-deep);
+  --color-magenta: var(--magenta);
 
-  --shadow-quote: 0 24px 60px -30px oklch(0.25 0.05 60 / 0.35);
+  --shadow-quote:
+    0 0 0 1px oklch(0.85 0.22 130 / 0.25),
+    0 30px 80px -20px oklch(0.85 0.22 130 / 0.22),
+    0 0 60px -10px oklch(0.85 0.22 130 / 0.35);
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 1rem;
 
-  --parchment: oklch(0.972 0.018 85);
-  --parchment-deep: oklch(0.94 0.028 82);
-  --ink: oklch(0.22 0.028 55);
-  --ochre: oklch(0.68 0.16 55);
-  --ochre-soft: oklch(0.92 0.06 70);
-  --evergreen: oklch(0.44 0.07 155);
+  /* Semantic name-keeps for legacy classes (bg-parchment, bg-ochre, text-evergreen) */
+  --parchment: oklch(0.14 0.015 260);        /* was cream, now obsidian ground */
+  --parchment-deep: oklch(0.19 0.02 260);    /* elevated obsidian */
+  --ink: oklch(0.97 0.01 260);               /* was ink, now near-white */
+  --ochre: oklch(0.88 0.22 130);             /* electric lime accent */
+  --ochre-soft: oklch(0.32 0.12 130 / 0.35); /* soft lime wash */
+  --evergreen: oklch(0.82 0.16 200);         /* cool cyan */
+  --magenta: oklch(0.72 0.28 340);           /* hot pop */
 
   --background: var(--parchment);
   --foreground: var(--ink);
-  --card: oklch(0.995 0.008 85);
+  --card: oklch(0.17 0.018 260);
   --card-foreground: var(--ink);
-  --popover: oklch(0.995 0.008 85);
+  --popover: oklch(0.17 0.018 260);
   --popover-foreground: var(--ink);
-  --primary: var(--ink);
-  --primary-foreground: var(--parchment);
-  --secondary: var(--parchment-deep);
+  --primary: var(--ochre);
+  --primary-foreground: oklch(0.12 0.02 260);
+  --secondary: oklch(0.22 0.02 260);
   --secondary-foreground: var(--ink);
-  --muted: var(--parchment-deep);
-  --muted-foreground: oklch(0.48 0.03 60);
+  --muted: oklch(0.22 0.02 260);
+  --muted-foreground: oklch(0.68 0.02 260);
   --accent: var(--ochre-soft);
   --accent-foreground: var(--ink);
-  --destructive: oklch(0.55 0.2 27);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.88 0.02 78);
-  --input: oklch(0.88 0.02 78);
+  --destructive: oklch(0.7 0.22 25);
+  --destructive-foreground: oklch(0.12 0.02 260);
+  --border: oklch(0.28 0.02 260);
+  --input: oklch(0.28 0.02 260);
   --ring: var(--ochre);
 }
 
@@ -94,19 +100,32 @@
   }
   html, body {
     font-family: var(--font-sans);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
   }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     background-image:
-      radial-gradient(circle at 15% 0%, oklch(0.92 0.06 70 / 0.6), transparent 45%),
-      radial-gradient(circle at 100% 100%, oklch(0.86 0.08 155 / 0.25), transparent 40%);
+      radial-gradient(ellipse 60% 40% at 12% -5%, oklch(0.85 0.22 130 / 0.18), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 100% 100%, oklch(0.72 0.28 340 / 0.16), transparent 60%),
+      radial-gradient(ellipse 40% 30% at 85% 10%, oklch(0.82 0.16 200 / 0.12), transparent 60%),
+      linear-gradient(to right, oklch(1 0 0 / 0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(1 0 0 / 0.025) 1px, transparent 1px);
+    background-size: auto, auto, auto, 44px 44px, 44px 44px;
     background-attachment: fixed;
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+  }
+  .tabular-nums, .font-mono {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum", "zero";
+  }
+  ::selection {
+    background: var(--ochre);
+    color: oklch(0.12 0.02 260);
   }
 }
 
@@ -115,22 +134,36 @@
 }
 
 @utility hairline {
-  border-top: 1px solid var(--color-border);
+  border-top: 1px dashed var(--color-border);
+}
+
+@utility glow-lime {
+  box-shadow:
+    0 0 0 1px oklch(0.85 0.22 130 / 0.4),
+    0 0 24px -4px oklch(0.85 0.22 130 / 0.5);
 }
 
 @utility input {
   width: 100%;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
-  background-color: var(--color-card);
-  padding: 0.5rem 0.75rem;
+  background-color: oklch(0.13 0.018 260);
+  padding: 0.55rem 0.8rem;
   font-size: 0.875rem;
   color: var(--color-foreground);
-  transition: border-color 150ms, box-shadow 150ms;
+  font-family: var(--font-mono);
+  transition: border-color 150ms, box-shadow 150ms, background-color 150ms;
 
   &:focus {
     outline: none;
     border-color: var(--color-ochre);
-    box-shadow: 0 0 0 3px oklch(0.68 0.16 55 / 0.2);
+    background-color: oklch(0.16 0.02 260);
+    box-shadow: 0 0 0 3px oklch(0.85 0.22 130 / 0.25);
   }
+}
+
+/* Scanline shimmer for the total */
+@keyframes hud-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
