@@ -198,19 +198,21 @@ function QuoteEngineDemo() {
 
 function Header() {
   return (
-    <header className="border-b border-border/60 bg-background/70 backdrop-blur">
+    <header className="border-b border-border/60 bg-background/60 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <div className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-ink text-parchment font-display text-lg">
+          <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-ochre font-display text-lg font-bold text-primary-foreground glow-lime">
             P
+            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-magenta" style={{ animation: "hud-pulse 1.8s ease-in-out infinite" }} />
           </div>
           <div>
-            <div className="font-display text-lg leading-none">Penya Bookings</div>
-            <div className="text-xs text-muted-foreground">Quote engine · working demo</div>
+            <div className="font-display text-lg leading-none tracking-tight">PENYA<span className="text-ochre">/</span>BOOKINGS</div>
+            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">quote_engine.exe · online</div>
           </div>
         </div>
-        <div className="hidden text-xs text-muted-foreground md:block">
-          v1.0 · July 2026 · LSL/ZAR pegged 1:1
+        <div className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground md:flex md:items-center md:gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-evergreen" style={{ animation: "hud-pulse 1.4s ease-in-out infinite" }} />
+          v1.0 · LSL/ZAR 1:1
         </div>
       </div>
     </header>
@@ -220,17 +222,22 @@ function Header() {
 function Hero() {
   return (
     <div className="max-w-3xl">
-      <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-        <span className="h-1.5 w-1.5 rounded-full bg-ochre" />
-        The wedge · algorithmic travel pricing
+      <div className="inline-flex items-center gap-2 rounded-full border border-ochre/40 bg-ochre-soft px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-ochre">
+        <span className="h-1.5 w-1.5 rounded-full bg-ochre" style={{ animation: "hud-pulse 1.6s ease-in-out infinite" }} />
+        LVL_01 · algorithmic travel pricing
       </div>
-      <h1 className="mt-5 font-display text-4xl leading-[1.05] tracking-tight md:text-5xl">
-        The quote is <em className="not-italic text-ochre">calculated</em>, not guessed.
+      <h1 className="mt-5 font-display text-4xl font-bold leading-[1.02] tracking-tight md:text-6xl">
+        The quote is{" "}
+        <span className="relative inline-block">
+          <span className="relative z-10 text-ochre">calculated</span>
+          <span className="absolute inset-x-0 bottom-1 -z-0 h-3 bg-ochre/20 blur-sm" />
+        </span>
+        ,<br />not guessed.
       </h1>
-      <p className="mt-4 max-w-2xl text-base text-muted-foreground md:text-lg">
-        Change any input on the left. Watch the itemised quote recalculate on the right —
-        distance, vehicle, fuel, and the proximity discount that fires when the artist is
-        already booked near your venue.
+      <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
+        Move any input on the left. The itemised quote on the right{" "}
+        <span className="text-foreground">recalculates in real-time</span> — distance, fuel, vehicle,
+        and the proximity combo that unlocks when the artist is already booked near your venue.
       </p>
     </div>
   );
