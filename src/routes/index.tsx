@@ -48,6 +48,7 @@ function QuoteEngineDemo() {
   const [vehicleClass, setVehicleClass] = useState<VehicleClass>("quantum");
   const [eventEndsAfter10pm, setEventEndsAfter10pm] = useState(true);
   const [applyProximity, setApplyProximity] = useState(true);
+  const [transportMode, setTransportMode] = useState<TransportMode>("engine");
 
   const quote = useMemo(
     () =>
@@ -61,8 +62,9 @@ function QuoteEngineDemo() {
         vehicleClass,
         eventEndsAfter10pm,
         applyProximity,
+        transportMode,
       }),
-    [artistId, destinationCityId, date, eventClass, format, setLength, vehicleClass, eventEndsAfter10pm, applyProximity],
+    [artistId, destinationCityId, date, eventClass, format, setLength, vehicleClass, eventEndsAfter10pm, applyProximity, transportMode],
   );
 
   const artistBookings = CONFIRMED_BOOKINGS.filter((b) => b.artistId === artistId);
