@@ -24,19 +24,21 @@ const formatCurrency = formatM;
 import {
   ArrowLeft, Circle, CheckCircle2, Clock, MessageSquare, DollarSign,
   FileText, Truck, Megaphone, Image, ListTodo, FolderOpen, BarChart3,
-  LayoutGrid, Users, ShieldAlert, ShieldCheck, Lock, Unlock,
+  LayoutGrid, Users, ShieldAlert, ShieldCheck, Lock, Unlock, Activity,
 } from "lucide-react";
+import { PulseHeader, HealthTab } from "@/components/events/decision-engine-ui";
 
 export const Route = createFileRoute("/_authenticated/admin/events/$id")({
   component: EventWorkspace,
 });
 
 type TabId =
-  | "overview" | "timeline" | "chat" | "payments" | "contracts"
+  | "overview" | "health" | "timeline" | "chat" | "payments" | "contracts"
   | "travel" | "campaign" | "media" | "documents" | "tasks" | "analytics" | "parties";
 
 const TABS: { id: TabId; label: string; Icon: typeof Circle }[] = [
   { id: "overview", label: "Overview", Icon: LayoutGrid },
+  { id: "health", label: "Health", Icon: Activity },
   { id: "timeline", label: "Timeline", Icon: Clock },
   { id: "chat", label: "Chat", Icon: MessageSquare },
   { id: "parties", label: "Parties", Icon: Users },
@@ -110,6 +112,9 @@ function EventWorkspace() {
       </div>
 
       {/* Tabs */}
+      {/* Pulse header + Next Best Action — Decision Engine driven */}
+      <PulseHeader eventId={id} onNavigateTab={(t) => setTab(t as TabId)} />
+
       <div className="flex overflow-x-auto border-b border-primary/10 gap-1">
         {TABS.map(({ id: t, label, Icon }) => (
           <button
@@ -130,6 +135,7 @@ function EventWorkspace() {
       {/* Tab body */}
       <div>
         {tab === "overview" && <OverviewTab data={data} />}
+        {tab === "health" && <HealthTab eventId={id} onNavigateTab={(t) => setTab(t as TabId)} />}
         {tab === "timeline" && <TimelineTab entries={data.timeline} />}
         {tab === "chat" && <ChatTab eventId={id} messages={data.messages} onPosted={() => qc.invalidateQueries({ queryKey: ["event", id] })} />}
         {tab === "parties" && <PartiesTab parties={data.parties} />}
