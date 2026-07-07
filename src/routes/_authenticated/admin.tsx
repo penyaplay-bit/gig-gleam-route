@@ -17,10 +17,11 @@ function AdminShell() {
 
   const nav = [
     { to: "/admin/pipeline", label: "Pipeline", Icon: LayoutDashboard },
-    { to: "/admin/bookings", label: "Bookings", Icon: Table2 },
+    { to: "/admin/bookings", label: "Events", Icon: Radio },
     { to: "/admin/calendar", label: "Calendar", Icon: Calendar },
     { to: "/admin/packages", label: "Packages", Icon: Package },
     { to: "/admin/promoters", label: "Promoters", Icon: Users },
+    { to: "/admin/bookings", label: "Table", Icon: Table2 },
   ];
 
   return (
