@@ -33,11 +33,12 @@ export const Route = createFileRoute("/_authenticated/admin/events/$id")({
 });
 
 type TabId =
-  | "overview" | "timeline" | "chat" | "payments" | "contracts"
+  | "overview" | "health" | "timeline" | "chat" | "payments" | "contracts"
   | "travel" | "campaign" | "media" | "documents" | "tasks" | "analytics" | "parties";
 
 const TABS: { id: TabId; label: string; Icon: typeof Circle }[] = [
   { id: "overview", label: "Overview", Icon: LayoutGrid },
+  { id: "health", label: "Health", Icon: Activity },
   { id: "timeline", label: "Timeline", Icon: Clock },
   { id: "chat", label: "Chat", Icon: MessageSquare },
   { id: "parties", label: "Parties", Icon: Users },
