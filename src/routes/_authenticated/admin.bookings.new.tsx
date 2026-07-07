@@ -87,6 +87,24 @@ function NewBooking() {
     mutationFn: () => runAi({ data: { profile_id: profileId, inputs: form } }),
   });
 
+  const [venueAddress, setVenueAddress] = useState("");
+  const distanceMut = useMutation({
+    mutationFn: async () => {
+      if (!profile?.home_address) throw new Error("Artist has no home base configured.");
+      if (!venueAddress.trim()) throw new Error("Enter a venue address first.");
+      return runDistance({ data: { origin: profile.home_address, destination: venueAddress.trim() } });
+    },
+    onSuccess: (r) => {
+      setForm((f) => ({
+        ...f,
+        distance_km: r.distance_km,
+        cross_border: r.cross_border,
+        overnight_required: f.overnight_required || r.distance_km > 400,
+        flights_required: f.flights_required || r.distance_km > 800,
+      }));
+    },
+  });
+
   const quote = previewQ.data;
 
   function update<K extends keyof QuoteInputs>(key: K, value: QuoteInputs[K]) {
