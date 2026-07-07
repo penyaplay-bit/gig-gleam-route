@@ -10,33 +10,88 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicBookingsRouteImport } from './routes/api/public/bookings'
+import { Route as ApiPublicArtistsRouteImport } from './routes/api/public/artists'
+import { Route as ApiPublicDepositsRefRouteImport } from './routes/api/public/deposits.$ref'
+import { Route as ApiPublicBookingsRefRouteImport } from './routes/api/public/bookings.$ref'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicBookingsRoute = ApiPublicBookingsRouteImport.update({
+  id: '/api/public/bookings',
+  path: '/api/public/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicArtistsRoute = ApiPublicArtistsRouteImport.update({
+  id: '/api/public/artists',
+  path: '/api/public/artists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDepositsRefRoute = ApiPublicDepositsRefRouteImport.update({
+  id: '/api/public/deposits/$ref',
+  path: '/api/public/deposits/$ref',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBookingsRefRoute = ApiPublicBookingsRefRouteImport.update({
+  id: '/$ref',
+  path: '/$ref',
+  getParentRoute: () => ApiPublicBookingsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/artists': typeof ApiPublicArtistsRoute
+  '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
+  '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/artists': typeof ApiPublicArtistsRoute
+  '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
+  '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/artists': typeof ApiPublicArtistsRoute
+  '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
+  '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/api/public/artists'
+    | '/api/public/bookings'
+    | '/api/public/bookings/$ref'
+    | '/api/public/deposits/$ref'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/api/public/artists'
+    | '/api/public/bookings'
+    | '/api/public/bookings/$ref'
+    | '/api/public/deposits/$ref'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/public/artists'
+    | '/api/public/bookings'
+    | '/api/public/bookings/$ref'
+    | '/api/public/deposits/$ref'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicArtistsRoute: typeof ApiPublicArtistsRoute
+  ApiPublicBookingsRoute: typeof ApiPublicBookingsRouteWithChildren
+  ApiPublicDepositsRefRoute: typeof ApiPublicDepositsRefRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +103,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/bookings': {
+      id: '/api/public/bookings'
+      path: '/api/public/bookings'
+      fullPath: '/api/public/bookings'
+      preLoaderRoute: typeof ApiPublicBookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/artists': {
+      id: '/api/public/artists'
+      path: '/api/public/artists'
+      fullPath: '/api/public/artists'
+      preLoaderRoute: typeof ApiPublicArtistsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/deposits/$ref': {
+      id: '/api/public/deposits/$ref'
+      path: '/api/public/deposits/$ref'
+      fullPath: '/api/public/deposits/$ref'
+      preLoaderRoute: typeof ApiPublicDepositsRefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bookings/$ref': {
+      id: '/api/public/bookings/$ref'
+      path: '/$ref'
+      fullPath: '/api/public/bookings/$ref'
+      preLoaderRoute: typeof ApiPublicBookingsRefRouteImport
+      parentRoute: typeof ApiPublicBookingsRoute
+    }
   }
 }
 
+interface ApiPublicBookingsRouteChildren {
+  ApiPublicBookingsRefRoute: typeof ApiPublicBookingsRefRoute
+}
+
+const ApiPublicBookingsRouteChildren: ApiPublicBookingsRouteChildren = {
+  ApiPublicBookingsRefRoute: ApiPublicBookingsRefRoute,
+}
+
+const ApiPublicBookingsRouteWithChildren =
+  ApiPublicBookingsRoute._addFileChildren(ApiPublicBookingsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicArtistsRoute: ApiPublicArtistsRoute,
+  ApiPublicBookingsRoute: ApiPublicBookingsRouteWithChildren,
+  ApiPublicDepositsRefRoute: ApiPublicDepositsRefRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
