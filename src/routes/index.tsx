@@ -1,821 +1,143 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ARTISTS,
-  CITIES,
-  CITY_BY_ID,
-  CONFIRMED_BOOKINGS,
-  EVENT_CLASSES,
-  FORMATS,
-  SET_LENGTHS,
-  VEHICLES,
-  type EventClass,
-  type PerformanceFormat,
-  type SetLength,
-  type VehicleClass,
-} from "@/lib/mock-data";
-import { calculateQuote, formatMoney, roadDistance, type TransportMode } from "@/lib/quote-engine";
-import { downloadQuotePdf } from "@/lib/quote-pdf";
-import { BANKING, DEFAULT_RIDER, DEFAULT_TERMS } from "@/lib/quote-terms";
-import { cn } from "@/lib/utils";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, Shield, Zap, Calendar, LineChart } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Penya Bookings — the quote engine, live" },
+      { title: "Penya Play Bookings — Book Ntate Stunna & Penya Play artists" },
       {
         name: "description",
         content:
-          "An interactive demo of the artist-booking quote engine: performance fee, real distance-based travel costs, and automatic proximity discounts.",
+          "The official booking portal for Ntate Stunna and Penya Play artists. Request a quote, secure your date with a deposit, and confirm your event.",
       },
-      { property: "og:title", content: "Penya Bookings — the quote engine, live" },
-      {
-        property: "og:description",
-        content:
-          "See how a booking is priced line-by-line — Uber-style pricing for live music in Lesotho & South Africa.",
-      },
+      { property: "og:title", content: "Penya Play Bookings" },
+      { property: "og:description", content: "Book Ntate Stunna & Penya Play artists. Serious bookings only." },
+      { property: "og:type", content: "website" },
     ],
   }),
-  component: QuoteEngineDemo,
+  component: LandingPage,
 });
 
-/** Scroll-triggered reveal. Children fade/lift in when they enter the
- * viewport. Delay staggers siblings. Respects prefers-reduced-motion
- * via the .reveal CSS. */
-function Reveal({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.12 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+function LandingPage() {
   return (
-    <div
-      ref={ref}
-      className={`reveal ${inView ? "in" : ""} ${className}`}
-      style={{ ["--reveal-delay" as string]: `${delay}ms` }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function QuoteEngineDemo() {
-  const [artistId, setArtistId] = useState(ARTISTS[0].id);
-  const [destinationCityId, setDestinationCityId] = useState("mokhotlong");
-  const [date, setDate] = useState("2026-07-25");
-  const [eventClass, setEventClass] = useState<EventClass>("festival");
-  const [format, setFormat] = useState<PerformanceFormat>("band");
-  const [setLength, setSetLength] = useState<SetLength>(60);
-  const [vehicleClass, setVehicleClass] = useState<VehicleClass>("quantum");
-  const [eventEndsAfter10pm, setEventEndsAfter10pm] = useState(true);
-  const [applyProximity, setApplyProximity] = useState(true);
-  const [transportMode, setTransportMode] = useState<TransportMode>("engine");
-
-  const quote = useMemo(
-    () =>
-      calculateQuote({
-        artistId,
-        destinationCityId,
-        date,
-        eventClass,
-        format,
-        setLength,
-        vehicleClass,
-        eventEndsAfter10pm,
-        applyProximity,
-        transportMode,
-      }),
-    [artistId, destinationCityId, date, eventClass, format, setLength, vehicleClass, eventEndsAfter10pm, applyProximity, transportMode],
-  );
-
-  const artistBookings = CONFIRMED_BOOKINGS.filter((b) => b.artistId === artistId);
-
-  return (
-    <div className="min-h-screen">
-      <Header />
-
-      <main className="mx-auto max-w-6xl px-6 pb-24 pt-10 md:pt-16">
-        <Hero />
-
-        <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-          <Reveal>
-          <section className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-sm">
-            <SectionLabel index={1} title="Booking request" />
-            <div className="mt-6 space-y-6">
-              <ArtistPicker value={artistId} onChange={setArtistId} />
-
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Venue city">
-                  <Select value={destinationCityId} onChange={setDestinationCityId}>
-                    {CITIES.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} · {c.region}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Event date">
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="input"
-                  />
-                </Field>
-              </div>
-
-              <Field label="Event class">
-                <SegGroup
-                  value={eventClass}
-                  onChange={(v) => setEventClass(v as EventClass)}
-                  options={Object.entries(EVENT_CLASSES).map(([k, v]) => ({
-                    value: k,
-                    label: v.label,
-                    hint: `×${v.multiplier}`,
-                  }))}
-                />
-              </Field>
-
-              <Field label="Performance format">
-                <SegGroup
-                  value={format}
-                  onChange={(v) => setFormat(v as PerformanceFormat)}
-                  options={Object.entries(FORMATS).map(([k, v]) => ({
-                    value: k,
-                    label: v.label,
-                  }))}
-                />
-              </Field>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="Set length">
-                  <SegGroup
-                    value={String(setLength)}
-                    onChange={(v) => setSetLength(Number(v) as SetLength)}
-                    options={SET_LENGTHS.map((l) => ({ value: String(l), label: `${l} min` }))}
-                  />
-                </Field>
-                <Field label="Vehicle class">
-                  <Select
-                    value={vehicleClass}
-                    onChange={(v) => setVehicleClass(v as VehicleClass)}
-                  >
-                    {Object.values(VEHICLES).map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.label} · {v.seats} seats
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-              </div>
-
-              <Field label="Transport & accommodation">
-                <SegGroup
-                  value={transportMode}
-                  onChange={(v) => setTransportMode(v as TransportMode)}
-                  options={[
-                    { value: "engine", label: "Engine-priced" },
-                    { value: "excluded", label: "Promoter arranges" },
-                  ]}
-                />
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  {transportMode === "engine"
-                    ? "Travel and accommodation are itemised in the quote and paid via platform escrow."
-                    : "Current-practice mode. Quote covers performance fee only; promoter arranges transport & accommodation directly (per Ntate Stunna's live template)."}
-                </p>
-              </Field>
-
-              <div className="flex flex-col gap-3 rounded-xl bg-secondary p-4">
-                <Toggle
-                  checked={eventEndsAfter10pm}
-                  onChange={setEventEndsAfter10pm}
-                  label="Event ends after 22:00"
-                  hint="Triggers accommodation if >150 km"
-                />
-                <Toggle
-                  checked={applyProximity}
-                  onChange={setApplyProximity}
-                  label="Apply proximity engine"
-                  hint={transportMode === "excluded" ? "Only active in engine-priced mode" : "Scan artist's confirmed dates for routing discounts"}
-                />
-              </div>
-
-              <ArtistTourCard bookings={artistBookings} />
-            </div>
-          </section>
-          </Reveal>
-
-          <div className="space-y-6">
-            <Reveal delay={80}>
-              <QuotePanel quote={quote} transportMode={transportMode} date={date} />
-            </Reveal>
-            <Reveal delay={140}>
-              <RiderCard crewSize={quote.crewSize} />
-            </Reveal>
-            <Reveal delay={200}>
-              <TermsCard />
-            </Reveal>
-            <Reveal delay={260}>
-              <BankingCard />
-            </Reveal>
-          </div>
-        </div>
-
-        <Reveal delay={100}>
-          <FormulaFooter />
-        </Reveal>
-      </main>
-    </div>
-  );
-}
-
-function Header() {
-  return (
-    <header className="border-b border-border/60 bg-background/60 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <div className="flex items-center gap-3">
-          <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-ochre font-display text-lg font-bold text-primary-foreground glow-lime">
-            P
-            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-magenta" style={{ animation: "hud-pulse 1.8s ease-in-out infinite" }} />
-          </div>
-          <div>
-            <div className="font-display text-lg leading-none tracking-tight">PENYA<span className="text-ochre">PLAY</span> BOOKINGS</div>
-            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">press play · home of entertainment</div>
-          </div>
-        </div>
-        <div className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground md:flex md:items-center md:gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-evergreen" style={{ animation: "hud-pulse 1.4s ease-in-out infinite" }} />
-          v1.0 · LSL/ZAR 1:1
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function Hero() {
-  return (
-    <div className="max-w-3xl reveal in">
-      <div className="inline-flex items-center gap-2 rounded-full border border-ochre/40 bg-ochre-soft px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-ochre">
-        <span className="h-1.5 w-1.5 rounded-full bg-ochre" style={{ animation: "hud-pulse 1.6s ease-in-out infinite" }} />
-        Algorithmic travel pricing · LS + SA
-      </div>
-      <h1 className="mt-5 font-display text-4xl font-bold leading-[1.02] tracking-tight md:text-6xl">
-        Press play on a price that's{" "}
-        <span className="text-goldleaf">calculated</span>,<br />not guessed.
-      </h1>
-      <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
-        Move any input on the left. The itemised quote on the right{" "}
-        <span className="text-foreground">recalculates in real-time</span> — distance, fuel, vehicle,
-        and the routing discount that unlocks when the artist is already booked near your venue.
-      </p>
-    </div>
-  );
-}
-
-function SectionLabel({ index, title }: { index: number; title: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="grid h-6 w-6 place-items-center rounded-full bg-ochre text-[11px] font-semibold text-parchment">
-        {index}
-      </span>
-      <h2 className="font-display text-xl">{title}</h2>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </span>
-      {children}
-    </label>
-  );
-}
-
-function Select({
-  value,
-  onChange,
-  children,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <select value={value} onChange={(e) => onChange(e.target.value)} className="input">
-      {children}
-    </select>
-  );
-}
-
-function SegGroup({
-  value,
-  onChange,
-  options,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string; hint?: string }[];
-}) {
-  return (
-    <div className="flex flex-wrap gap-1.5 rounded-xl bg-secondary p-1">
-      {options.map((o) => {
-        const active = o.value === value;
-        return (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className={cn(
-              "flex-1 min-w-[80px] rounded-lg px-3 py-2 text-sm font-medium transition-all",
-              active
-                ? "bg-card text-foreground shadow-sm ring-1 ring-border"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {o.label}
-            {o.hint && <span className="ml-1 text-[11px] opacity-60">{o.hint}</span>}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function Toggle({
-  checked,
-  onChange,
-  label,
-  hint,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
-  hint?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className="flex items-center justify-between text-left"
-    >
-      <div>
-        <div className="text-sm font-medium">{label}</div>
-        {hint && <div className="text-xs text-muted-foreground">{hint}</div>}
-      </div>
-      <span
-        className={cn(
-          "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
-          checked ? "bg-ochre" : "bg-border",
-        )}
-      >
-        <span
-          className={cn(
-            "inline-block h-5 w-5 transform rounded-full bg-card shadow-sm transition-transform",
-            checked ? "translate-x-5" : "translate-x-0.5",
-          )}
-        />
-      </span>
-    </button>
-  );
-}
-
-function ArtistPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <Field label="Artist">
-      <div className="grid gap-2 sm:grid-cols-3">
-        {ARTISTS.map((a) => {
-          const active = a.id === value;
-          return (
-            <button
-              key={a.id}
-              type="button"
-              onClick={() => onChange(a.id)}
-              className={cn(
-                "group relative overflow-hidden rounded-xl border p-3 text-left transition-all",
-                active
-                  ? "border-ochre bg-card shadow-sm ring-2 ring-ochre/30"
-                  : "border-border bg-card/60 hover:border-ochre/50",
-              )}
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Nav */}
+      <header className="border-b border-primary/10 bg-background/70 backdrop-blur sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-primary text-xl">◆</span>
+            <span className="font-display tracking-wider">PENYA PLAY</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/book"
+              className="hidden sm:inline-flex items-center gap-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
-              <div className="flex items-start gap-3">
-                <div
-                  className={cn(
-                    "grid h-9 w-9 place-items-center rounded-lg font-display text-lg",
-                    active ? "bg-ochre text-parchment" : "bg-secondary text-foreground",
-                  )}
-                >
-                  {a.photo}
-                </div>
-                <div className="min-w-0">
-                  <div className="truncate font-display text-sm font-semibold">{a.name}</div>
-                  <div className="truncate text-[11px] text-muted-foreground">{a.tagline}</div>
-                </div>
-              </div>
-              <div className="mt-3 text-[11px] text-muted-foreground">
-                Home · {CITY_BY_ID[a.homeCityId].name}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </Field>
-  );
-}
+              Book an artist <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link to="/auth" className="text-xs text-muted-foreground hover:text-foreground">
+              Staff
+            </Link>
+          </div>
+        </div>
+      </header>
 
-function ArtistTourCard({
-  bookings,
-}: {
-  bookings: { id: string; cityId: string; date: string; label: string }[];
-}) {
-  if (bookings.length === 0) {
-    return (
-      <div className="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
-        No confirmed bookings for this artist — proximity engine will price from home base.
-      </div>
-    );
-  }
-  return (
-    <div className="rounded-xl border border-border bg-parchment-deep/40 p-4">
-      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Confirmed dates feeding the engine
-      </div>
-      <ul className="space-y-1.5 text-sm">
-        {bookings.map((b) => (
-          <li key={b.id} className="flex items-center justify-between gap-3">
-            <span className="truncate">
-              <span className="font-medium">{CITY_BY_ID[b.cityId].name}</span>
-              <span className="text-muted-foreground"> · {b.label}</span>
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent" />
+        <div className="relative max-w-6xl mx-auto px-4 py-24 sm:py-32">
+          <div className="max-w-3xl">
+            <span className="inline-block text-xs uppercase tracking-widest text-primary/80 mb-4">
+              Official booking portal
             </span>
-            <span className="shrink-0 tabular-nums text-xs text-muted-foreground">{b.date}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function makeQuoteRef(artistId: string, cityId: string, date: string): string {
-  const clean = date.replace(/-/g, "");
-  return `${artistId.slice(0, 2).toUpperCase()}-${cityId.slice(0, 4).toUpperCase()}-${clean}`;
-}
-
-function QuotePanel({
-  quote,
-  transportMode,
-  date,
-}: {
-  quote: ReturnType<typeof calculateQuote>;
-  transportMode: TransportMode;
-  date: string;
-}) {
-  const route = roadDistance(quote.originCity.id, quote.destination.id);
-  const ref = makeQuoteRef(quote.artist.id, quote.destination.id, date);
-  const deposit = Math.round(quote.total / 2);
-  const balance = quote.total - deposit;
-
-  return (
-    <section className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-quote">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <SectionLabel index={2} title="Itemised quote" />
-        <div className="flex items-start gap-3">
-          <div className="text-right text-[11px] uppercase tracking-wider text-muted-foreground">
-            <div>Ref · <span className="text-foreground">{ref}</span></div>
-            <div className="mt-0.5">
-              {transportMode === "excluded" ? "Current-practice format" : "Engine-priced format"}
+            <h1 className="text-5xl sm:text-7xl font-display leading-tight">
+              Book <span className="text-primary">Ntate Stunna</span> &<br />
+              Penya Play artists.
+            </h1>
+            <p className="mt-6 text-lg text-muted-foreground max-w-xl">
+              Every booking is qualified, priced, and protected. From private events to festivals — request a quote, secure the
+              date with a deposit, and we handle the rest.
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              <Link
+                to="/book"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-base font-medium text-primary-foreground hover:bg-primary/90 shadow-quote"
+              >
+                Request a booking <ArrowRight className="w-4 h-4" />
+              </Link>
+              <a
+                href="#how"
+                className="inline-flex items-center gap-2 rounded-md border border-primary/30 px-6 py-3 text-sm text-foreground hover:bg-primary/5"
+              >
+                How it works
+              </a>
             </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => downloadQuotePdf(quote, date)}
-            className="group inline-flex items-center gap-1.5 rounded-lg bg-ochre px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-foreground transition-all hover:brightness-110 glow-lime"
-            title="Download itemised quote + rider + T&Cs as PDF"
-          >
-            <span>↓ PDF</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-5 grid grid-cols-2 gap-4 rounded-xl bg-secondary/60 p-4 text-xs">
-        <div>
-          <div className="uppercase tracking-wider text-muted-foreground">From</div>
-          <div className="mt-1 font-medium">Penya Play Productions</div>
-          <div className="text-muted-foreground">on behalf of {quote.artist.name}</div>
-        </div>
-        <div>
-          <div className="uppercase tracking-wider text-muted-foreground">Event</div>
-          <div className="mt-1 font-medium">{quote.destination.name}</div>
-          <div className="text-muted-foreground tabular-nums">{date}</div>
-        </div>
-      </div>
-
-      <div className="mt-6 flex items-baseline justify-between gap-4">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">Total payable</div>
-          <div className="font-display text-4xl md:text-5xl tabular-nums text-goldleaf">
-            {formatMoney(quote.total)}
+            <p className="mt-8 text-xs text-muted-foreground italic">
+              Serious bookings only. Dates are not confirmed until the deposit is verified.
+            </p>
           </div>
         </div>
-        <div className="text-right text-xs text-muted-foreground">
-          <div>
-            {quote.originCity.name} → {quote.destination.name}
-          </div>
-          <div className="tabular-nums">
-            {route.km} km · {route.hours.toFixed(1)} h drive
-          </div>
+      </section>
+
+      {/* How */}
+      <section id="how" className="border-t border-primary/10 bg-card/30">
+        <div className="max-w-6xl mx-auto px-4 py-20">
+          <h2 className="text-3xl font-display mb-2">How a booking works</h2>
+          <p className="text-muted-foreground mb-12">Transparent, protected, no chasing.</p>
+          <ol className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { n: 1, t: "Request", d: "Submit event details, package, and your offer. Takes 2 minutes." },
+              { n: 2, t: "Quote", d: "Our ops team returns an itemised quote — performance fee, travel, logistics." },
+              { n: 3, t: "Deposit", d: "Pay the deposit (usually 50%) via bank transfer and upload proof. Date locked on verification." },
+              { n: 4, t: "Perform", d: "We handle travel and setup. Balance settles before the show. You get the memory." },
+            ].map((s) => (
+              <li key={s.n} className="rounded-xl border border-primary/15 bg-background/60 p-6">
+                <span className="text-3xl font-display text-primary">{String(s.n).padStart(2, "0")}</span>
+                <h3 className="mt-3 font-semibold">{s.t}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{s.d}</p>
+              </li>
+            ))}
+          </ol>
         </div>
-      </div>
+      </section>
 
-      <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-        <span className="rounded-full bg-secondary px-2.5 py-1 tabular-nums">
-          50% deposit · {formatMoney(deposit)} on confirmation
-        </span>
-        <span className="rounded-full bg-secondary px-2.5 py-1 tabular-nums">
-          Balance · {formatMoney(balance)} T-7 days
-        </span>
-      </div>
-
-      {quote.proximityMatch && (
-        <div className="mt-4 rounded-xl border border-evergreen/30 bg-evergreen/5 p-4">
-          <div className="flex items-start gap-3">
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-evergreen/15 text-evergreen">
-              ↺
-            </div>
-            <div className="min-w-0 text-sm">
-              <div className="font-semibold text-evergreen">Routing discount applied</div>
-              <div className="mt-1 text-muted-foreground">
-                Artist performing in{" "}
-                <span className="font-medium text-foreground">
-                  {quote.proximityMatch.cityName}
-                </span>{" "}
-                on{" "}
-                <span className="font-medium text-foreground">
-                  {quote.proximityMatch.date}
-                </span>
-                . Origin re-anchored ({quote.proximityMatch.originalOriginKm} km →{" "}
-                {quote.proximityMatch.newOriginKm} km).
-              </div>
-              <div className="mt-2 font-display text-lg text-evergreen tabular-nums">
-                You save {formatMoney(quote.proximityMatch.saved)}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-6 space-y-6">
-        <LineGroup title="Performance" lines={quote.performanceLines} />
-        <LineGroup
-          title="Travel & logistics"
-          lines={quote.travelLines}
-          note={
-            quote.needsAccommodation
-              ? "Overnight triggered by distance / event end time."
-              : undefined
-          }
-        />
-        {quote.discountLine && <LineGroup title="Adjustments" lines={[quote.discountLine]} />}
-        <LineGroup
-          title="Platform"
-          lines={[
-            {
-              key: "commission",
-              label: `Booking commission (${quote.commissionPct}%)`,
-              detail: "On performance fee only — travel passes through at cost.",
-              amount: quote.commission,
-            },
-          ]}
-        />
-      </div>
-
-      {quote.warnings.length > 0 && (
-        <div className="mt-6 space-y-2">
-          {quote.warnings.map((w, i) => (
-            <div
-              key={i}
-              className="rounded-lg border border-ochre/40 bg-ochre-soft/60 px-3 py-2 text-xs"
-            >
-              ⚠ {w}
+      {/* Trust / features */}
+      <section className="border-t border-primary/10">
+        <div className="max-w-6xl mx-auto px-4 py-20 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { Icon: Shield, t: "Deposit-locked", d: "No dates confirmed on promises. Only verified payments." },
+            { Icon: Zap, t: "Fast quotes", d: "Priced by our engine, reviewed by ops, returned within 24 hours." },
+            { Icon: Calendar, t: "Real availability", d: "Live calendar means you never chase a phantom date." },
+            { Icon: LineChart, t: "Full transparency", d: "Every fee is itemised — performance, travel, per-diem, accommodation." },
+          ].map(({ Icon, t, d }) => (
+            <div key={t}>
+              <Icon className="w-6 h-6 text-primary mb-3" />
+              <h3 className="font-semibold">{t}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{d}</p>
             </div>
           ))}
         </div>
-      )}
+      </section>
 
-      <div className="mt-6 hairline pt-4 flex items-baseline justify-between">
-        <span className="text-sm font-medium">Total quote</span>
-        <span className="font-display text-3xl tabular-nums">{formatMoney(quote.total)}</span>
-      </div>
-    </section>
-  );
-}
+      {/* CTA */}
+      <section className="border-t border-primary/10 bg-gradient-to-b from-transparent to-primary/5">
+        <div className="max-w-3xl mx-auto px-4 py-24 text-center">
+          <h2 className="text-4xl font-display">Ready to book?</h2>
+          <p className="mt-4 text-muted-foreground">
+            Complete the request form — we'll come back with a written quote and next steps.
+          </p>
+          <Link
+            to="/book"
+            className="mt-8 inline-flex items-center gap-2 rounded-md bg-primary px-8 py-4 text-base font-medium text-primary-foreground hover:bg-primary/90 shadow-quote"
+          >
+            Request a booking <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
 
-function LineGroup({
-  title,
-  lines,
-  note,
-}: {
-  title: string;
-  lines: { key: string; label: string; detail?: string; amount: number }[];
-  note?: string;
-}) {
-  const subtotal = lines.reduce((s, l) => s + l.amount, 0);
-  return (
-    <div>
-      <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {title}
-        </h3>
-        <span className="text-xs tabular-nums text-muted-foreground">
-          {formatMoney(subtotal)}
-        </span>
-      </div>
-      <ul className="space-y-2">
-        {lines.map((l) => (
-          <li key={l.key} className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="text-sm font-medium">{l.label}</div>
-              {l.detail && (
-                <div className="text-xs text-muted-foreground">{l.detail}</div>
-              )}
-            </div>
-            <div
-              className={cn(
-                "shrink-0 tabular-nums text-sm font-medium",
-                l.amount < 0 && "text-evergreen",
-              )}
-            >
-              {formatMoney(l.amount)}
-            </div>
-          </li>
-        ))}
-      </ul>
-      {note && <div className="mt-2 text-[11px] italic text-muted-foreground">{note}</div>}
+      <footer className="border-t border-primary/10 py-8 text-center text-xs text-muted-foreground">
+        © Penya Play Music · Maseru · Booking OS
+      </footer>
     </div>
-  );
-}
-
-function FormulaFooter() {
-  return (
-    <div className="mt-14 rounded-2xl border border-border bg-card/60 p-6 md:p-8">
-      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        The formula
-      </div>
-      <pre className="mt-3 whitespace-pre-wrap font-display text-lg md:text-xl leading-relaxed">
-        {`TOTAL = Performance Fee
-      + Travel & Logistics
-      + Extras (production, crew, per diems)
-      − Proximity Discount
-      + Platform Commission`}
-      </pre>
-      <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
-        Every line item is visible to the booker. Nothing is a lump sum. Travel is passed
-        through at cost — the platform never commissions logistics. That's the trust wedge.
-      </p>
-    </div>
-  );
-}
-
-function RiderCard({ crewSize }: { crewSize: number }) {
-  return (
-    <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display text-lg">Hospitality & technical rider</h3>
-        <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">
-          Team of {crewSize}
-        </span>
-      </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Provided by promoter at the venue prior to artist arrival. Auto-attached to the
-        performance agreement.
-      </p>
-      <div className="mt-4 space-y-4">
-        {DEFAULT_RIDER.map((section) => (
-          <div key={section.category}>
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {section.category}
-            </div>
-            <ul className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">
-              {section.items.map((item) => (
-                <li key={item} className="flex gap-2">
-                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-ochre" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function TermsCard() {
-  const [open, setOpen] = useState<string | null>("1");
-  return (
-    <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
-      <div className="flex items-baseline justify-between">
-        <h3 className="font-display text-lg">Terms & conditions</h3>
-        <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Seed template · Penya Play
-        </span>
-      </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Accepted quote auto-populates a performance agreement with these clauses. Every
-        artist–manager split is recorded in-platform — no verbal agreements.
-      </p>
-      <div className="mt-5 divide-y divide-border rounded-xl border border-border">
-        {DEFAULT_TERMS.map((clause) => {
-          const isOpen = open === clause.n;
-          return (
-            <div key={clause.n}>
-              <button
-                type="button"
-                onClick={() => setOpen(isOpen ? null : clause.n)}
-                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-secondary font-display text-xs">
-                    {clause.n}
-                  </span>
-                  <span className="text-sm font-medium">{clause.title}</span>
-                </span>
-                <span
-                  className={cn(
-                    "text-muted-foreground transition-transform",
-                    isOpen && "rotate-180",
-                  )}
-                >
-                  ⌄
-                </span>
-              </button>
-              {isOpen && (
-                <div className="border-t border-border bg-secondary/40 px-4 py-3">
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    {clause.body.map((b, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-ochre" />
-                        <span>{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function BankingCard() {
-  return (
-    <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
-      <div className="flex items-baseline justify-between">
-        <h3 className="font-display text-lg">Banking details</h3>
-        <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Off-platform reference
-        </span>
-      </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Held in the current-practice quote. On the platform, deposit and balance flow
-        through escrow and are auto-split per recorded manager agreement.
-      </p>
-      <dl className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-        {[
-          ["Account name", BANKING.accountName],
-          ["Bank", BANKING.bank],
-          ["Type", BANKING.accountType],
-          ["Account number", BANKING.accountNumber],
-        ].map(([k, v]) => (
-          <div key={k} className="rounded-lg bg-secondary/60 px-3 py-2">
-            <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</dt>
-            <dd className="mt-0.5 font-medium tabular-nums">{v}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
   );
 }

@@ -9,38 +9,273 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as BookRouteImport } from './routes/book'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PayRefRouteImport } from './routes/pay.$ref'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as BookConfirmRefRouteImport } from './routes/book.confirm.$ref'
+import { Route as ApiPublicBookingsRouteImport } from './routes/api/public/bookings'
+import { Route as ApiPublicArtistsRouteImport } from './routes/api/public/artists'
+import { Route as AuthenticatedAdminPromotersRouteImport } from './routes/_authenticated/admin.promoters'
+import { Route as AuthenticatedAdminPipelineRouteImport } from './routes/_authenticated/admin.pipeline'
+import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authenticated/admin.packages'
+import { Route as AuthenticatedAdminCalendarRouteImport } from './routes/_authenticated/admin.calendar'
+import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
+import { Route as ApiPublicDepositsRefRouteImport } from './routes/api/public/deposits.$ref'
+import { Route as ApiPublicBookingsRefRouteImport } from './routes/api/public/bookings.$ref'
+import { Route as AuthenticatedAdminBookingsIdRouteImport } from './routes/_authenticated/admin.bookings.$id'
 
+const BookRoute = BookRouteImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayRefRoute = PayRefRouteImport.update({
+  id: '/pay/$ref',
+  path: '/pay/$ref',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const BookConfirmRefRoute = BookConfirmRefRouteImport.update({
+  id: '/confirm/$ref',
+  path: '/confirm/$ref',
+  getParentRoute: () => BookRoute,
+} as any)
+const ApiPublicBookingsRoute = ApiPublicBookingsRouteImport.update({
+  id: '/api/public/bookings',
+  path: '/api/public/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicArtistsRoute = ApiPublicArtistsRouteImport.update({
+  id: '/api/public/artists',
+  path: '/api/public/artists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminPromotersRoute =
+  AuthenticatedAdminPromotersRouteImport.update({
+    id: '/promoters',
+    path: '/promoters',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPipelineRoute =
+  AuthenticatedAdminPipelineRouteImport.update({
+    id: '/pipeline',
+    path: '/pipeline',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPackagesRoute =
+  AuthenticatedAdminPackagesRouteImport.update({
+    id: '/packages',
+    path: '/packages',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCalendarRoute =
+  AuthenticatedAdminCalendarRouteImport.update({
+    id: '/calendar',
+    path: '/calendar',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminBookingsRoute =
+  AuthenticatedAdminBookingsRouteImport.update({
+    id: '/bookings',
+    path: '/bookings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const ApiPublicDepositsRefRoute = ApiPublicDepositsRefRouteImport.update({
+  id: '/api/public/deposits/$ref',
+  path: '/api/public/deposits/$ref',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBookingsRefRoute = ApiPublicBookingsRefRouteImport.update({
+  id: '/$ref',
+  path: '/$ref',
+  getParentRoute: () => ApiPublicBookingsRoute,
+} as any)
+const AuthenticatedAdminBookingsIdRoute =
+  AuthenticatedAdminBookingsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminBookingsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/book': typeof BookRouteWithChildren
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/pay/$ref': typeof PayRefRoute
+  '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
+  '/admin/calendar': typeof AuthenticatedAdminCalendarRoute
+  '/admin/packages': typeof AuthenticatedAdminPackagesRoute
+  '/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
+  '/admin/promoters': typeof AuthenticatedAdminPromotersRoute
+  '/api/public/artists': typeof ApiPublicArtistsRoute
+  '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/book/confirm/$ref': typeof BookConfirmRefRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
+  '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
+  '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/book': typeof BookRouteWithChildren
+  '/pay/$ref': typeof PayRefRoute
+  '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
+  '/admin/calendar': typeof AuthenticatedAdminCalendarRoute
+  '/admin/packages': typeof AuthenticatedAdminPackagesRoute
+  '/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
+  '/admin/promoters': typeof AuthenticatedAdminPromotersRoute
+  '/api/public/artists': typeof ApiPublicArtistsRoute
+  '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/book/confirm/$ref': typeof BookConfirmRefRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
+  '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
+  '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/book': typeof BookRouteWithChildren
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/pay/$ref': typeof PayRefRoute
+  '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
+  '/_authenticated/admin/calendar': typeof AuthenticatedAdminCalendarRoute
+  '/_authenticated/admin/packages': typeof AuthenticatedAdminPackagesRoute
+  '/_authenticated/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
+  '/_authenticated/admin/promoters': typeof AuthenticatedAdminPromotersRoute
+  '/api/public/artists': typeof ApiPublicArtistsRoute
+  '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/book/confirm/$ref': typeof BookConfirmRefRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
+  '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
+  '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/book'
+    | '/admin'
+    | '/pay/$ref'
+    | '/admin/bookings'
+    | '/admin/calendar'
+    | '/admin/packages'
+    | '/admin/pipeline'
+    | '/admin/promoters'
+    | '/api/public/artists'
+    | '/api/public/bookings'
+    | '/book/confirm/$ref'
+    | '/admin/'
+    | '/admin/bookings/$id'
+    | '/api/public/bookings/$ref'
+    | '/api/public/deposits/$ref'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/book'
+    | '/pay/$ref'
+    | '/admin/bookings'
+    | '/admin/calendar'
+    | '/admin/packages'
+    | '/admin/pipeline'
+    | '/admin/promoters'
+    | '/api/public/artists'
+    | '/api/public/bookings'
+    | '/book/confirm/$ref'
+    | '/admin'
+    | '/admin/bookings/$id'
+    | '/api/public/bookings/$ref'
+    | '/api/public/deposits/$ref'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/book'
+    | '/_authenticated/admin'
+    | '/pay/$ref'
+    | '/_authenticated/admin/bookings'
+    | '/_authenticated/admin/calendar'
+    | '/_authenticated/admin/packages'
+    | '/_authenticated/admin/pipeline'
+    | '/_authenticated/admin/promoters'
+    | '/api/public/artists'
+    | '/api/public/bookings'
+    | '/book/confirm/$ref'
+    | '/_authenticated/admin/'
+    | '/_authenticated/admin/bookings/$id'
+    | '/api/public/bookings/$ref'
+    | '/api/public/deposits/$ref'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  BookRoute: typeof BookRouteWithChildren
+  PayRefRoute: typeof PayRefRoute
+  ApiPublicArtistsRoute: typeof ApiPublicArtistsRoute
+  ApiPublicBookingsRoute: typeof ApiPublicBookingsRouteWithChildren
+  ApiPublicDepositsRefRoute: typeof ApiPublicDepositsRefRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/book': {
+      id: '/book'
+      path: '/book'
+      fullPath: '/book'
+      preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +283,184 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay/$ref': {
+      id: '/pay/$ref'
+      path: '/pay/$ref'
+      fullPath: '/pay/$ref'
+      preLoaderRoute: typeof PayRefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/book/confirm/$ref': {
+      id: '/book/confirm/$ref'
+      path: '/confirm/$ref'
+      fullPath: '/book/confirm/$ref'
+      preLoaderRoute: typeof BookConfirmRefRouteImport
+      parentRoute: typeof BookRoute
+    }
+    '/api/public/bookings': {
+      id: '/api/public/bookings'
+      path: '/api/public/bookings'
+      fullPath: '/api/public/bookings'
+      preLoaderRoute: typeof ApiPublicBookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/artists': {
+      id: '/api/public/artists'
+      path: '/api/public/artists'
+      fullPath: '/api/public/artists'
+      preLoaderRoute: typeof ApiPublicArtistsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/promoters': {
+      id: '/_authenticated/admin/promoters'
+      path: '/promoters'
+      fullPath: '/admin/promoters'
+      preLoaderRoute: typeof AuthenticatedAdminPromotersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/pipeline': {
+      id: '/_authenticated/admin/pipeline'
+      path: '/pipeline'
+      fullPath: '/admin/pipeline'
+      preLoaderRoute: typeof AuthenticatedAdminPipelineRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/packages': {
+      id: '/_authenticated/admin/packages'
+      path: '/packages'
+      fullPath: '/admin/packages'
+      preLoaderRoute: typeof AuthenticatedAdminPackagesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/calendar': {
+      id: '/_authenticated/admin/calendar'
+      path: '/calendar'
+      fullPath: '/admin/calendar'
+      preLoaderRoute: typeof AuthenticatedAdminCalendarRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/bookings': {
+      id: '/_authenticated/admin/bookings'
+      path: '/bookings'
+      fullPath: '/admin/bookings'
+      preLoaderRoute: typeof AuthenticatedAdminBookingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/deposits/$ref': {
+      id: '/api/public/deposits/$ref'
+      path: '/api/public/deposits/$ref'
+      fullPath: '/api/public/deposits/$ref'
+      preLoaderRoute: typeof ApiPublicDepositsRefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bookings/$ref': {
+      id: '/api/public/bookings/$ref'
+      path: '/$ref'
+      fullPath: '/api/public/bookings/$ref'
+      preLoaderRoute: typeof ApiPublicBookingsRefRouteImport
+      parentRoute: typeof ApiPublicBookingsRoute
+    }
+    '/_authenticated/admin/bookings/$id': {
+      id: '/_authenticated/admin/bookings/$id'
+      path: '/$id'
+      fullPath: '/admin/bookings/$id'
+      preLoaderRoute: typeof AuthenticatedAdminBookingsIdRouteImport
+      parentRoute: typeof AuthenticatedAdminBookingsRoute
+    }
   }
 }
 
+interface AuthenticatedAdminBookingsRouteChildren {
+  AuthenticatedAdminBookingsIdRoute: typeof AuthenticatedAdminBookingsIdRoute
+}
+
+const AuthenticatedAdminBookingsRouteChildren: AuthenticatedAdminBookingsRouteChildren =
+  {
+    AuthenticatedAdminBookingsIdRoute: AuthenticatedAdminBookingsIdRoute,
+  }
+
+const AuthenticatedAdminBookingsRouteWithChildren =
+  AuthenticatedAdminBookingsRoute._addFileChildren(
+    AuthenticatedAdminBookingsRouteChildren,
+  )
+
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRouteWithChildren
+  AuthenticatedAdminCalendarRoute: typeof AuthenticatedAdminCalendarRoute
+  AuthenticatedAdminPackagesRoute: typeof AuthenticatedAdminPackagesRoute
+  AuthenticatedAdminPipelineRoute: typeof AuthenticatedAdminPipelineRoute
+  AuthenticatedAdminPromotersRoute: typeof AuthenticatedAdminPromotersRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRouteWithChildren,
+  AuthenticatedAdminCalendarRoute: AuthenticatedAdminCalendarRoute,
+  AuthenticatedAdminPackagesRoute: AuthenticatedAdminPackagesRoute,
+  AuthenticatedAdminPipelineRoute: AuthenticatedAdminPipelineRoute,
+  AuthenticatedAdminPromotersRoute: AuthenticatedAdminPromotersRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface BookRouteChildren {
+  BookConfirmRefRoute: typeof BookConfirmRefRoute
+}
+
+const BookRouteChildren: BookRouteChildren = {
+  BookConfirmRefRoute: BookConfirmRefRoute,
+}
+
+const BookRouteWithChildren = BookRoute._addFileChildren(BookRouteChildren)
+
+interface ApiPublicBookingsRouteChildren {
+  ApiPublicBookingsRefRoute: typeof ApiPublicBookingsRefRoute
+}
+
+const ApiPublicBookingsRouteChildren: ApiPublicBookingsRouteChildren = {
+  ApiPublicBookingsRefRoute: ApiPublicBookingsRefRoute,
+}
+
+const ApiPublicBookingsRouteWithChildren =
+  ApiPublicBookingsRoute._addFileChildren(ApiPublicBookingsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  BookRoute: BookRouteWithChildren,
+  PayRefRoute: PayRefRoute,
+  ApiPublicArtistsRoute: ApiPublicArtistsRoute,
+  ApiPublicBookingsRoute: ApiPublicBookingsRouteWithChildren,
+  ApiPublicDepositsRefRoute: ApiPublicDepositsRefRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
