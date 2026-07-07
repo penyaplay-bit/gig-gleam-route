@@ -3,13 +3,14 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo, useEffect } from "react";
 import { listArtistProfiles, previewQuote, aiSuggestPrice } from "@/lib/pricing/quote.functions";
+import { computeDrivingDistance } from "@/lib/pricing/distance.functions";
 import { formatCents, expandRider, type ArtistProfileConfig, type QuoteInputs, type QuoteResult } from "@/lib/pricing/artist-engine";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, FileText, Calendar, MapPin, Users, Truck, Wallet, Loader2, AlertTriangle, ChevronRight } from "lucide-react";
+import { Sparkles, FileText, Calendar, MapPin, Users, Truck, Wallet, Loader2, AlertTriangle, ChevronRight, Navigation } from "lucide-react";
 import { downloadArtistQuotePdf } from "@/lib/pricing/quote-pdf";
 
 export const Route = createFileRoute("/_authenticated/admin/bookings/new")({
