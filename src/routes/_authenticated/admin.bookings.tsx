@@ -30,7 +30,15 @@ function BookingsList() {
     <div>
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-display">Bookings</h1>
-        <Input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-xs" />
+        <div className="flex items-center gap-2">
+          <Input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-xs" />
+          <Link
+            to={"/admin/bookings/new" as never}
+            className="inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-medium hover:bg-primary/90"
+          >
+            + New Booking
+          </Link>
+        </div>
       </div>
       <div className="rounded-lg border border-border overflow-hidden">
         <table className="w-full text-sm">
