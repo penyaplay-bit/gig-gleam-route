@@ -3,13 +3,14 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo, useEffect } from "react";
 import { listArtistProfiles, previewQuote, aiSuggestPrice } from "@/lib/pricing/quote.functions";
+import { computeDrivingDistance } from "@/lib/pricing/distance.functions";
 import { formatCents, expandRider, type ArtistProfileConfig, type QuoteInputs, type QuoteResult } from "@/lib/pricing/artist-engine";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, FileText, Calendar, MapPin, Users, Truck, Wallet, Loader2, AlertTriangle, ChevronRight } from "lucide-react";
+import { Sparkles, FileText, Calendar, MapPin, Users, Truck, Wallet, Loader2, AlertTriangle, ChevronRight, Navigation } from "lucide-react";
 import { downloadArtistQuotePdf } from "@/lib/pricing/quote-pdf";
 
 export const Route = createFileRoute("/_authenticated/admin/bookings/new")({
@@ -23,6 +24,7 @@ function NewBooking() {
   const fetchProfiles = useServerFn(listArtistProfiles);
   const runPreview = useServerFn(previewQuote);
   const runAi = useServerFn(aiSuggestPrice);
+  const runDistance = useServerFn(computeDrivingDistance);
 
   const { data: profilesData } = useQuery({
     queryKey: ["artist-profiles"],
@@ -83,6 +85,24 @@ function NewBooking() {
 
   const aiMut = useMutation({
     mutationFn: () => runAi({ data: { profile_id: profileId, inputs: form } }),
+  });
+
+  const [venueAddress, setVenueAddress] = useState("");
+  const distanceMut = useMutation({
+    mutationFn: async () => {
+      if (!profile?.home_address) throw new Error("Artist has no home base configured.");
+      if (!venueAddress.trim()) throw new Error("Enter a venue address first.");
+      return runDistance({ data: { origin: profile.home_address, destination: venueAddress.trim() } });
+    },
+    onSuccess: (r) => {
+      setForm((f) => ({
+        ...f,
+        distance_km: r.distance_km,
+        cross_border: r.cross_border,
+        overnight_required: f.overnight_required || r.distance_km > 400,
+        flights_required: f.flights_required || r.distance_km > 800,
+      }));
+    },
   });
 
   const quote = previewQ.data;
@@ -164,6 +184,44 @@ function NewBooking() {
                 <Input value={form.country} onChange={(e) => update("country", e.target.value)} />
               </Field>
             </div>
+            <Field label="Venue address (auto-calculates distance)">
+              <div className="flex gap-2">
+                <Input
+                  value={venueAddress}
+                  onChange={(e) => setVenueAddress(e.target.value)}
+                  placeholder="e.g. 8G Riversands Blvd, Fourways, Gauteng"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => distanceMut.mutate()}
+                  disabled={distanceMut.isPending || !profile?.home_address}
+                >
+                  {distanceMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
+                  <span className="ml-1.5">Calculate</span>
+                </Button>
+              </div>
+              {profile?.home_address && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  From <span className="text-foreground">{profile.home_address}</span>
+                  {profile.home_country_code ? ` (${profile.home_country_code})` : ""}
+                </p>
+              )}
+              {distanceMut.data && (
+                <div className="mt-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs">
+                  <div className="font-mono">
+                    {distanceMut.data.origin_country_code ?? "?"} → {distanceMut.data.destination_country_code ?? "?"}
+                    {" · "}{distanceMut.data.distance_km} km
+                    {" · ~"}{Math.floor(distanceMut.data.duration_min / 60)}h {distanceMut.data.duration_min % 60}m
+                    {distanceMut.data.cross_border && " · cross-border"}
+                  </div>
+                  <div className="text-muted-foreground mt-0.5">Applied to quote automatically.</div>
+                </div>
+              )}
+              {distanceMut.error && (
+                <div className="mt-2 text-xs text-red-400">{(distanceMut.error as Error).message}</div>
+              )}
+            </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="One-way distance (km)">
                 <Input type="number" value={form.distance_km ?? ""} onChange={(e) => update("distance_km", e.target.value ? Number(e.target.value) : undefined)} placeholder="e.g. 250" />
@@ -173,6 +231,7 @@ function NewBooking() {
               </Field>
             </div>
           </Section>
+
 
           <Section title="Logistics" icon={<Truck className="w-4 h-4" />}>
             <div className="grid grid-cols-3 gap-3">
