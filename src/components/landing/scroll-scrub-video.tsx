@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useRef, useState } from "react";
 import videoAsset from "@/assets/scroll-hero.mp4.asset.json";
 
@@ -17,129 +16,99 @@ export function ScrollScrubVideo() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);
-  const [ready, setReady] = useState(false);
 
+  // Scroll-driven progress across the pinned section (no currentTime scrubbing
+  // — that's unreliable on mobile Safari; we let the video autoplay loop and
+  // key text/UI to scroll instead).
   useEffect(() => {
-    const video = videoRef.current;
     const section = sectionRef.current;
-    if (!video || !section) return;
-
-    video.pause();
+    if (!section) return;
 
     let raf = 0;
-    let active = false;
-    let targetTime = 0;
-    let currentTime = 0;
-
     const compute = () => {
       const rect = section.getBoundingClientRect();
       const vh = window.innerHeight;
-      // 0 when section top hits viewport top; 1 when section bottom hits viewport bottom
       const total = rect.height - vh;
       const scrolled = -rect.top;
       const p = clamp01(total > 0 ? scrolled / total : 0);
       setProgress(p);
-      const dur = video.duration;
-      if (isFinite(dur) && dur > 0) {
-        targetTime = p * dur;
-      }
     };
-
-    const tick = () => {
-      // ease toward target for buttery scrub
-      currentTime = lerp(currentTime, targetTime, 0.18);
-      if (Math.abs(currentTime - targetTime) < 0.005) currentTime = targetTime;
-      if (isFinite(currentTime) && video.readyState >= 2) {
-        try {
-          video.currentTime = currentTime;
-        } catch {}
-      }
-      if (active) raf = requestAnimationFrame(tick);
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        compute();
+      });
     };
-
-    const onScroll = () => compute();
-    const onResize = () => compute();
-    const onLoaded = () => {
-      setReady(true);
-      compute();
-    };
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            if (!active) {
-              active = true;
-              compute();
-              currentTime = targetTime;
-              raf = requestAnimationFrame(tick);
-            }
-          } else {
-            active = false;
-            cancelAnimationFrame(raf);
-          }
-        }
-      },
-      { rootMargin: "0px", threshold: 0 }
-    );
-
-    io.observe(section);
-    video.addEventListener("loadedmetadata", onLoaded);
-    video.addEventListener("canplay", onLoaded);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
     compute();
-
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
     return () => {
-      io.disconnect();
-      video.removeEventListener("loadedmetadata", onLoaded);
-      video.removeEventListener("canplay", onLoaded);
+      if (raf) cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onScroll);
     };
   }, []);
 
-  // Text beats keyed to progress
-  const t1Opacity = mapClamp(progress, 0.0, 0.15, 1, 0) * mapClamp(progress, 0.0, 0.05, 0, 1);
-  const t2Opacity = mapClamp(progress, 0.3, 0.45, 0, 1) * mapClamp(progress, 0.55, 0.7, 1, 0);
-  const t3Opacity = mapClamp(progress, 0.78, 0.9, 0, 1);
-  const t1Y = mapClamp(progress, 0, 0.2, 0, -30);
-  const t2Y = mapClamp(progress, 0.3, 0.7, 20, -20);
-  const t3Y = mapClamp(progress, 0.78, 1, 30, 0);
+  // Autoplay muted loop — always works on mobile with muted + playsInline.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const tryPlay = () => {
+      v.play().catch(() => {
+        /* ignore — will retry on user interaction */
+      });
+    };
+    tryPlay();
+    v.addEventListener("canplay", tryPlay);
+    return () => v.removeEventListener("canplay", tryPlay);
+  }, []);
+
+  // Text beats keyed to scroll progress
+  const t1Opacity = mapClamp(progress, 0.0, 0.05, 0, 1) * mapClamp(progress, 0.25, 0.4, 1, 0);
+  const t2Opacity = mapClamp(progress, 0.35, 0.5, 0, 1) * mapClamp(progress, 0.6, 0.75, 1, 0);
+  const t3Opacity = mapClamp(progress, 0.7, 0.85, 0, 1);
+  const t1Y = mapClamp(progress, 0, 0.4, 0, -40);
+  const t2Y = mapClamp(progress, 0.35, 0.75, 30, -30);
+  const t3Y = mapClamp(progress, 0.7, 1, 40, 0);
+  // Slow zoom for cinema feel
+  const scale = 1 + mapClamp(progress, 0, 1, 0, 0.08);
 
   return (
     <section
       ref={sectionRef}
       className="relative"
-      style={{ height: "320vh" }}
-      aria-label="Scroll to scrub"
+      style={{ height: "300vh" }}
+      aria-label="Cinematic scroll"
     >
       <div className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden bg-black">
         <video
           ref={videoRef}
           src={videoAsset.url}
           muted
+          loop
+          autoPlay
           playsInline
           preload="auto"
           disablePictureInPicture
-          className="absolute inset-0 h-full w-full object-cover opacity-90"
+          className="absolute inset-0 h-full w-full object-cover opacity-90 will-change-transform"
+          style={{ transform: `scale(${scale})` }}
         />
 
-        {/* vignette + gradient wash */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,black_100%)] opacity-70" />
+        {/* vignette + wash */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.85)_100%)]" />
 
         {/* Text beats */}
-        <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
+        <div className="relative z-10 mx-auto w-full max-w-5xl px-6 text-center">
           <div
             style={{ opacity: t1Opacity, transform: `translateY(${t1Y}px)` }}
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2"
+            className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-6"
           >
             <span className="text-[10px] uppercase tracking-[0.35em] text-primary">
               Scroll to enter
             </span>
-            <h2 className="mt-4 font-display text-[13vw] font-black leading-[0.9] text-white sm:text-8xl">
+            <h2 className="mt-4 font-display text-5xl font-black leading-[0.95] text-white sm:text-7xl md:text-8xl">
               The moment,
               <br />
               <span className="text-goldleaf">unfolded.</span>
@@ -148,9 +117,9 @@ export function ScrollScrubVideo() {
 
           <div
             style={{ opacity: t2Opacity, transform: `translateY(${t2Y}px)` }}
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2"
+            className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-6"
           >
-            <h2 className="font-display text-[10vw] font-black leading-[0.95] text-white sm:text-7xl">
+            <h2 className="font-display text-4xl font-black leading-[0.95] text-white sm:text-6xl md:text-7xl">
               Every frame,
               <br />
               <span className="text-goldleaf">handled.</span>
@@ -159,12 +128,12 @@ export function ScrollScrubVideo() {
 
           <div
             style={{ opacity: t3Opacity, transform: `translateY(${t3Y}px)` }}
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2"
+            className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-6"
           >
             <span className="text-[10px] uppercase tracking-[0.35em] text-primary">
               Now booking · 2026
             </span>
-            <h2 className="mt-4 font-display text-[12vw] font-black leading-[0.9] text-white sm:text-8xl">
+            <h2 className="mt-4 font-display text-5xl font-black leading-[0.95] text-white sm:text-7xl md:text-8xl">
               Book the <span className="text-goldleaf">moment.</span>
             </h2>
           </div>
@@ -173,16 +142,10 @@ export function ScrollScrubVideo() {
         {/* Progress bar */}
         <div className="absolute bottom-6 left-1/2 z-10 h-[2px] w-40 -translate-x-1/2 overflow-hidden rounded-full bg-white/15">
           <div
-            className="h-full bg-goldleaf transition-[width] duration-100"
+            className="h-full bg-goldleaf"
             style={{ width: `${progress * 100}%` }}
           />
         </div>
-
-        {!ready && (
-          <div className="absolute bottom-16 left-1/2 z-10 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-white/60">
-            Loading film…
-          </div>
-        )}
       </div>
     </section>
   );
