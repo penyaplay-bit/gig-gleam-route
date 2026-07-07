@@ -1,83 +1,113 @@
 
-## Goal
+# Penya Live — Event-Centric Foundation
 
-Make the **public-facing side** of Penya Play (landing, booking form, confirmation, deposit page, auth) feel like a Gen-Z entertainment brand — cinematic gold-on-black, alive with scroll motion, unmistakably PenyaPlay. Admin stays as-is (pro/dense).
+Stop adding features. Rebuild the core so **every** object in the system hangs off one entity: **Event**. Talent, promoters, finance, logistics, marketing, AI, campaigns, docs, chat — all become facets of an Event, not standalone modules. This is a foundation turn: no new user-facing features, but every future feature plugs in with zero re-plumbing.
 
-Not a total re-architecture — a targeted visual + motion pass grounded in the uploaded logo.
+The current `bookings` table already tries to be an event, but it mixes 40 columns of promoter/finance/logistics/scoring concerns into one row. We split it into a graph and rebuild the admin around a single Event workspace.
 
-## Brand identity (locked)
+---
 
-- **Logo**: uploaded PenyaPlay mark (gold on black, film-reel + play-triangle monogram). Upload to Lovable Assets, use everywhere (nav, favicon, confirmation, deposit invoice, OG image).
-- **Palette** (updates `src/styles.css` tokens):
-  - Background `#05050A` (near-black with blue undertone, not pure `#000`)
-  - Surface `#0D0D14`
-  - Gold primary `#E8C56A` → `#F5D97A` (gradient stop)
-  - Gold deep `#B8912F`
-  - Cream text `#F5F1E6`
-  - Muted `#7A7566`
-  - Accent (rare, for status pops): warm coral `#FF6B4A`
-- **Type**:
-  - Display: **Bricolage Grotesque** (chunky, geometric, Gen-Z, variable weight) — for hero, section titles, big stats
-  - Body: **Inter Tight** — dense info, forms
-  - Numeric: `tabular-nums` on all prices/refs
-- **Texture**: subtle film-grain overlay, soft gold radial gloom behind hero, hairline gold dividers, generous negative space, `oklch()` gold gradients.
+## The Event Graph (data model)
 
-## Motion system (Gen-Z scroll feel)
+Central table `events` (renamed conceptually from `bookings`), plus one satellite table per concern. Every satellite has `event_id` FK. Nothing new lives outside this graph.
 
-Add **Motion for React** (`motion/react`) + a lightweight scroll driver. No parallax overkill — controlled, cinematic moments:
+```text
+                         ┌──────────────┐
+                         │    events    │  ← the only root entity
+                         └──────┬───────┘
+       ┌──────────────┬────────┼────────┬──────────────┬──────────────┐
+       ▼              ▼        ▼        ▼              ▼              ▼
+ event_parties  event_timeline  event_quotes  event_contracts  event_payments
+ (role=talent/  (append-only    (versioned)   (signed docs)    (deposit,
+  promoter/     status log)                                      balance,
+  sponsor/                                                       invoices)
+  crew/venue)
+       ▼              ▼        ▼        ▼              ▼              ▼
+ event_logistics event_campaign event_media event_messages event_tasks event_documents
+ (travel, hotel, (30/14/7/1-day (photos,    (unified chat  (call        (contracts,
+  driver, rider)  auto-schedule) videos)     thread per     sheets,      riders,
+                                             event)         checklists)  invoices)
+```
 
-1. **Hero reveal** — logo scales down + settles as you scroll, title splits into words that stagger up.
-2. **Sticky story sections** — pin-and-swap slides ("Book any Penya artist → in minutes → with confidence") using `useScroll` + transform on a pinned container.
-3. **Marquee** — infinite horizontal scroll of past events / cities, gold hairline top and bottom.
-4. **Reveal-on-view** — every card fades + rises 20px when it enters viewport (staggered).
-5. **Number tickers** — bookings closed / cities toured / artists managed count up on view.
-6. **Cursor spotlight** (desktop only) — subtle gold radial follows cursor on the hero.
-7. **Bento-grid tilt** — feature cards tilt slightly on mouse-move.
-8. **Booking form** — steps slide horizontally with spring transitions instead of the current instant swap. Progress bar is a gold liquid fill.
+Key rules baked into the schema:
+- `events.status` is derived from the latest `event_timeline` row, not stored twice.
+- All money (`event_payments`, `event_quotes`) references the event, never a party directly.
+- `talents` (was `artists`) and `promoters` become **directory** tables — history/revenue/ratings are computed from `event_parties` joins, never stored on the party row.
+- No feature-specific status columns on `events` (no `deposit_status`, no `contract_status`, no `travel_status`). Those live in their satellite tables; the timeline is the single source of truth.
 
-Mobile-first: every effect degrades gracefully on `prefers-reduced-motion` and small viewports.
+## The six engines (shared infrastructure, feature-free)
 
-## Scope — what changes
+Each engine is a thin, generic module in `src/lib/engines/` that **any** future feature calls. No engine knows about talent, promoters, or campaigns specifically — they only know about Events and event_ids.
 
-### Public routes (redesigned)
-- `/` landing — new hero, sticky story sections, artists roster strip, bento features, marquee, big-CTA footer.
-- `/book` — same 5-step form logic, new spring-transitions between steps, gold liquid progress bar, refreshed inputs.
-- `/book/confirm/$ref` — cinematic "You're in" screen with animated ref and confetti-gold burst.
-- `/pay/$ref` — invoice card with animated total, gold-bordered POP upload dropzone.
-- `/auth` — dark cinematic split-screen with the logo hero on the left.
+1. **Event Engine** (`event.functions.ts`) — `createEvent`, `getEvent(id)` returns the full graph in one call, `advanceStage(eventId, stage)`, `getDerivedStatus(eventId)`. Every mutation to any satellite writes a `event_timeline` row.
 
-### Global
-- `src/styles.css` — new tokens, `@theme` update, font @import via `<link>` in `__root.tsx`, grain utility.
-- `src/routes/__root.tsx` — Bricolage + Inter Tight `<link>` tags, favicon swap, updated title/description/og.
-- New `public/favicon.png` (from uploaded logo, background removed).
-- New shared components: `<GoldButton>`, `<MarqueeStrip>`, `<StickyStorySection>`, `<RevealOnView>`, `<NumberTicker>`, `<GrainOverlay>`, `<LogoMark>`.
-- OG image: gold-on-black hero cover generated once (1200×630) via image gen, wired into leaf-route `head()`.
+2. **Timeline Engine** (`timeline.functions.ts`) — append-only event log. Records `{event_id, stage, actor, payload, at}`. Powers status, audit trail, and the live Operating Room feed. Uses Supabase Realtime on `event_timeline`.
 
-### Admin (untouched)
-Admin under `/_authenticated/admin/*` keeps its current pro/dense chrome. Only inherits the new brand tokens (so buttons and links use the new gold), but no marketing motion.
+3. **Communication Engine** (`comms.functions.ts`) — one thread per event (`event_messages`). Channel-agnostic: `channel: 'in_app' | 'whatsapp' | 'email'`. wa.me deep links today; adapter interface so Twilio/Resend swap in later without touching callers.
 
-## Deliverable order (single build turn)
+4. **Notification Engine** (`notifications.functions.ts`) — rule-based reminders: "deposit overdue > 48h → notify admin". Runs from a `pg_cron` job hitting a `/api/public/cron/notifications` route. Reads timeline, writes to a `notifications` table, deduped by rule+event.
 
-1. Upload logo → Lovable Assets → favicon + component reference.
-2. Update `src/styles.css` tokens + fonts + grain utility.
-3. Update `__root.tsx` head (fonts, favicon, brand title/description, OG on leaf routes).
-4. Install `motion` (`bun add motion`) + build motion primitives.
-5. Rebuild `/` landing.
-6. Restyle `/book`, `/book/confirm/$ref`, `/pay/$ref`, `/auth`.
-7. Generate + wire OG image on the landing route.
-8. Verify: mobile viewport (440×799), desktop (1440), `prefers-reduced-motion` respected.
+5. **Document Engine** (`documents.functions.ts`) — every generated artefact (quote PDF, contract, invoice, call sheet, POP) is a row in `event_documents` with a Storage path. One generator interface, per-type templates. Existing `quote-pdf.ts` gets wrapped, not rewritten.
 
-## Out of scope (explicitly deferred)
+6. **Map Engine** (`map.functions.ts`) — distance/travel-time between two locations, cached in `event_logistics`. Wraps the current `guessDistanceKm` LUT behind an interface so a real routing API drops in later.
 
-- Booking Journey timeline / WhatsApp orchestration (previous message — will be next milestone).
-- Admin visual redesign.
-- Video hero (would need a real reel; can slot in later).
-- 3D / WebGL (overkill for this pass; motion + gradients hit the same vibe faster).
+## Admin becomes the Event Workspace
 
-## Open call — confirm before I build
+One route replaces the scattered admin pages: `/_authenticated/events/$id`, with tabs backed by the satellites:
 
-- **Logo variants**: do you have a horizontal lockup and a monogram-only version, or should I derive them from the uploaded square?
-- **Video reel**: any short performance clip I should embed in the hero (silent, autoplay)? If not, I'll build with static + motion.
-- **Artist roster**: is Ntate Stunna the only public-facing artist for now, or do I put "and more" placeholder cards for future artists?
+`Overview · Timeline · Chat · Payments · Contracts · Travel · Campaign · Media · Documents · Tasks · Analytics`
 
-Reply with any adjustments and I'll implement.
+Existing `admin.bookings`, `admin.pipeline`, `admin.calendar` become **views over the event graph**, not sources of truth. Directory pages (`admin.talents`, `admin.promoters`) become read-only rosters with computed history from event joins.
+
+## What stays and what moves
+
+| Today | Tomorrow |
+|---|---|
+| `bookings` (40 cols) | `events` (core cols only) + 10 satellite tables |
+| `booking_notes` | folded into `event_messages` (channel=in_app, kind=note) |
+| `deposits` | folded into `event_payments` (kind=deposit) |
+| `artists` | renamed `talents`, history computed from graph |
+| `promoters` | stays as directory; reliability computed from graph |
+| `packages` | stays; referenced by `event_quotes` line items |
+| `pricing_rules` | stays; consumed by quote engine |
+| `booking-score.ts` | stays; input now assembled from the graph, not the row |
+| `/api/public/bookings/*` | replaced by `/api/public/events/$ref` |
+
+Public booking form still creates one row — but now that row is an **Event** with a first timeline entry `stage=inquiry`. Zero regression to the public flow.
+
+## Migration strategy (safe, single turn)
+
+1. Additive migration: create all satellite tables + GRANTs + RLS.
+2. Backfill from `bookings` into `events` + satellites in the same migration (data preserved by ref).
+3. Keep `bookings` as a **view** over `events + event_payments + event_parties` so existing server fns keep working during the swap.
+4. Rewrite server fns one at a time to read from the graph, delete the view last.
+
+## Out of scope for this foundation turn (deferred, will plug in later)
+
+- Live Operating Room UI (needs the Realtime timeline first — building it is a follow-up)
+- Per-event AI ("call promoter" recommendations) — the engine hook is stubbed, prompt/UI later
+- Campaign auto-scheduler cron — table + interface only, no scheduling yet
+- Talent self-signup, AI portfolio builder, matchmaking, reviews, video analysis — all become event-graph features later
+- WhatsApp Twilio automation — adapter interface only, deep links continue working
+
+## Technical notes (for the engineer)
+
+- All satellites: `event_id uuid not null references events(id) on delete cascade`, RLS `USING (is_staff_or_admin())` for admin tables, narrow anon SELECT on `events` + `event_timeline` for the confirmation/pay pages by `ref`.
+- Timeline is append-only: `REVOKE UPDATE, DELETE ON event_timeline FROM authenticated`.
+- Add Supabase Realtime publication on `event_timeline`, `event_messages`, `event_payments` (needed for Operating Room later; costs nothing to enable now).
+- Engines live in `src/lib/engines/*.functions.ts` behind `createServerFn` + `requireSupabaseAuth`.
+- `getEvent(id)` returns one JSON blob assembled server-side (single round trip) — this is the primitive every event workspace tab consumes via `useSuspenseQuery`.
+- Server fn `advanceStage` is the ONLY writer to `event_timeline` — every satellite mutation calls it, so status is impossible to desync.
+- Rename `artists → talents` via `ALTER TABLE`; regenerated types file will cascade.
+- No frontend feature work this turn beyond the Event Workspace shell with real tabs wired to the graph (empty-state where a future feature will land).
+
+## Deliverable checklist
+
+- [ ] Migration: `events`, 10 satellite tables, GRANTs, RLS, `bookings` compatibility view, backfill.
+- [ ] `src/lib/engines/{event,timeline,comms,notifications,documents,map}.functions.ts` with typed contracts.
+- [ ] Rewrite `listBookings`, booking create, deposit upload, quote generate → call engines.
+- [ ] `/_authenticated/events/$id` workspace with tabs (Overview + Timeline live; others show engine-driven empty states).
+- [ ] Public routes updated to `/api/public/events/$ref`; old routes proxy for one release.
+- [ ] Realtime enabled on the three log tables.
+
+Once approved I'll ship the migration first (single call), then the engines + workspace in the following turn.
