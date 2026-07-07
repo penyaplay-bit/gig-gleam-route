@@ -24,8 +24,9 @@ const formatCurrency = formatM;
 import {
   ArrowLeft, Circle, CheckCircle2, Clock, MessageSquare, DollarSign,
   FileText, Truck, Megaphone, Image, ListTodo, FolderOpen, BarChart3,
-  LayoutGrid, Users, ShieldAlert, ShieldCheck, Lock, Unlock,
+  LayoutGrid, Users, ShieldAlert, ShieldCheck, Lock, Unlock, Activity,
 } from "lucide-react";
+import { PulseHeader, HealthTab } from "@/components/events/decision-engine-ui";
 
 export const Route = createFileRoute("/_authenticated/admin/events/$id")({
   component: EventWorkspace,
