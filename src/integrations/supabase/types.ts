@@ -86,6 +86,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "booking_notes_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
         ]
       }
       bookings: {
@@ -287,6 +294,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "deposits_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
         ]
       }
       event_campaign: {
@@ -336,6 +350,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_campaign_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -387,6 +408,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_contracts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
         ]
       }
       event_documents: {
@@ -433,6 +461,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_documents_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -481,6 +516,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_logistics_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
         ]
       }
       event_media: {
@@ -525,6 +567,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_media_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
         ]
       }
       event_messages: {
@@ -568,6 +617,67 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_messages_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
+      event_overrides: {
+        Row: {
+          active: boolean
+          approved_by: string | null
+          created_at: string
+          event_id: string
+          id: string
+          kind: string
+          meta: Json
+          new_deadline: string | null
+          notes: string | null
+          reason: string
+        }
+        Insert: {
+          active?: boolean
+          approved_by?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          kind: string
+          meta?: Json
+          new_deadline?: string | null
+          notes?: string | null
+          reason: string
+        }
+        Update: {
+          active?: boolean
+          approved_by?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          kind?: string
+          meta?: Json
+          new_deadline?: string | null
+          notes?: string | null
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_overrides_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_overrides_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -624,6 +734,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "event_parties_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
+          {
             foreignKeyName: "event_parties_promoter_id_fkey"
             columns: ["promoter_id"]
             isOneToOne: false
@@ -638,12 +755,16 @@ export type Database = {
           created_at: string
           currency: string
           event_id: string
+          hold_status: string
           id: string
           kind: string
           meta: Json
           method: string | null
           pop_path: string | null
           reference: string | null
+          release_reason: string | null
+          released_at: string | null
+          released_by: string | null
           status: string
           updated_at: string
           uploaded_at: string | null
@@ -655,12 +776,16 @@ export type Database = {
           created_at?: string
           currency?: string
           event_id: string
+          hold_status?: string
           id?: string
           kind: string
           meta?: Json
           method?: string | null
           pop_path?: string | null
           reference?: string | null
+          release_reason?: string | null
+          released_at?: string | null
+          released_by?: string | null
           status?: string
           updated_at?: string
           uploaded_at?: string | null
@@ -672,12 +797,16 @@ export type Database = {
           created_at?: string
           currency?: string
           event_id?: string
+          hold_status?: string
           id?: string
           kind?: string
           meta?: Json
           method?: string | null
           pop_path?: string | null
           reference?: string | null
+          release_reason?: string | null
+          released_at?: string | null
+          released_by?: string | null
           status?: string
           updated_at?: string
           uploaded_at?: string | null
@@ -691,6 +820,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_payments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -742,6 +878,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_quotes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
         ]
       }
       event_tasks: {
@@ -789,6 +932,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_tasks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
         ]
       }
       event_timeline: {
@@ -823,6 +973,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_timeline_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -873,6 +1030,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
           },
         ]
       }
@@ -1038,7 +1202,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      event_financial_state: {
+        Row: {
+          balance_due_on: string | null
+          days_to_balance_due: number | null
+          days_to_event: number | null
+          event_date: string | null
+          event_id: string | null
+          financial_state: string | null
+          has_continuation: boolean | null
+          is_cancelled: boolean | null
+          lock_active: boolean | null
+          outstanding_lsl: number | null
+          paid_lsl: number | null
+          ref: string | null
+          total_due_lsl: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

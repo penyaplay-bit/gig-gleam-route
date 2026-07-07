@@ -4,16 +4,27 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getEvent, advanceStage, EVENT_STAGES, type EventStage } from "@/lib/engines/event.functions";
 import { postMessage } from "@/lib/engines/comms.functions";
+import {
+  getFinancialState,
+  verifyPayment,
+  rejectPayment,
+  extendDeadline,
+  approveContinuation,
+  cancelForNonPayment,
+  releaseHold,
+  type FinancialState,
+} from "@/lib/engines/payments.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { formatM, formatDate } from "@/lib/formatting";
 const formatCurrency = formatM;
 import {
   ArrowLeft, Circle, CheckCircle2, Clock, MessageSquare, DollarSign,
   FileText, Truck, Megaphone, Image, ListTodo, FolderOpen, BarChart3,
-  LayoutGrid, Users,
+  LayoutGrid, Users, ShieldAlert, ShieldCheck, Lock, Unlock,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/events/$id")({
@@ -122,7 +133,7 @@ function EventWorkspace() {
         {tab === "timeline" && <TimelineTab entries={data.timeline} />}
         {tab === "chat" && <ChatTab eventId={id} messages={data.messages} onPosted={() => qc.invalidateQueries({ queryKey: ["event", id] })} />}
         {tab === "parties" && <PartiesTab parties={data.parties} />}
-        {tab === "payments" && <PaymentsTab payments={data.payments} />}
+        {tab === "payments" && <PaymentsTab eventId={id} payments={data.payments} />}
         {tab === "contracts" && <EmptyTab title="Contracts" hint="Contract engine wires here. Storage + signature flow next." />}
         {tab === "travel" && <TravelTab logistics={data.logistics} />}
         {tab === "campaign" && <CampaignTab campaign={data.campaign} />}
@@ -323,21 +334,274 @@ function PartiesTab({ parties }: { parties: Array<{ id: string; role: string; na
   );
 }
 
-function PaymentsTab({ payments }: { payments: Array<{ id: string; kind: string; amount_lsl: number; status: string; method: string | null; created_at: string }> }) {
-  if (payments.length === 0) return <EmptyTab title="Payments" hint="No payments yet." />;
+// ============================================================
+// Payments tab — the 7-Day Financial Lock, end to end
+// ============================================================
+type PaymentRow = {
+  id: string;
+  kind: string;
+  amount_lsl: number;
+  status: string;
+  method: string | null;
+  created_at: string;
+  hold_status?: string;
+  release_reason?: string | null;
+};
+
+const STATE_META: Record<FinancialState, { label: string; dot: string; ring: string; body: string }> = {
+  awaiting_deposit: { label: "🟡 Awaiting Deposit", dot: "bg-yellow-400", ring: "border-yellow-500/40", body: "50% deposit required to confirm the booking. No confirmation, logistics, campaign or artist commitment until it lands." },
+  deposit_paid:     { label: "🟢 Deposit Paid",      dot: "bg-emerald-400", ring: "border-emerald-500/30", body: "Deposit received. Balance due 7 days before the event." },
+  balance_pending:  { label: "🟠 Balance Pending",   dot: "bg-orange-400", ring: "border-orange-500/40", body: "Balance outstanding. Reminders auto-send at T-14 / T-7 / T-3." },
+  financially_cleared: { label: "🟢 Financially Cleared", dot: "bg-emerald-500", ring: "border-emerald-500/40", body: "Full payment received. Artist fee remains held until performance is completed." },
+  payment_default:  { label: "🔴 Payment Default",   dot: "bg-red-500", ring: "border-red-500/40", body: "Balance not received by the deadline. Logistics frozen. Only Management Override can continue." },
+  cancelled:        { label: "⚫ Cancelled",         dot: "bg-neutral-500", ring: "border-neutral-500/40", body: "Booking cancelled by management." },
+};
+
+function PaymentsTab({ eventId, payments }: { eventId: string; payments: PaymentRow[] }) {
+  const qc = useQueryClient();
+  const fetchState = useServerFn(getFinancialState);
+  const { data } = useQuery({
+    queryKey: ["event-finance", eventId],
+    queryFn: () => fetchState({ data: { eventId } }),
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["event-finance", eventId] });
+    qc.invalidateQueries({ queryKey: ["event", eventId] });
+  };
+  const verifyM = useMutation({ mutationFn: useServerFn(verifyPayment), onSuccess: invalidate });
+  const rejectM = useMutation({ mutationFn: useServerFn(rejectPayment), onSuccess: invalidate });
+  const releaseM = useMutation({ mutationFn: useServerFn(releaseHold), onSuccess: invalidate });
+
+  const s = data?.state;
+  const overrides = data?.overrides ?? [];
+  const meta = s ? STATE_META[s.financial_state] : null;
+
   return (
-    <div className="space-y-2">
-      {payments.map((p) => (
-        <Card key={p.id} className="p-3 bg-card/40 flex items-center gap-3 text-sm">
-          <div className="w-24 text-xs uppercase tracking-wider text-muted-foreground">{p.kind}</div>
-          <div className="tabular-nums">{formatCurrency(p.amount_lsl)}</div>
-          <Badge className="ml-2 bg-primary/10 text-primary border border-primary/20 capitalize">{p.status}</Badge>
-          <div className="ml-auto text-xs text-muted-foreground tabular-nums">
-            {new Date(p.created_at).toLocaleDateString()}
+    <div className="space-y-6">
+      {/* 1. Financial state banner */}
+      {s && meta && (
+        <Card className={`p-5 bg-card/40 border ${meta.ring}`}>
+          <div className="flex items-start gap-4 flex-wrap">
+            <span className={`w-3 h-3 rounded-full mt-2 ${meta.dot}`} />
+            <div className="flex-1 min-w-[240px]">
+              <div className="text-lg font-display tracking-tight">{meta.label}</div>
+              <p className="text-sm text-muted-foreground mt-1">{meta.body}</p>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-right">
+              <SmallStat label="Total" value={formatCurrency(s.total_due_lsl)} />
+              <SmallStat label="Paid" value={formatCurrency(s.paid_lsl)} accent={s.paid_lsl > 0} />
+              <SmallStat label="Outstanding" value={formatCurrency(s.outstanding_lsl)} accent={s.outstanding_lsl > 0} />
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground tabular-nums">
+            <span>Balance due <b className="text-foreground">{s.balance_due_on}</b></span>
+            <span>·</span>
+            <span>{s.days_to_balance_due >= 0 ? `${s.days_to_balance_due} days to due` : `${-s.days_to_balance_due} days overdue`}</span>
+            <span>·</span>
+            <span>{s.days_to_event >= 0 ? `${s.days_to_event} days to event` : "past event"}</span>
           </div>
         </Card>
-      ))}
+      )}
+
+      {/* 2. 7-Day Financial Lock strip */}
+      {s?.lock_active && (
+        <Card className="p-4 bg-red-500/5 border border-red-500/30 flex items-center gap-3">
+          <Lock className="w-5 h-5 text-red-400" />
+          <div className="flex-1">
+            <div className="text-sm">7-Day Financial Lock engaged</div>
+            <div className="text-xs text-muted-foreground">
+              Once inside the seven-day window, this event is either Financially Cleared or Payment Default. No ambiguous middle state.
+            </div>
+          </div>
+        </Card>
+      )}
+      {s?.financial_state === "payment_default" && !s.has_continuation && (
+        <Card className="p-4 bg-red-500/10 border border-red-500/40 flex items-center gap-3">
+          <ShieldAlert className="w-5 h-5 text-red-400" />
+          <div className="flex-1 text-sm">
+            Payment Default — logistics frozen. Management Override required to continue.
+          </div>
+        </Card>
+      )}
+      {s?.has_continuation && (
+        <Card className="p-3 bg-emerald-500/5 border border-emerald-500/30 flex items-center gap-2 text-xs">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          Continuation approved — event unfrozen by management override.
+        </Card>
+      )}
+
+      {/* 3. Payment ledger */}
+      <section>
+        <SectionHeader icon={<DollarSign className="w-4 h-4" />} title="Ledger" />
+        {payments.length === 0 && <p className="text-sm text-muted-foreground">No payments recorded.</p>}
+        <div className="space-y-2">
+          {payments.map((p) => (
+            <Card key={p.id} className="p-3 bg-card/40 flex items-center gap-3 text-sm flex-wrap">
+              <div className="w-20 text-xs uppercase tracking-wider text-muted-foreground">{p.kind}</div>
+              <div className="tabular-nums w-28">{formatCurrency(p.amount_lsl)}</div>
+              <Badge className="bg-primary/10 text-primary border border-primary/20 capitalize">{p.status}</Badge>
+              {p.hold_status && p.hold_status !== "released" && (
+                <Badge className="bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 capitalize">
+                  <Lock className="w-3 h-3 mr-1" /> {p.hold_status.replace("_", " ")}
+                </Badge>
+              )}
+              <div className="ml-auto flex items-center gap-2">
+                {p.status === "uploaded" && (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => verifyM.mutate({ data: { paymentId: p.id } })}>
+                      Verify
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => {
+                      const reason = window.prompt("Rejection reason?");
+                      if (reason) rejectM.mutate({ data: { paymentId: p.id, reason } });
+                    }}>
+                      Reject
+                    </Button>
+                  </>
+                )}
+                {p.status === "verified" && p.hold_status && p.hold_status !== "released" && (
+                  <Button size="sm" variant="outline" onClick={() => {
+                    const reason = window.prompt("Release reason (e.g. performance completed)?");
+                    if (reason) releaseM.mutate({ data: { paymentId: p.id, reason, partial: false } });
+                  }}>
+                    <Unlock className="w-3 h-3 mr-1" /> Release
+                  </Button>
+                )}
+                <div className="text-xs text-muted-foreground tabular-nums">
+                  {new Date(p.created_at).toLocaleDateString()}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* 4. Management Override panel */}
+      <ManagementOverridePanel eventId={eventId} overrides={overrides} onDone={invalidate} defaulted={s?.financial_state === "payment_default"} />
+
+      {/* 5. Artist Protection block */}
+      <ArtistProtectionBlock payments={payments} />
     </div>
+  );
+}
+
+function SmallStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={`text-sm tabular-nums ${accent ? "text-primary" : ""}`}>{value}</div>
+    </div>
+  );
+}
+
+function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground mb-2">
+      {icon} {title}
+    </div>
+  );
+}
+
+function ManagementOverridePanel({
+  eventId, overrides, onDone, defaulted,
+}: {
+  eventId: string;
+  overrides: Array<{ id: string; kind: string; reason: string; new_deadline: string | null; created_at: string; active: boolean }>;
+  onDone: () => void;
+  defaulted?: boolean;
+}) {
+  const extendM = useMutation({ mutationFn: useServerFn(extendDeadline), onSuccess: onDone });
+  const contM = useMutation({ mutationFn: useServerFn(approveContinuation), onSuccess: onDone });
+  const cancelM = useMutation({ mutationFn: useServerFn(cancelForNonPayment), onSuccess: onDone });
+
+  const [newDeadline, setNewDeadline] = useState("");
+  const [extendReason, setExtendReason] = useState("");
+  const [contReason, setContReason] = useState("");
+
+  return (
+    <section>
+      <SectionHeader icon={<ShieldAlert className="w-4 h-4" />} title="Management Override" />
+      <Card className="p-4 bg-card/40 space-y-4">
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground">Extend deadline</div>
+            <Input type="date" value={newDeadline} onChange={(e) => setNewDeadline(e.target.value)} />
+            <Textarea rows={2} placeholder="Reason (required)" value={extendReason} onChange={(e) => setExtendReason(e.target.value)} />
+            <Button size="sm" variant="outline" disabled={!newDeadline || !extendReason.trim() || extendM.isPending}
+              onClick={() => extendM.mutate({ data: { eventId, newDeadline, reason: extendReason.trim() } })}>
+              Extend
+            </Button>
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground">
+              Approve continuation {defaulted ? "(required to unfreeze)" : ""}
+            </div>
+            <Textarea rows={2} placeholder="Reason (required)" value={contReason} onChange={(e) => setContReason(e.target.value)} />
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" disabled={!contReason.trim() || contM.isPending}
+                onClick={() => contM.mutate({ data: { eventId, reason: contReason.trim() } })}>
+                <ShieldCheck className="w-3 h-3 mr-1" /> Approve continuation
+              </Button>
+              <Button size="sm" variant="ghost" className="text-red-400"
+                onClick={() => {
+                  const r = window.prompt("Cancel reason?");
+                  if (r) cancelM.mutate({ data: { eventId, reason: r } });
+                }}>
+                Cancel booking
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {overrides.length > 0 && (
+          <div className="pt-3 border-t border-border/50">
+            <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Audit trail</div>
+            <ul className="space-y-1 text-xs">
+              {overrides.map((o) => (
+                <li key={o.id} className="flex items-baseline gap-2">
+                  <span className="capitalize text-foreground">{o.kind.replaceAll("_", " ")}</span>
+                  {o.new_deadline && <span className="text-muted-foreground">→ {o.new_deadline}</span>}
+                  <span className="text-muted-foreground">· {o.reason}</span>
+                  <span className="ml-auto text-muted-foreground tabular-nums">
+                    {new Date(o.created_at).toLocaleDateString()}
+                  </span>
+                  {!o.active && <span className="text-muted-foreground">(superseded)</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </Card>
+    </section>
+  );
+}
+
+function ArtistProtectionBlock({ payments }: { payments: PaymentRow[] }) {
+  const held = payments.filter((p) => p.hold_status === "held" || p.hold_status === "released_partial");
+  return (
+    <section>
+      <SectionHeader icon={<ShieldCheck className="w-4 h-4" />} title="Artist Protection" />
+      <Card className="p-4 bg-card/40 text-sm space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Performance fee is held until the event is completed. Approved logistics costs (travel, hotel) can be released separately.
+        </p>
+        {held.length === 0 ? (
+          <p className="text-xs text-muted-foreground italic">No held payments.</p>
+        ) : (
+          <ul className="space-y-1">
+            {held.map((p) => (
+              <li key={p.id} className="flex items-center gap-2 text-xs">
+                <Lock className="w-3 h-3 text-yellow-400" />
+                <span className="uppercase tracking-wider">{p.kind}</span>
+                <span className="tabular-nums">{formatCurrency(p.amount_lsl)}</span>
+                <span className="text-muted-foreground">· {p.hold_status}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </section>
   );
 }
 

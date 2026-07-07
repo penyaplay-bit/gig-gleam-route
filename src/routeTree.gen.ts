@@ -25,6 +25,7 @@ import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminCalendarRouteImport } from './routes/_authenticated/admin.calendar'
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
 import { Route as ApiPublicDepositsRefRouteImport } from './routes/api/public/deposits.$ref'
+import { Route as ApiPublicCronPaymentRemindersRouteImport } from './routes/api/public/cron/payment-reminders'
 import { Route as ApiPublicBookingsRefRouteImport } from './routes/api/public/bookings.$ref'
 import { Route as AuthenticatedAdminEventsIdRouteImport } from './routes/_authenticated/admin.events.$id'
 import { Route as AuthenticatedAdminBookingsIdRouteImport } from './routes/_authenticated/admin.bookings.$id'
@@ -113,6 +114,12 @@ const ApiPublicDepositsRefRoute = ApiPublicDepositsRefRouteImport.update({
   path: '/api/public/deposits/$ref',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronPaymentRemindersRoute =
+  ApiPublicCronPaymentRemindersRouteImport.update({
+    id: '/api/public/cron/payment-reminders',
+    path: '/api/public/cron/payment-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicBookingsRefRoute = ApiPublicBookingsRefRouteImport.update({
   id: '/$ref',
   path: '/$ref',
@@ -149,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
   '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
+  '/api/public/cron/payment-reminders': typeof ApiPublicCronPaymentRemindersRoute
   '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
 export interface FileRoutesByTo {
@@ -168,6 +176,7 @@ export interface FileRoutesByTo {
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
   '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
+  '/api/public/cron/payment-reminders': typeof ApiPublicCronPaymentRemindersRoute
   '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
 export interface FileRoutesById {
@@ -190,6 +199,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
   '/_authenticated/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
+  '/api/public/cron/payment-reminders': typeof ApiPublicCronPaymentRemindersRoute
   '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
 export interface FileRouteTypes {
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/admin/bookings/$id'
     | '/admin/events/$id'
     | '/api/public/bookings/$ref'
+    | '/api/public/cron/payment-reminders'
     | '/api/public/deposits/$ref'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/admin/bookings/$id'
     | '/admin/events/$id'
     | '/api/public/bookings/$ref'
+    | '/api/public/cron/payment-reminders'
     | '/api/public/deposits/$ref'
   id:
     | '__root__'
@@ -252,6 +264,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/bookings/$id'
     | '/_authenticated/admin/events/$id'
     | '/api/public/bookings/$ref'
+    | '/api/public/cron/payment-reminders'
     | '/api/public/deposits/$ref'
   fileRoutesById: FileRoutesById
 }
@@ -263,6 +276,7 @@ export interface RootRouteChildren {
   PayRefRoute: typeof PayRefRoute
   ApiPublicArtistsRoute: typeof ApiPublicArtistsRoute
   ApiPublicBookingsRoute: typeof ApiPublicBookingsRouteWithChildren
+  ApiPublicCronPaymentRemindersRoute: typeof ApiPublicCronPaymentRemindersRoute
   ApiPublicDepositsRefRoute: typeof ApiPublicDepositsRefRoute
 }
 
@@ -380,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDepositsRefRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/payment-reminders': {
+      id: '/api/public/cron/payment-reminders'
+      path: '/api/public/cron/payment-reminders'
+      fullPath: '/api/public/cron/payment-reminders'
+      preLoaderRoute: typeof ApiPublicCronPaymentRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/bookings/$ref': {
       id: '/api/public/bookings/$ref'
       path: '/$ref'
@@ -481,18 +502,9 @@ const rootRouteChildren: RootRouteChildren = {
   PayRefRoute: PayRefRoute,
   ApiPublicArtistsRoute: ApiPublicArtistsRoute,
   ApiPublicBookingsRoute: ApiPublicBookingsRouteWithChildren,
+  ApiPublicCronPaymentRemindersRoute: ApiPublicCronPaymentRemindersRoute,
   ApiPublicDepositsRefRoute: ApiPublicDepositsRefRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
