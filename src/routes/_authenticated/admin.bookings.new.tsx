@@ -24,6 +24,7 @@ function NewBooking() {
   const fetchProfiles = useServerFn(listArtistProfiles);
   const runPreview = useServerFn(previewQuote);
   const runAi = useServerFn(aiSuggestPrice);
+  const runDistance = useServerFn(computeDrivingDistance);
 
   const { data: profilesData } = useQuery({
     queryKey: ["artist-profiles"],
