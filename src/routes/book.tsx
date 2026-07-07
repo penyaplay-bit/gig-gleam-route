@@ -191,7 +191,7 @@ function BookingForm() {
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "Submission failed");
-      navigate({ to: "/book/confirm/$ref" as never, params: { ref: j.ref } });
+      navigate({ to: "/book/confirm/$ref" as never, params: { ref: j.ref } as never });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Submission failed");
     } finally {

@@ -46,7 +46,7 @@ function CalendarPage() {
             <h2 className="text-sm uppercase tracking-widest text-muted-foreground mb-2">{month}</h2>
             <div className="grid gap-2">
               {items.sort((a: any, b: any) => a.event_date.localeCompare(b.event_date)).map((b: any) => (
-                <Link key={b.id} to={"/admin/bookings/$id" as never} params={{ id: b.id }}>
+                <Link key={b.id} to={"/admin/bookings/$id" as never} params={{ id: b.id } as never}>
                   <Card className={`p-3 flex items-center justify-between ${conflictClass(b)}`}>
                     <div>
                       <div className="text-sm font-medium">{formatDate(b.event_date)} · {b.event_name}</div>

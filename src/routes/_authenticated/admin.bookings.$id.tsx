@@ -185,7 +185,7 @@ function BookingDetail() {
               ))}
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Public deposit link: <Link to={"/pay/$ref" as never} params={{ ref: b.ref }} className="text-primary underline">/pay/{b.ref}</Link>
+              Public deposit link: <Link to={"/pay/$ref" as never} params={{ ref: b.ref } as never} className="text-primary underline">/pay/{b.ref}</Link>
             </p>
           </Card>
 

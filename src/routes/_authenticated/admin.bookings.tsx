@@ -52,7 +52,7 @@ function BookingsList() {
               return (
                 <tr key={b.id} className="border-t border-border/50 hover:bg-accent/30">
                   <td className="px-3 py-2 font-mono text-primary">
-                    <Link to={"/admin/bookings/$id" as never} params={{ id: b.id }}>{b.ref}</Link>
+                    <Link to={"/admin/bookings/$id" as never} params={{ id: b.id } as never}>{b.ref}</Link>
                   </td>
                   <td className="px-3 py-2">{b.event_name}<div className="text-xs text-muted-foreground">{b.artists?.name}</div></td>
                   <td className="px-3 py-2">{formatDate(b.event_date)}</td>

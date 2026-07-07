@@ -61,7 +61,7 @@ function Pipeline() {
                     <Link
                       key={b.id}
                       to={"/admin/bookings/$id" as never}
-                      params={{ id: b.id }}
+                      params={{ id: b.id } as never}
                       className="block"
                     >
                       <Card className="p-3 hover:border-primary/40 transition">
