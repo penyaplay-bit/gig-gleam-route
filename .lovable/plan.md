@@ -1,113 +1,123 @@
 
-# Penya Live — Event-Centric Foundation
+# Payment Protection Policy — the 7-Day Financial Lock
 
-Stop adding features. Rebuild the core so **every** object in the system hangs off one entity: **Event**. Talent, promoters, finance, logistics, marketing, AI, campaigns, docs, chat — all become facets of an Event, not standalone modules. This is a foundation turn: no new user-facing features, but every future feature plugs in with zero re-plumbing.
+Turn the policy you wrote into a first-class engine inside the Event Graph. Every booking automatically runs the same reminder cadence, flips to `payment_default` after the deadline, freezes downstream work, and forces a logged Management Override to continue. The artist fee is held separately from logistics reimbursements.
 
-The current `bookings` table already tries to be an event, but it mixes 40 columns of promoter/finance/logistics/scoring concerns into one row. We split it into a graph and rebuild the admin around a single Event workspace.
+No new module. Everything plugs into the tables we shipped last turn: `event_payments`, `event_timeline`, `notifications`, `event_campaign`.
 
 ---
 
-## The Event Graph (data model)
+## Schema additions (one small migration)
 
-Central table `events` (renamed conceptually from `bookings`), plus one satellite table per concern. Every satellite has `event_id` FK. Nothing new lives outside this graph.
+```sql
+-- Store the policy result as derived state, not a snowflake column on bookings
+CREATE VIEW public.event_financial_state AS
+SELECT
+  b.id AS event_id,
+  b.event_date,
+  COALESCE(q.total_lsl, b.quoted_amount, 0)                    AS total_due_lsl,
+  COALESCE(SUM(p.amount_lsl) FILTER (WHERE p.status='verified' AND p.kind IN ('deposit','balance')), 0) AS paid_lsl,
+  (b.event_date - INTERVAL '7 days')::date                     AS balance_due_on,
+  (b.event_date - CURRENT_DATE)                                AS days_to_event,
+  ((b.event_date - INTERVAL '7 days')::date - CURRENT_DATE)    AS days_to_balance_due,
+  -- financial_state: awaiting_deposit | deposit_paid | balance_pending | financially_cleared | payment_default
+  ...
+FROM bookings b LEFT JOIN event_payments p ... LEFT JOIN LATERAL (latest quote) q ...;
 
-```text
-                         ┌──────────────┐
-                         │    events    │  ← the only root entity
-                         └──────┬───────┘
-       ┌──────────────┬────────┼────────┬──────────────┬──────────────┐
-       ▼              ▼        ▼        ▼              ▼              ▼
- event_parties  event_timeline  event_quotes  event_contracts  event_payments
- (role=talent/  (append-only    (versioned)   (signed docs)    (deposit,
-  promoter/     status log)                                      balance,
-  sponsor/                                                       invoices)
-  crew/venue)
-       ▼              ▼        ▼        ▼              ▼              ▼
- event_logistics event_campaign event_media event_messages event_tasks event_documents
- (travel, hotel, (30/14/7/1-day (photos,    (unified chat  (call        (contracts,
-  driver, rider)  auto-schedule) videos)     thread per     sheets,      riders,
-                                             event)         checklists)  invoices)
+-- Management overrides — every extension / continuation / cancel is logged
+CREATE TABLE public.event_overrides (
+  id, event_id → bookings, kind ('extend_deadline','approve_continuation','cancel','escalate_legal'),
+  approved_by uuid → auth.users, reason text NOT NULL, new_deadline date, notes text,
+  meta jsonb, created_at
+);
+
+-- Artist fee release tracking — sits on event_payments via new columns
+ALTER TABLE event_payments
+  ADD COLUMN hold_status text NOT NULL DEFAULT 'released'  -- released | held | released_partial
+    CHECK (hold_status IN ('released','held','released_partial')),
+  ADD COLUMN release_reason text,
+  ADD COLUMN released_at timestamptz,
+  ADD COLUMN released_by uuid REFERENCES auth.users(id);
 ```
 
-Key rules baked into the schema:
-- `events.status` is derived from the latest `event_timeline` row, not stored twice.
-- All money (`event_payments`, `event_quotes`) references the event, never a party directly.
-- `talents` (was `artists`) and `promoters` become **directory** tables — history/revenue/ratings are computed from `event_parties` joins, never stored on the party row.
-- No feature-specific status columns on `events` (no `deposit_status`, no `contract_status`, no `travel_status`). Those live in their satellite tables; the timeline is the single source of truth.
+RLS: staff read, admin write. GRANTs per template.
 
-## The six engines (shared infrastructure, feature-free)
+## Payments Engine — `src/lib/engines/payments.functions.ts`
 
-Each engine is a thin, generic module in `src/lib/engines/` that **any** future feature calls. No engine knows about talent, promoters, or campaigns specifically — they only know about Events and event_ids.
+Pure business logic, no UI. Every action writes a timeline row so the workspace picks it up automatically.
 
-1. **Event Engine** (`event.functions.ts`) — `createEvent`, `getEvent(id)` returns the full graph in one call, `advanceStage(eventId, stage)`, `getDerivedStatus(eventId)`. Every mutation to any satellite writes a `event_timeline` row.
+- `getFinancialState(eventId)` — reads the view; returns `{ state, total_due, paid, balance, balance_due_on, days_to_due, lock_active, is_defaulted, override? }`
+- `recordPayment({ eventId, kind, amount, method, reference, pop_path })` — inserts `event_payments`, timeline `deposit_paid` / `balance_paid` when verified
+- `verifyPayment({ paymentId })` / `rejectPayment({ paymentId, reason })` — admin action, timeline + notification
+- `extendDeadline({ eventId, newDeadline, reason })` — writes `event_overrides`, timeline `deadline_extended`
+- `approveContinuation({ eventId, reason })` — required to unblock a defaulted event, timeline `override_approve_continuation`, unfreezes logistics
+- `cancelForNonPayment({ eventId, reason })` — timeline `cancelled_non_payment`
+- `releaseArtistFee({ paymentId, reason })` — flips `hold_status`, records who/when
+- `releaseLogisticsCosts({ eventId })` — marks approved logistics reimbursements released even while performance fee is held
 
-2. **Timeline Engine** (`timeline.functions.ts`) — append-only event log. Records `{event_id, stage, actor, payload, at}`. Powers status, audit trail, and the live Operating Room feed. Uses Supabase Realtime on `event_timeline`.
+Guardrails built in:
+- `verifyPayment` on a deposit → auto-advance stage `deposit_paid` → `confirmed`
+- `verifyPayment` on the balance covering 100% → stage `financially_cleared`
+- Any mutation on a defaulted event without an `approve_continuation` override throws — logistics/campaign engines call `assertNotFrozen(eventId)` first
 
-3. **Communication Engine** (`comms.functions.ts`) — one thread per event (`event_messages`). Channel-agnostic: `channel: 'in_app' | 'whatsapp' | 'email'`. wa.me deep links today; adapter interface so Twilio/Resend swap in later without touching callers.
+## Automated Timeline (pg_cron every hour, idempotent)
 
-4. **Notification Engine** (`notifications.functions.ts`) — rule-based reminders: "deposit overdue > 48h → notify admin". Runs from a `pg_cron` job hitting a `/api/public/cron/notifications` route. Reads timeline, writes to a `notifications` table, deduped by rule+event.
+New server route `src/routes/api/public/cron/payment-reminders.ts`, apikey-auth per the standard pattern. On each run:
 
-5. **Document Engine** (`documents.functions.ts`) — every generated artefact (quote PDF, contract, invoice, call sheet, POP) is a row in `event_documents` with a Storage path. One generator interface, per-type templates. Existing `quote-pdf.ts` gets wrapped, not rewritten.
+1. Query view for events `event_date >= today`.
+2. For each event, compute today's bucket relative to `balance_due_on`:
+   - `T-21` → notification `reminder_21d` (green), WhatsApp deep link message logged to `event_messages`
+   - `T-14` → `reminder_14d` (green)
+   - `T-10` → `reminder_10d` (amber)
+   - `T-7`  → `reminder_final_notice` (red) + timeline `financial_lock_engaged`
+   - `T<0` and not cleared and no active override → timeline `payment_default`, notification `payment_default` (critical), freeze logistics (`event_logistics.meta.frozen=true`), pause campaign (mark `event_campaign` rows `paused`)
+3. Every notification is deduped by `(rule, event_id)` — the unique partial index we already have.
+4. A separate daily-6am cron runs the same route with `?mode=daily` so timing is guaranteed even if hourly runs miss.
 
-6. **Map Engine** (`map.functions.ts`) — distance/travel-time between two locations, cached in `event_logistics`. Wraps the current `guessDistanceKm` LUT behind an interface so a real routing API drops in later.
+Reminder copy is a small template registry in `src/lib/engines/payment-templates.ts` (5 templates, plain strings with `{event}`, `{amount}`, `{due_date}` placeholders). The comms engine turns them into WA links.
 
-## Admin becomes the Event Workspace
+## Event Workspace — Payments tab rebuild
 
-One route replaces the scattered admin pages: `/_authenticated/events/$id`, with tabs backed by the satellites:
+Replaces the current placeholder-heavy Payments tab. Sections:
 
-`Overview · Timeline · Chat · Payments · Contracts · Travel · Campaign · Media · Documents · Tasks · Analytics`
+1. **Financial state banner** — big status pill: 🟡 Awaiting Deposit / 🟢 Financially Cleared / 🟠 Reminder / 🔴 Payment Default. Shows `Balance due in N days` (tabular-nums, gold), total / paid / outstanding.
+2. **7-Day Financial Lock strip** — visible countdown once inside `T-7`. Turns red at `T-0`. Explains "Lock engaged: only Management Override can continue."
+3. **Payment ledger** — existing list, now with kind, `hold_status` badge, verify / reject actions.
+4. **Reminder log** — timeline of the 21/14/10/7-day notices with their sent state, so ops can see what the promoter has actually received.
+5. **Management Override panel** (admin only) — three actions: Extend deadline (date + reason), Approve continuation (reason required), Cancel booking. Renders the audit trail below.
+6. **Artist Protection block** — shows performance-fee `hold_status` with "Release fee" button (requires event to be `performance_finished`), plus a separate "Release logistics costs" button for pre-event travel/hotel reimbursements.
 
-Existing `admin.bookings`, `admin.pipeline`, `admin.calendar` become **views over the event graph**, not sources of truth. Directory pages (`admin.talents`, `admin.promoters`) become read-only rosters with computed history from event joins.
+Copy uses your policy verbatim on the banner and lock strip so promoters see the same words admins see.
 
-## What stays and what moves
+## Public `/pay/$ref` upgrade
 
-| Today | Tomorrow |
-|---|---|
-| `bookings` (40 cols) | `events` (core cols only) + 10 satellite tables |
-| `booking_notes` | folded into `event_messages` (channel=in_app, kind=note) |
-| `deposits` | folded into `event_payments` (kind=deposit) |
-| `artists` | renamed `talents`, history computed from graph |
-| `promoters` | stays as directory; reliability computed from graph |
-| `packages` | stays; referenced by `event_quotes` line items |
-| `pricing_rules` | stays; consumed by quote engine |
-| `booking-score.ts` | stays; input now assembled from the graph, not the row |
-| `/api/public/bookings/*` | replaced by `/api/public/events/$ref` |
-
-Public booking form still creates one row — but now that row is an **Event** with a first timeline entry `stage=inquiry`. Zero regression to the public flow.
-
-## Migration strategy (safe, single turn)
-
-1. Additive migration: create all satellite tables + GRANTs + RLS.
-2. Backfill from `bookings` into `events` + satellites in the same migration (data preserved by ref).
-3. Keep `bookings` as a **view** over `events + event_payments + event_parties` so existing server fns keep working during the swap.
-4. Rewrite server fns one at a time to read from the graph, delete the view last.
-
-## Out of scope for this foundation turn (deferred, will plug in later)
-
-- Live Operating Room UI (needs the Realtime timeline first — building it is a follow-up)
-- Per-event AI ("call promoter" recommendations) — the engine hook is stubbed, prompt/UI later
-- Campaign auto-scheduler cron — table + interface only, no scheduling yet
-- Talent self-signup, AI portfolio builder, matchmaking, reviews, video analysis — all become event-graph features later
-- WhatsApp Twilio automation — adapter interface only, deep links continue working
-
-## Technical notes (for the engineer)
-
-- All satellites: `event_id uuid not null references events(id) on delete cascade`, RLS `USING (is_staff_or_admin())` for admin tables, narrow anon SELECT on `events` + `event_timeline` for the confirmation/pay pages by `ref`.
-- Timeline is append-only: `REVOKE UPDATE, DELETE ON event_timeline FROM authenticated`.
-- Add Supabase Realtime publication on `event_timeline`, `event_messages`, `event_payments` (needed for Operating Room later; costs nothing to enable now).
-- Engines live in `src/lib/engines/*.functions.ts` behind `createServerFn` + `requireSupabaseAuth`.
-- `getEvent(id)` returns one JSON blob assembled server-side (single round trip) — this is the primitive every event workspace tab consumes via `useSuspenseQuery`.
-- Server fn `advanceStage` is the ONLY writer to `event_timeline` — every satellite mutation calls it, so status is impossible to desync.
-- Rename `artists → talents` via `ALTER TABLE`; regenerated types file will cascade.
-- No frontend feature work this turn beyond the Event Workspace shell with real tabs wired to the graph (empty-state where a future feature will land).
+Same financial-state banner + copy. Three CTAs when inside the final window: **Pay Balance** (opens existing pay flow), **Upload Proof of Payment** (existing POP flow), **Contact Finance** (WA deep link built by comms engine). Green/amber/red bar mirrors the admin view so promoters cannot claim confusion.
 
 ## Deliverable checklist
 
-- [ ] Migration: `events`, 10 satellite tables, GRANTs, RLS, `bookings` compatibility view, backfill.
-- [ ] `src/lib/engines/{event,timeline,comms,notifications,documents,map}.functions.ts` with typed contracts.
-- [ ] Rewrite `listBookings`, booking create, deposit upload, quote generate → call engines.
-- [ ] `/_authenticated/events/$id` workspace with tabs (Overview + Timeline live; others show engine-driven empty states).
-- [ ] Public routes updated to `/api/public/events/$ref`; old routes proxy for one release.
-- [ ] Realtime enabled on the three log tables.
+- [ ] Migration: `event_financial_state` view, `event_overrides` table + RLS/GRANTs, `event_payments` hold-status columns
+- [ ] `src/lib/engines/payments.functions.ts` — 8 typed server functions listed above
+- [ ] `src/lib/engines/payment-templates.ts` — 5 reminder templates
+- [ ] `src/routes/api/public/cron/payment-reminders.ts` — hourly + daily runner, apikey-auth
+- [ ] pg_cron schedule (insert tool, per rules) — hourly + daily-6am jobs
+- [ ] Rewrite Payments tab in `admin.events.$id.tsx` with the six sections above
+- [ ] Update `/pay/$ref` with financial-state banner and three CTAs
+- [ ] Freeze hooks: logistics/campaign engines call `assertNotFrozen()` before mutations
+- [ ] Backfill: seed `hold_status='held'` on any historical performance-fee payments (there won't be any; safe no-op)
 
-Once approved I'll ship the migration first (single call), then the engines + workspace in the following turn.
+## Out of scope for this turn
+
+- Card/mobile-money payment gateway (still POP-based; existing pay flow untouched apart from copy)
+- WhatsApp API sending (still `wa.me` deep links via comms engine adapter)
+- Automatic legal escalation workflow — the override kind exists, but "escalate_legal" is just a logged status this turn
+- Finance ledger / invoicing PDFs — separate turn
+
+## Technical notes
+
+- View not a table → `event_financial_state` is always fresh, no sync bugs, no triggers to maintain.
+- The cron route uses the anon key in `apikey` header per template rules; no custom secret.
+- All monetary values stay `integer` LSL. Display uses existing `formatM` helper.
+- The `assertNotFrozen()` gate is one server-side helper that reads `event_overrides` and the frozen flag; any future engine automatically inherits the policy by calling it.
+- Every state change goes through `advanceStage()` — the Timeline tab in the workspace visualises the whole policy for free.
+
+Approve to ship in one turn: migration first, then the engine + cron + UI in the same batch.
