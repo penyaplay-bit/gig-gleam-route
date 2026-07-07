@@ -133,7 +133,7 @@ function EventWorkspace() {
         {tab === "timeline" && <TimelineTab entries={data.timeline} />}
         {tab === "chat" && <ChatTab eventId={id} messages={data.messages} onPosted={() => qc.invalidateQueries({ queryKey: ["event", id] })} />}
         {tab === "parties" && <PartiesTab parties={data.parties} />}
-        {tab === "payments" && <PaymentsTab payments={data.payments} />}
+        {tab === "payments" && <PaymentsTab eventId={id} payments={data.payments} />}
         {tab === "contracts" && <EmptyTab title="Contracts" hint="Contract engine wires here. Storage + signature flow next." />}
         {tab === "travel" && <TravelTab logistics={data.logistics} />}
         {tab === "campaign" && <CampaignTab campaign={data.campaign} />}
