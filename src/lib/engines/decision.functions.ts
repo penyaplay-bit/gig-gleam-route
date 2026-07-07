@@ -413,7 +413,7 @@ async function evaluateForClient(
         next_best_action: nba,
         prev_score: prevRow?.health_score ?? null,
         prev_risk: prevRow?.risk_level ?? null,
-      },
+      } as unknown as never,
     });
   }
 
