@@ -102,9 +102,18 @@ function BookingDetail() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <Link to={"/admin/pipeline" as never} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-4">
-        <ArrowLeft className="w-3 h-3" /> Pipeline
-      </Link>
+      <div className="flex items-center justify-between mb-4">
+        <Link to={"/admin/pipeline" as never} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
+          <ArrowLeft className="w-3 h-3" /> Pipeline
+        </Link>
+        <Link
+          to={"/admin/events/$id" as never}
+          params={{ id } as never}
+          className="text-xs rounded-md border border-primary/30 text-primary px-3 py-1.5 hover:bg-primary/10"
+        >
+          Open Event Workspace →
+        </Link>
+      </div>
 
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
