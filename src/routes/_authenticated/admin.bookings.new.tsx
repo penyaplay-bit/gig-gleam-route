@@ -184,6 +184,44 @@ function NewBooking() {
                 <Input value={form.country} onChange={(e) => update("country", e.target.value)} />
               </Field>
             </div>
+            <Field label="Venue address (auto-calculates distance)">
+              <div className="flex gap-2">
+                <Input
+                  value={venueAddress}
+                  onChange={(e) => setVenueAddress(e.target.value)}
+                  placeholder="e.g. 8G Riversands Blvd, Fourways, Gauteng"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => distanceMut.mutate()}
+                  disabled={distanceMut.isPending || !profile?.home_address}
+                >
+                  {distanceMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
+                  <span className="ml-1.5">Calculate</span>
+                </Button>
+              </div>
+              {profile?.home_address && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  From <span className="text-foreground">{profile.home_address}</span>
+                  {profile.home_country_code ? ` (${profile.home_country_code})` : ""}
+                </p>
+              )}
+              {distanceMut.data && (
+                <div className="mt-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs">
+                  <div className="font-mono">
+                    {distanceMut.data.origin_country_code ?? "?"} → {distanceMut.data.destination_country_code ?? "?"}
+                    {" · "}{distanceMut.data.distance_km} km
+                    {" · ~"}{Math.floor(distanceMut.data.duration_min / 60)}h {distanceMut.data.duration_min % 60}m
+                    {distanceMut.data.cross_border && " · cross-border"}
+                  </div>
+                  <div className="text-muted-foreground mt-0.5">Applied to quote automatically.</div>
+                </div>
+              )}
+              {distanceMut.error && (
+                <div className="mt-2 text-xs text-red-400">{(distanceMut.error as Error).message}</div>
+              )}
+            </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="One-way distance (km)">
                 <Input type="number" value={form.distance_km ?? ""} onChange={(e) => update("distance_km", e.target.value ? Number(e.target.value) : undefined)} placeholder="e.g. 250" />
@@ -193,6 +231,7 @@ function NewBooking() {
               </Field>
             </div>
           </Section>
+
 
           <Section title="Logistics" icon={<Truck className="w-4 h-4" />}>
             <div className="grid grid-cols-3 gap-3">
