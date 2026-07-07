@@ -471,6 +471,111 @@ export type Database = {
           },
         ]
       }
+      event_health: {
+        Row: {
+          evaluated_at: string
+          event_id: string
+          factors: Json
+          financial_lock: string
+          health_score: number
+          next_best_action: Json
+          pillar_scores: Json
+          predicted_failure_pct: number
+          predicted_reasons: Json
+          pulse: string
+          risk_level: string
+          stale: boolean
+          updated_at: string
+        }
+        Insert: {
+          evaluated_at?: string
+          event_id: string
+          factors?: Json
+          financial_lock?: string
+          health_score?: number
+          next_best_action?: Json
+          pillar_scores?: Json
+          predicted_failure_pct?: number
+          predicted_reasons?: Json
+          pulse?: string
+          risk_level?: string
+          stale?: boolean
+          updated_at?: string
+        }
+        Update: {
+          evaluated_at?: string
+          event_id?: string
+          factors?: Json
+          financial_lock?: string
+          health_score?: number
+          next_best_action?: Json
+          pillar_scores?: Json
+          predicted_failure_pct?: number
+          predicted_reasons?: Json
+          pulse?: string
+          risk_level?: string
+          stale?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_health_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_health_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
+      event_health_history: {
+        Row: {
+          event_id: string
+          health_score: number
+          id: string
+          pillar_scores: Json
+          risk_level: string
+          snapshot_at: string
+        }
+        Insert: {
+          event_id: string
+          health_score: number
+          id?: string
+          pillar_scores?: Json
+          risk_level: string
+          snapshot_at?: string
+        }
+        Update: {
+          event_id?: string
+          health_score?: number
+          id?: string
+          pillar_scores?: Json
+          risk_level?: string
+          snapshot_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_health_history_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_health_history_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
       event_logistics: {
         Row: {
           call_sheet: Json
