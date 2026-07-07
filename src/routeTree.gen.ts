@@ -26,6 +26,7 @@ import { Route as AuthenticatedAdminCalendarRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
 import { Route as ApiPublicDepositsRefRouteImport } from './routes/api/public/deposits.$ref'
 import { Route as ApiPublicBookingsRefRouteImport } from './routes/api/public/bookings.$ref'
+import { Route as AuthenticatedAdminEventsIdRouteImport } from './routes/_authenticated/admin.events.$id'
 import { Route as AuthenticatedAdminBookingsIdRouteImport } from './routes/_authenticated/admin.bookings.$id'
 
 const BookRoute = BookRouteImport.update({
@@ -117,6 +118,12 @@ const ApiPublicBookingsRefRoute = ApiPublicBookingsRefRouteImport.update({
   path: '/$ref',
   getParentRoute: () => ApiPublicBookingsRoute,
 } as any)
+const AuthenticatedAdminEventsIdRoute =
+  AuthenticatedAdminEventsIdRouteImport.update({
+    id: '/events/$id',
+    path: '/events/$id',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminBookingsIdRoute =
   AuthenticatedAdminBookingsIdRouteImport.update({
     id: '/$id',
@@ -140,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
+  '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
   '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
@@ -158,6 +166,7 @@ export interface FileRoutesByTo {
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
+  '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
   '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
@@ -179,6 +188,7 @@ export interface FileRoutesById {
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
+  '/_authenticated/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
   '/api/public/deposits/$ref': typeof ApiPublicDepositsRefRoute
 }
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/book/confirm/$ref'
     | '/admin/'
     | '/admin/bookings/$id'
+    | '/admin/events/$id'
     | '/api/public/bookings/$ref'
     | '/api/public/deposits/$ref'
   fileRoutesByTo: FileRoutesByTo
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/book/confirm/$ref'
     | '/admin'
     | '/admin/bookings/$id'
+    | '/admin/events/$id'
     | '/api/public/bookings/$ref'
     | '/api/public/deposits/$ref'
   id:
@@ -238,6 +250,7 @@ export interface FileRouteTypes {
     | '/book/confirm/$ref'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/bookings/$id'
+    | '/_authenticated/admin/events/$id'
     | '/api/public/bookings/$ref'
     | '/api/public/deposits/$ref'
   fileRoutesById: FileRoutesById
@@ -374,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBookingsRefRouteImport
       parentRoute: typeof ApiPublicBookingsRoute
     }
+    '/_authenticated/admin/events/$id': {
+      id: '/_authenticated/admin/events/$id'
+      path: '/events/$id'
+      fullPath: '/admin/events/$id'
+      preLoaderRoute: typeof AuthenticatedAdminEventsIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/bookings/$id': {
       id: '/_authenticated/admin/bookings/$id'
       path: '/$id'
@@ -405,6 +425,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPipelineRoute: typeof AuthenticatedAdminPipelineRoute
   AuthenticatedAdminPromotersRoute: typeof AuthenticatedAdminPromotersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminEventsIdRoute: typeof AuthenticatedAdminEventsIdRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -414,6 +435,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPipelineRoute: AuthenticatedAdminPipelineRoute,
   AuthenticatedAdminPromotersRoute: AuthenticatedAdminPromotersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminEventsIdRoute: AuthenticatedAdminEventsIdRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -464,13 +486,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
