@@ -216,9 +216,9 @@ function RequestQuotePage() {
             {artist ? (
               <>
                 <div className="font-display text-2xl mt-2">
-                  {formatCents(artist.estimated_low, artist.currency)}
+                  {formatCents(artist.estimated_low, artist.currency as any)}
                   <span className="text-muted-foreground text-base"> – </span>
-                  {formatCents(artist.estimated_high, artist.currency)}
+                  {formatCents(artist.estimated_high, artist.currency as any)}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-2">
                   All-in envelope. Final quotation depends on distance, travel dates, crowd tier, production and rider.
@@ -279,7 +279,7 @@ function SuccessTicket({ data, artistName }: { data: SuccessResp; artistName: st
           <div>
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Estimated Range</div>
             <div className="font-mono text-lg">
-              {formatCents(data.estimated_range.low, data.estimated_range.currency)} – {formatCents(data.estimated_range.high, data.estimated_range.currency)}
+              {formatCents(data.estimated_range.low, data.estimated_range.currency as any)} – {formatCents(data.estimated_range.high, data.estimated_range.currency as any)}
             </div>
             <div className="text-[11px] text-muted-foreground mt-1">
               This is an indicative envelope. Formal quotation follows review.
