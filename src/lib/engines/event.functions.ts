@@ -139,7 +139,7 @@ export const advanceStage = createServerFn({ method: "POST" })
       event_id: data.eventId,
       stage: data.stage,
       actor_id: userId,
-      payload: data.payload ?? {},
+      payload: (data.payload ?? {}) as never,
     });
     if (error) throw error;
     return { ok: true };
