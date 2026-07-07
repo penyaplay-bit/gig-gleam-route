@@ -1,22 +1,21 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
-@import "@fontsource-variable/space-grotesk";
-@import "@fontsource-variable/inter";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/inter-tight";
 @import "@fontsource-variable/jetbrains-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Penya Play Bookings — cinematic gold on warm obsidian.
- * Drawn from the Penya Play identity: award-show spotlight, champagne gold,
- * film-grain black. Futuristic but luxurious; motion via scroll reveals.
- * Fonts: Space Grotesk (display) + Inter (UI) + JetBrains Mono (numbers).
+ * Penya Play OS — Gen-Z cinematic brand.
+ * Gold-on-obsidian, film-grain texture, cinematic scroll motion.
+ * Fonts: Bricolage Grotesque (display, chunky) + Inter Tight (UI) + JetBrains Mono (numbers).
  */
 
 @theme inline {
-  --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Tight Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -47,56 +46,59 @@
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
 
-  /* Legacy semantic names kept so existing markup keeps working —
-     values remapped to the Penya gold system. */
-  --color-ochre: var(--ochre);            /* champagne gold (primary) */
-  --color-ochre-soft: var(--ochre-soft);  /* soft gold wash */
-  --color-evergreen: var(--evergreen);    /* pale champagne (success/savings) */
+  /* Brand tokens (legacy names kept working) */
+  --color-ochre: var(--ochre);
+  --color-ochre-soft: var(--ochre-soft);
+  --color-evergreen: var(--evergreen);
   --color-ink: var(--ink);
   --color-parchment: var(--parchment);
   --color-parchment-deep: var(--parchment-deep);
-  --color-magenta: var(--magenta);        /* ember amber (alerts/pulse) */
+  --color-magenta: var(--magenta);
+  --color-coral: var(--coral);
 
   --shadow-quote:
-    0 0 0 1px oklch(0.78 0.13 85 / 0.28),
-    0 30px 80px -20px oklch(0.78 0.13 85 / 0.20),
-    0 0 70px -12px oklch(0.78 0.13 85 / 0.30);
+    0 0 0 1px oklch(0.82 0.15 88 / 0.30),
+    0 30px 80px -20px oklch(0.82 0.15 88 / 0.28),
+    0 0 90px -12px oklch(0.82 0.15 88 / 0.35);
+
+  --shadow-cinema:
+    0 40px 120px -30px oklch(0.82 0.15 88 / 0.25),
+    0 0 0 1px oklch(0.82 0.15 88 / 0.10);
 }
 
 :root {
   --radius: 1rem;
 
-  /* Warm obsidian ground — black with a whisper of amber, like the brand art */
-  --parchment: oklch(0.13 0.012 75);
-  --parchment-deep: oklch(0.17 0.015 75);
-  --ink: oklch(0.97 0.008 85);
+  /* Warm obsidian — near-black with a whisper of amber */
+  --parchment: oklch(0.11 0.010 75);
+  --parchment-deep: oklch(0.14 0.014 75);
+  --ink: oklch(0.98 0.008 85);
 
-  /* Champagne gold primary */
-  --ochre: oklch(0.80 0.13 85);
+  /* Champagne gold */
+  --ochre: oklch(0.83 0.14 88);
   --ochre-soft: oklch(0.34 0.07 85 / 0.35);
-  /* Pale champagne — savings, success, routing discount */
-  --evergreen: oklch(0.90 0.09 92);
-  /* Ember amber — live pulses and alerts */
+  --evergreen: oklch(0.92 0.10 92);
   --magenta: oklch(0.72 0.16 60);
+  --coral: oklch(0.72 0.18 35);
 
   --background: var(--parchment);
   --foreground: var(--ink);
-  --card: oklch(0.165 0.015 75);
+  --card: oklch(0.155 0.014 75);
   --card-foreground: var(--ink);
-  --popover: oklch(0.165 0.015 75);
+  --popover: oklch(0.155 0.014 75);
   --popover-foreground: var(--ink);
   --primary: var(--ochre);
-  --primary-foreground: oklch(0.14 0.02 75);
-  --secondary: oklch(0.22 0.02 75);
+  --primary-foreground: oklch(0.12 0.02 75);
+  --secondary: oklch(0.20 0.02 75);
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.22 0.02 75);
-  --muted-foreground: oklch(0.68 0.02 80);
+  --muted: oklch(0.20 0.02 75);
+  --muted-foreground: oklch(0.70 0.02 80);
   --destructive: oklch(0.62 0.19 30);
   --destructive-foreground: oklch(0.97 0.008 85);
   --accent: var(--ochre-soft);
   --accent-foreground: var(--ink);
-  --border: oklch(0.30 0.035 82);
-  --input: oklch(0.30 0.035 82);
+  --border: oklch(0.28 0.030 82);
+  --input: oklch(0.28 0.030 82);
   --ring: var(--ochre);
 }
 
@@ -107,25 +109,24 @@
   html, body {
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+  html {
+    scroll-behavior: smooth;
   }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    /* Cinematic ground: a gold spotlight falling from top-centre,
-       a low warm reflection, and faint gold dust — no grid. */
     background-image:
-      radial-gradient(ellipse 55% 42% at 50% -8%, oklch(0.80 0.13 85 / 0.16), transparent 65%),
-      radial-gradient(ellipse 70% 35% at 50% 108%, oklch(0.55 0.10 75 / 0.10), transparent 60%),
-      radial-gradient(1.5px 1.5px at 18% 32%, oklch(0.85 0.12 88 / 0.5), transparent 100%),
-      radial-gradient(1px 1px at 72% 18%, oklch(0.85 0.12 88 / 0.4), transparent 100%),
-      radial-gradient(1.5px 1.5px at 86% 62%, oklch(0.85 0.12 88 / 0.35), transparent 100%),
-      radial-gradient(1px 1px at 34% 78%, oklch(0.85 0.12 88 / 0.3), transparent 100%);
+      radial-gradient(ellipse 60% 45% at 50% -10%, oklch(0.82 0.14 88 / 0.18), transparent 65%),
+      radial-gradient(ellipse 70% 35% at 50% 110%, oklch(0.55 0.10 75 / 0.10), transparent 60%);
     background-attachment: fixed;
+    overflow-x: hidden;
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.025em;
-    font-weight: 600;
+    letter-spacing: -0.035em;
+    font-weight: 700;
   }
   .tabular-nums, .font-mono {
     font-family: var(--font-mono);
@@ -133,7 +134,7 @@
   }
   ::selection {
     background: var(--ochre);
-    color: oklch(0.14 0.02 75);
+    color: oklch(0.12 0.02 75);
   }
 }
 
@@ -145,28 +146,34 @@
   border-top: 1px dashed var(--color-border);
 }
 
-/* Gold aura for primary elements (name kept for compatibility) */
 @utility glow-lime {
   box-shadow:
-    0 0 0 1px oklch(0.80 0.13 85 / 0.45),
-    0 0 26px -4px oklch(0.80 0.13 85 / 0.55);
+    0 0 0 1px oklch(0.82 0.14 88 / 0.45),
+    0 0 28px -4px oklch(0.82 0.14 88 / 0.60);
 }
 
-/* Shimmering gold-leaf text — for the live total and hero keyword */
+@utility glow-gold {
+  box-shadow:
+    0 0 0 1px oklch(0.82 0.14 88 / 0.55),
+    0 0 40px -6px oklch(0.82 0.14 88 / 0.65),
+    0 0 100px -20px oklch(0.82 0.14 88 / 0.45);
+}
+
+/* Cinematic gold-leaf text */
 @utility text-goldleaf {
   background: linear-gradient(
     100deg,
-    oklch(0.66 0.12 80) 0%,
-    oklch(0.88 0.13 90) 28%,
-    oklch(0.97 0.06 95) 50%,
-    oklch(0.88 0.13 90) 72%,
-    oklch(0.66 0.12 80) 100%
+    oklch(0.68 0.13 82) 0%,
+    oklch(0.92 0.14 90) 28%,
+    oklch(0.98 0.06 95) 50%,
+    oklch(0.92 0.14 90) 72%,
+    oklch(0.68 0.13 82) 100%
   );
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: goldleaf-sweep 4.5s ease-in-out infinite;
+  animation: goldleaf-sweep 5s ease-in-out infinite;
 }
 
 @keyframes goldleaf-sweep {
@@ -174,32 +181,53 @@
   50% { background-position: 100% 50%; }
 }
 
+/* Film grain overlay - use as fixed layer on body */
+@utility grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 240px 240px;
+}
+
 @utility input {
   width: 100%;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background-color: oklch(0.13 0.014 75);
-  padding: 0.55rem 0.8rem;
-  font-size: 0.875rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.9rem;
   color: var(--color-foreground);
-  font-family: var(--font-mono);
   transition: border-color 150ms, box-shadow 150ms, background-color 150ms;
 
   &:focus {
     outline: none;
     border-color: var(--color-ochre);
     background-color: oklch(0.16 0.018 75);
-    box-shadow: 0 0 0 3px oklch(0.80 0.13 85 / 0.25);
+    box-shadow: 0 0 0 3px oklch(0.82 0.14 88 / 0.28);
   }
 }
 
-/* Live pulse dots */
+/* Marquee scroll */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@utility marquee {
+  animation: marquee 40s linear infinite;
+  will-change: transform;
+}
+
 @keyframes hud-pulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
 
-/* ---------- Scroll reveals ---------- */
+/* Legacy CSS-only reveal (kept for admin pages that use `.reveal`) */
 .reveal {
   opacity: 0;
   transform: translateY(26px);
@@ -217,13 +245,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
-  }
-  .text-goldleaf {
-    animation: none;
-  }
+  .reveal { opacity: 1; transform: none; filter: none; transition: none; }
+  .text-goldleaf { animation: none; }
+  .marquee { animation: none; }
+  html { scroll-behavior: auto; }
 }

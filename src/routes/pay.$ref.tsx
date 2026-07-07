@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { formatDateLong, formatM } from "@/lib/formatting";
+import { LogoLockup } from "@/components/brand/logo-mark";
+import { GrainOverlay } from "@/components/brand/grain";
 
 export const Route = createFileRoute("/pay/$ref")({
   head: ({ params }) => ({
@@ -80,11 +82,16 @@ function PayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">← Back to home</Link>
+    <div className="relative min-h-screen bg-background text-foreground">
+      <GrainOverlay />
+      <header className="border-b border-primary/10">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+          <Link to="/"><LogoLockup /></Link>
+        </div>
+      </header>
+      <div className="mx-auto max-w-2xl px-4 py-12">
+        <h1 className="font-display text-4xl font-black">Deposit for <span className="text-goldleaf">{ref}</span></h1>
 
-        <h1 className="mt-4 text-3xl font-display">Deposit for {ref}</h1>
 
         {isLoading ? (
           <p className="mt-6 text-muted-foreground">Loading…</p>

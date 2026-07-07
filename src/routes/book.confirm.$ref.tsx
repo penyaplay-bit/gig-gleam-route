@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Copy } from "lucide-react";
+import { motion } from "motion/react";
+import { CheckCircle2, Copy, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { formatDateLong } from "@/lib/formatting";
+import { LogoLockup } from "@/components/brand/logo-mark";
+import { GrainOverlay } from "@/components/brand/grain";
 
 export const Route = createFileRoute("/book/confirm/$ref")({
   head: ({ params }) => ({
@@ -43,21 +46,39 @@ function ConfirmPage() {
   const b = data?.booking;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-2xl mx-auto px-4 py-16">
-        <div className="text-center">
-          <CheckCircle2 className="w-14 h-14 text-primary mx-auto" />
-          <h1 className="mt-4 text-3xl font-display">Request received</h1>
-          <p className="mt-2 text-muted-foreground">
-            Our ops team will review your request and reply within 24 hours.
-          </p>
+    <div className="relative min-h-screen bg-background text-foreground">
+      <GrainOverlay />
+      <header className="border-b border-primary/10">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+          <Link to="/"><LogoLockup /></Link>
         </div>
+      </header>
 
-        <Card className="mt-8 p-6 border-primary/20 bg-card/60">
+      <div className="mx-auto max-w-2xl px-4 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center"
+        >
+          <div className="relative mx-auto inline-block">
+            <div className="absolute -inset-6 rounded-full bg-primary/30 blur-2xl" aria-hidden />
+            <CheckCircle2 className="relative mx-auto h-16 w-16 text-primary" />
+          </div>
+          <span className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-primary">
+            <Sparkles className="h-3 w-3" /> Request received
+          </span>
+          <h1 className="mt-4 font-display text-5xl font-black leading-none">You're in.</h1>
+          <p className="mt-3 text-muted-foreground">
+            Our ops team is reviewing your request. Expect a written quote within 24 hours.
+          </p>
+        </motion.div>
+
+        <Card className="mt-10 border-primary/25 bg-card/60 p-6 shadow-quote">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wide">Reference</div>
-              <div className="mt-1 text-2xl font-mono text-primary">{ref}</div>
+              <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Reference</div>
+              <div className="mt-1 font-mono text-3xl text-goldleaf">{ref}</div>
             </div>
             <Button
               variant="outline"
@@ -70,6 +91,7 @@ function ConfirmPage() {
               <Copy className="w-4 h-4 mr-1" /> Copy
             </Button>
           </div>
+
 
           {isLoading ? (
             <div className="mt-6 text-sm text-muted-foreground">Loading details…</div>
