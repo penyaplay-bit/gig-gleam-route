@@ -37,8 +37,9 @@ function AdminShell() {
             <nav className="hidden md:flex items-center gap-1">
               {nav.map(({ to, label, Icon }) => (
                 <Link
-                  key={to}
+                  key={label}
                   to={to as never}
+                  activeOptions={to === "/admin" ? { exact: true } : undefined}
                   className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent"
                   activeProps={{ className: "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-foreground bg-primary/10" }}
                 >
