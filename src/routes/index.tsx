@@ -8,6 +8,7 @@ import { GrainOverlay } from "@/components/brand/grain";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { NumberTicker } from "@/components/motion/number-ticker";
 import { MarqueeStrip } from "@/components/motion/marquee-strip";
+import { ScrollScrubVideo } from "@/components/landing/scroll-scrub-video";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -38,6 +39,7 @@ function LandingPage() {
       <Hero />
       <TickerMarquee />
       <StoryPin />
+      <ScrollScrubVideo />
       <StatsRow />
       <BentoFeatures />
       <RosterStrip />
