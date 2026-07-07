@@ -17,6 +17,7 @@ import { Route as PayRefRouteImport } from './routes/pay.$ref'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as BookConfirmRefRouteImport } from './routes/book.confirm.$ref'
+import { Route as ApiPublicQuoteRequestRouteImport } from './routes/api/public/quote-request'
 import { Route as ApiPublicBookingsRouteImport } from './routes/api/public/bookings'
 import { Route as ApiPublicArtistsRouteImport } from './routes/api/public/artists'
 import { Route as AuthenticatedAdminPromotersRouteImport } from './routes/_authenticated/admin.promoters'
@@ -70,6 +71,11 @@ const BookConfirmRefRoute = BookConfirmRefRouteImport.update({
   id: '/confirm/$ref',
   path: '/confirm/$ref',
   getParentRoute: () => BookRoute,
+} as any)
+const ApiPublicQuoteRequestRoute = ApiPublicQuoteRequestRouteImport.update({
+  id: '/api/public/quote-request',
+  path: '/api/public/quote-request',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicBookingsRoute = ApiPublicBookingsRouteImport.update({
   id: '/api/public/bookings',
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/admin/promoters': typeof AuthenticatedAdminPromotersRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
   '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/quote-request': typeof ApiPublicQuoteRequestRoute
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/admin/promoters': typeof AuthenticatedAdminPromotersRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
   '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/quote-request': typeof ApiPublicQuoteRequestRoute
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/promoters': typeof AuthenticatedAdminPromotersRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
   '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/quote-request': typeof ApiPublicQuoteRequestRoute
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/admin/promoters'
     | '/api/public/artists'
     | '/api/public/bookings'
+    | '/api/public/quote-request'
     | '/book/confirm/$ref'
     | '/admin/'
     | '/admin/bookings/$id'
@@ -259,6 +269,7 @@ export interface FileRouteTypes {
     | '/admin/promoters'
     | '/api/public/artists'
     | '/api/public/bookings'
+    | '/api/public/quote-request'
     | '/book/confirm/$ref'
     | '/admin'
     | '/admin/bookings/$id'
@@ -283,6 +294,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/promoters'
     | '/api/public/artists'
     | '/api/public/bookings'
+    | '/api/public/quote-request'
     | '/book/confirm/$ref'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/bookings/$id'
@@ -302,6 +314,7 @@ export interface RootRouteChildren {
   PayRefRoute: typeof PayRefRoute
   ApiPublicArtistsRoute: typeof ApiPublicArtistsRoute
   ApiPublicBookingsRoute: typeof ApiPublicBookingsRouteWithChildren
+  ApiPublicQuoteRequestRoute: typeof ApiPublicQuoteRequestRoute
   ApiPublicCronDecisionEngineRoute: typeof ApiPublicCronDecisionEngineRoute
   ApiPublicCronPaymentRemindersRoute: typeof ApiPublicCronPaymentRemindersRoute
   ApiPublicDepositsRefRoute: typeof ApiPublicDepositsRefRoute
@@ -364,6 +377,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/book/confirm/$ref'
       preLoaderRoute: typeof BookConfirmRefRouteImport
       parentRoute: typeof BookRoute
+    }
+    '/api/public/quote-request': {
+      id: '/api/public/quote-request'
+      path: '/api/public/quote-request'
+      fullPath: '/api/public/quote-request'
+      preLoaderRoute: typeof ApiPublicQuoteRequestRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/bookings': {
       id: '/api/public/bookings'
@@ -545,6 +565,7 @@ const rootRouteChildren: RootRouteChildren = {
   PayRefRoute: PayRefRoute,
   ApiPublicArtistsRoute: ApiPublicArtistsRoute,
   ApiPublicBookingsRoute: ApiPublicBookingsRouteWithChildren,
+  ApiPublicQuoteRequestRoute: ApiPublicQuoteRequestRoute,
   ApiPublicCronDecisionEngineRoute: ApiPublicCronDecisionEngineRoute,
   ApiPublicCronPaymentRemindersRoute: ApiPublicCronPaymentRemindersRoute,
   ApiPublicDepositsRefRoute: ApiPublicDepositsRefRoute,
