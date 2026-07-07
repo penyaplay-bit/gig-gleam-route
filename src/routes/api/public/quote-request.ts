@@ -27,10 +27,11 @@ const InputSchema = z.object({
   description: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
-function bracketRange(baseFee: number) {
-  // Public estimate is deliberately coarse: fee + logistics envelope, snapped to R5k.
-  const low = Math.round((baseFee * 1.15) / 5000) * 5000;
-  const high = Math.round((baseFee * 1.7) / 5000) * 5000;
+function bracketRange(baseFeeCents: number) {
+  // Public estimate is deliberately coarse: fee + logistics envelope, snapped to R5,000.
+  const SNAP = 500_000; // R5,000 in cents
+  const low = Math.round((baseFeeCents * 1.15) / SNAP) * SNAP;
+  const high = Math.round((baseFeeCents * 1.7) / SNAP) * SNAP;
   return { low, high };
 }
 
