@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency, formatDate } from "@/lib/formatting";
+import { formatM, formatDate } from "@/lib/formatting";
+const formatCurrency = formatM;
 import {
   ArrowLeft, Circle, CheckCircle2, Clock, MessageSquare, DollarSign,
   FileText, Truck, Megaphone, Image, ListTodo, FolderOpen, BarChart3,
