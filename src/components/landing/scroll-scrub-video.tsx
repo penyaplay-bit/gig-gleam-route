@@ -122,7 +122,6 @@ export function ScrollScrubVideo() {
           muted
           playsInline
           preload="auto"
-          // @ts-expect-error non-standard hints for iOS
           disablePictureInPicture
           className="absolute inset-0 h-full w-full object-cover opacity-90"
         />
