@@ -25,8 +25,10 @@ export type Database = {
           created_at: string
           currency: string
           default_team_size: number
+          home_address: string | null
           home_city: string | null
           home_country: string
+          home_country_code: string | null
           id: string
           min_margin_pct: number
           name: string
@@ -48,8 +50,10 @@ export type Database = {
           created_at?: string
           currency?: string
           default_team_size?: number
+          home_address?: string | null
           home_city?: string | null
           home_country?: string
+          home_country_code?: string | null
           id?: string
           min_margin_pct?: number
           name: string
@@ -71,8 +75,10 @@ export type Database = {
           created_at?: string
           currency?: string
           default_team_size?: number
+          home_address?: string | null
           home_city?: string | null
           home_country?: string
+          home_country_code?: string | null
           id?: string
           min_margin_pct?: number
           name?: string
