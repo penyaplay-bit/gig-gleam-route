@@ -55,8 +55,9 @@ function AdminShell() {
         <nav className="md:hidden flex overflow-x-auto border-t border-border/50 px-2">
           {nav.map(({ to, label, Icon }) => (
             <Link
-              key={to}
+              key={label}
               to={to as never}
+              activeOptions={to === "/admin" ? { exact: true } : undefined}
               className="flex items-center gap-1 px-3 py-2 text-xs text-muted-foreground whitespace-nowrap"
               activeProps={{ className: "flex items-center gap-1 px-3 py-2 text-xs text-primary whitespace-nowrap" }}
             >
