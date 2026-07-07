@@ -4,16 +4,27 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getEvent, advanceStage, EVENT_STAGES, type EventStage } from "@/lib/engines/event.functions";
 import { postMessage } from "@/lib/engines/comms.functions";
+import {
+  getFinancialState,
+  verifyPayment,
+  rejectPayment,
+  extendDeadline,
+  approveContinuation,
+  cancelForNonPayment,
+  releaseHold,
+  type FinancialState,
+} from "@/lib/engines/payments.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { formatM, formatDate } from "@/lib/formatting";
 const formatCurrency = formatM;
 import {
   ArrowLeft, Circle, CheckCircle2, Clock, MessageSquare, DollarSign,
   FileText, Truck, Megaphone, Image, ListTodo, FolderOpen, BarChart3,
-  LayoutGrid, Users,
+  LayoutGrid, Users, ShieldAlert, ShieldCheck, Lock, Unlock,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/events/$id")({
