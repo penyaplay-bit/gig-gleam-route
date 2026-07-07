@@ -47,10 +47,6 @@ type SuccessResp = {
   message: string;
 };
 
-function formatCents(n: number, currency: string) {
-  // In this codebase base_fee is already a whole-rand integer, not cents.
-  return new Intl.NumberFormat("en-ZA", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
-}
 
 function RequestQuotePage() {
   const artistsQ = useQuery<{ artists: Artist[] }>({
