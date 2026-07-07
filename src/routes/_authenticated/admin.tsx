@@ -16,6 +16,7 @@ function AdminShell() {
   }
 
   const nav = [
+    { to: "/admin", label: "Mission Control", Icon: Gauge },
     { to: "/admin/pipeline", label: "Pipeline", Icon: LayoutDashboard },
     { to: "/admin/bookings", label: "Events", Icon: Radio },
     { to: "/admin/calendar", label: "Calendar", Icon: Calendar },
