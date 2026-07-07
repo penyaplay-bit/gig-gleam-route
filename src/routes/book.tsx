@@ -475,8 +475,10 @@ function BookingForm() {
                 By submitting you agree that <strong>the date is not confirmed</strong> until the deposit is verified.
               </div>
             </div>
+          )}
             </motion.div>
           </AnimatePresence>
+
 
 
 
