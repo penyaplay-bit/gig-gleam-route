@@ -1,145 +1,83 @@
 
-# Penya Play Booking OS — Foundation (Turn 1)
+## Goal
 
-Everything below ships in this turn. Everything not listed is scheduled for later turns and called out at the end.
+Make the **public-facing side** of Penya Play (landing, booking form, confirmation, deposit page, auth) feel like a Gen-Z entertainment brand — cinematic gold-on-black, alive with scroll motion, unmistakably PenyaPlay. Admin stays as-is (pro/dense).
 
-## 1. Enable Lovable Cloud
-Backend + auth + file storage + AI Gateway (used in later turns for the AI assistant).
+Not a total re-architecture — a targeted visual + motion pass grounded in the uploaded logo.
 
-## 2. Database schema
+## Brand identity (locked)
 
-Multi-artist ready from day one — every booking, package, and pricing rule is scoped to `artist_id`.
+- **Logo**: uploaded PenyaPlay mark (gold on black, film-reel + play-triangle monogram). Upload to Lovable Assets, use everywhere (nav, favicon, confirmation, deposit invoice, OG image).
+- **Palette** (updates `src/styles.css` tokens):
+  - Background `#05050A` (near-black with blue undertone, not pure `#000`)
+  - Surface `#0D0D14`
+  - Gold primary `#E8C56A` → `#F5D97A` (gradient stop)
+  - Gold deep `#B8912F`
+  - Cream text `#F5F1E6`
+  - Muted `#7A7566`
+  - Accent (rare, for status pops): warm coral `#FF6B4A`
+- **Type**:
+  - Display: **Bricolage Grotesque** (chunky, geometric, Gen-Z, variable weight) — for hero, section titles, big stats
+  - Body: **Inter Tight** — dense info, forms
+  - Numeric: `tabular-nums` on all prices/refs
+- **Texture**: subtle film-grain overlay, soft gold radial gloom behind hero, hairline gold dividers, generous negative space, `oklch()` gold gradients.
 
-```text
-app_role (enum)          admin, staff
-booking_status (enum)    new, reviewing, quote_sent, offer_submitted,
-                         counter_offer, deposit_pending, confirmed,
-                         completed, cancelled, declined
-booking_score_band       hot, warm, cool, cold
+## Motion system (Gen-Z scroll feel)
 
-user_roles               user_id, role                    (RLS via has_role)
-artists                  id, name, slug, home_city, base_fee, active
-packages                 id, artist_id, name, description, base_price, active
-pricing_rules            id, artist_id, key, value_json   (fuel, per-diem, etc.)
-promoters                id, name, company, phone, whatsapp, email,
-                         country, reliability_score, notes,
-                         total_revenue, bookings_count, blacklisted
-bookings                 id, ref, artist_id, promoter_id, event_type,
-                         event_name, venue, city, country, event_date,
-                         start_time, end_time, crowd_size, ticket_price,
-                         package_id, client_offer, description,
-                         status, score, score_breakdown_json,
-                         quoted_amount, deposit_pct, deposit_amount,
-                         balance_amount, created_at, updated_at
-booking_notes            id, booking_id, author_id, body, internal, created_at
-deposits                 id, booking_id, amount, pop_path (storage),
-                         uploaded_at, verified_at, verified_by, status
-```
+Add **Motion for React** (`motion/react`) + a lightweight scroll driver. No parallax overkill — controlled, cinematic moments:
 
-Every table gets explicit `GRANT`s + RLS. Public can INSERT bookings/promoters (submission), only admins can read/update. Deposits POP bucket is private with owner-read + admin-read.
+1. **Hero reveal** — logo scales down + settles as you scroll, title splits into words that stagger up.
+2. **Sticky story sections** — pin-and-swap slides ("Book any Penya artist → in minutes → with confidence") using `useScroll` + transform on a pinned container.
+3. **Marquee** — infinite horizontal scroll of past events / cities, gold hairline top and bottom.
+4. **Reveal-on-view** — every card fades + rises 20px when it enters viewport (staggered).
+5. **Number tickers** — bookings closed / cities toured / artists managed count up on view.
+6. **Cursor spotlight** (desktop only) — subtle gold radial follows cursor on the hero.
+7. **Bento-grid tilt** — feature cards tilt slightly on mouse-move.
+8. **Booking form** — steps slide horizontally with spring transitions instead of the current instant swap. Progress bar is a gold liquid fill.
 
-## 3. Auth
+Mobile-first: every effect degrades gracefully on `prefers-reduced-motion` and small viewports.
 
-- Email/password + Google sign-in.
-- New signups have no role. Admin must be granted via `user_roles` (seeded for first user via a one-off migration + UI hint).
-- Managed `_authenticated` layout gates `/admin/*`.
+## Scope — what changes
 
-## 4. Routes
+### Public routes (redesigned)
+- `/` landing — new hero, sticky story sections, artists roster strip, bento features, marquee, big-CTA footer.
+- `/book` — same 5-step form logic, new spring-transitions between steps, gold liquid progress bar, refreshed inputs.
+- `/book/confirm/$ref` — cinematic "You're in" screen with animated ref and confetti-gold burst.
+- `/pay/$ref` — invoice card with animated total, gold-bordered POP upload dropzone.
+- `/auth` — dark cinematic split-screen with the logo hero on the left.
 
-```text
-/                          Landing + "Request a booking" CTA
-/book                      Multi-step public booking form
-/book/confirm/$ref         Confirmation with reference number + status
-/auth                      Sign-in / sign-up (admin only, positioned as staff login)
-/pay/$ref                  Public deposit page: shows invoice, POP upload
+### Global
+- `src/styles.css` — new tokens, `@theme` update, font @import via `<link>` in `__root.tsx`, grain utility.
+- `src/routes/__root.tsx` — Bricolage + Inter Tight `<link>` tags, favicon swap, updated title/description/og.
+- New `public/favicon.png` (from uploaded logo, background removed).
+- New shared components: `<GoldButton>`, `<MarqueeStrip>`, `<StickyStorySection>`, `<RevealOnView>`, `<NumberTicker>`, `<GrainOverlay>`, `<LogoMark>`.
+- OG image: gold-on-black hero cover generated once (1200×630) via image gen, wired into leaf-route `head()`.
 
-/_authenticated/admin                Redirect → /admin/pipeline
-/_authenticated/admin/pipeline       Kanban by status
-/_authenticated/admin/bookings       Table view + filters
-/_authenticated/admin/bookings/$id   Detail: status, quote, notes, POP verify
-/_authenticated/admin/calendar       Month view w/ conflict warnings
-/_authenticated/admin/packages       Manage packages
-/_authenticated/admin/promoters      CRM list
-```
+### Admin (untouched)
+Admin under `/_authenticated/admin/*` keeps its current pro/dense chrome. Only inherits the new brand tokens (so buttons and links use the new gold), but no marketing motion.
 
-## 5. Public booking form
+## Deliverable order (single build turn)
 
-Multi-step, mobile-first, dark/gold Penya identity kept from current design.
-Steps: Event → Logistics → Package/Offer → Contact → Review.
-Extra qualifying fields per your stress test: minimum-budget confirmation, deposit readiness, event social/proof link, "serious bookings only" copy.
+1. Upload logo → Lovable Assets → favicon + component reference.
+2. Update `src/styles.css` tokens + fonts + grain utility.
+3. Update `__root.tsx` head (fonts, favicon, brand title/description, OG on leaf routes).
+4. Install `motion` (`bun add motion`) + build motion primitives.
+5. Rebuild `/` landing.
+6. Restyle `/book`, `/book/confirm/$ref`, `/pay/$ref`, `/auth`.
+7. Generate + wire OG image on the landing route.
+8. Verify: mobile viewport (440×799), desktop (1440), `prefers-reduced-motion` respected.
 
-On submit:
-- Upsert promoter by email
-- Create booking with generated ref (`PP-XXXXXX`)
-- Compute Penya Booking Score (0–100) with breakdown JSON
-- Status `new`
-- Redirect to `/book/confirm/$ref`
+## Out of scope (explicitly deferred)
 
-## 6. Penya Booking Score v1
+- Booking Journey timeline / WhatsApp orchestration (previous message — will be next milestone).
+- Admin visual redesign.
+- Video hero (would need a real reel; can slot in later).
+- 3D / WebGL (overkill for this pass; motion + gradients hit the same vibe faster).
 
-Deterministic scoring (AI-assisted refinement later):
+## Open call — confirm before I build
 
-```text
-Financial (30)   budget vs package price, deposit readiness, company type
-Brand (20)       crowd size, ticket price, sponsor/media flags
-Logistics (20)   distance from Maseru, days out, weekday/weekend
-Strategic (20)   repeat promoter bonus, new market bonus
-Risk (10)        unknown promoter, blacklist proximity, low reliability
-```
+- **Logo variants**: do you have a horizontal lockup and a monogram-only version, or should I derive them from the uploaded square?
+- **Video reel**: any short performance clip I should embed in the hero (silent, autoplay)? If not, I'll build with static + motion.
+- **Artist roster**: is Ntate Stunna the only public-facing artist for now, or do I put "and more" placeholder cards for future artists?
 
-Band + color rendered everywhere the booking appears.
-
-## 7. Admin pipeline + detail
-
-- Pipeline: columns per status, cards show ref, artist, date, city, score band, quoted amount.
-- Detail page: full booking, promoter history, quote builder (reuses existing quote engine), status transitions, internal notes, deposit panel.
-- Calendar conflict detection: same-date bookings for same artist flagged red; same-weekend flagged amber; nearby-city same-week flagged as opportunity.
-
-## 8. Quote engine
-
-Port the existing `src/lib/quote-engine.ts` logic into a server function that reads `pricing_rules` + `packages` from Cloud instead of `mock-data.ts`. Quote total, breakdown JSON, deposit % and amount stored on booking.
-
-## 9. Deposit → Confirmed flow (the "no payment = no booking" rule)
-
-1. Admin sends quote → status `quote_sent`.
-2. Promoter accepts (admin marks accepted, or later: public accept link) → status `deposit_pending`, deposit invoice generated.
-3. Promoter uploads POP at `/pay/$ref` → row in `deposits`, status stays `deposit_pending`, admin notified.
-4. Admin opens booking, previews POP, clicks **Verify deposit** → deposit row verified, booking → `confirmed`.
-5. No manual "confirm" button anywhere without a verified deposit.
-
-## 10. Design
-
-Keep current premium dark + warm-gold + cream tokens from `src/styles.css`. Extend with:
-- Pipeline column tints
-- Score band chips (hot/warm/cool/cold)
-- Status pill palette (10 statuses, distinct tones)
-- Admin shell (sidebar nav, top bar w/ artist switcher scaffold — single artist seeded, dropdown UI in place)
-
-## 11. Seed data
-
-Migration inserts Ntate Stunna as `artists[0]`, ports the 7 default packages, and inserts the current pricing rules. First signed-up user is auto-granted `admin` (documented in a note; not automatic — a small SQL snippet the user runs, to keep it safe).
-
----
-
-## Explicitly deferred to later turns (called out so you can prioritize next)
-
-- Tour Intelligence suggestions (needs a few bookings in DB to be useful)
-- AI Assistant (summarize/predict/draft — hooked to Lovable AI in a later turn)
-- Negotiation assistant with historical data
-- Automated WhatsApp/email reminders (wa.me deep links ship now; scheduled sends need a WA provider decision)
-- Financial dashboard (P&L per booking)
-- Artist readiness checklist (rider, call sheet, flights…)
-- Contract PDF generation (quote PDF stays; contract PDF is new)
-- Multi-artist admin UI (schema supports it; the artist-picker UI ships as a stub — full flows next)
-- Blacklist enforcement UI (column exists; screens later)
-- Learning pricing engine (needs historical accepted quotes)
-
-## Technical notes
-
-- All Supabase writes go through `createServerFn` + `requireSupabaseAuth` (admin actions) or public server routes (booking submit, POP upload) with Zod validation.
-- POP uploads → private `deposits` storage bucket; signed URLs for admin preview.
-- Route data uses TanStack Query `queryOptions` + `useSuspenseQuery`.
-- Existing `src/routes/index.tsx` quote-calculator UI is replaced by the new landing page; the quote engine logic is preserved server-side.
-- Old `quote-pdf.ts` / `quote-terms.ts` kept and reused from admin detail page for now.
-
-Approve and I ship it.
+Reply with any adjustments and I'll implement.
