@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { LogoLockup } from "@/components/brand/logo-mark";
 
 const searchSchema = z
   .object({ next: z.string().optional(), forbidden: z.string().optional() })
@@ -84,12 +85,14 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <Link to="/" className="block text-center mb-8">
-          <span className="text-2xl font-display tracking-wider text-primary">◆ PENYA PLAY</span>
-          <p className="text-xs text-muted-foreground mt-1 tracking-widest">BOOKING OS</p>
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
+      {/* Cinematic glow */}
+      <div className="pointer-events-none absolute left-1/2 top-1/3 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[120px]" />
+      <div className="relative w-full max-w-md">
+        <Link to="/" className="mb-8 flex justify-center">
+          <LogoLockup />
         </Link>
+
 
         <Card className="p-6 border-primary/20 bg-card/60 backdrop-blur">
           <h1 className="text-xl font-display mb-1">Staff access</h1>
