@@ -94,7 +94,7 @@ export const Route = createFileRoute("/api/public/quote-request")({
           .select("id, name, base_fee, currency, artist_id, active")
           .eq("id", input.artist_profile_id)
           .maybeSingle();
-        if (profileErr || !profile || !profile.active) {
+        if (profileErr || !profile || !profile.active || !profile.artist_id) {
           return Response.json(
             { error: "Artist is not available for booking." },
             { status: 400, headers: CORS },
