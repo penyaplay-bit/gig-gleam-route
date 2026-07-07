@@ -14,6 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
+      artist_profiles: {
+        Row: {
+          accommodation_rules: Json
+          active: boolean
+          artist_id: string | null
+          banking: Json
+          base_fee: number
+          cancellation_terms: Json
+          created_at: string
+          currency: string
+          default_team_size: number
+          home_city: string | null
+          home_country: string
+          id: string
+          min_margin_pct: number
+          name: string
+          notes: string | null
+          payment_terms: Json
+          per_diem_rules: Json
+          profile_version: number
+          rider: Json
+          transport_rules: Json
+          updated_at: string
+        }
+        Insert: {
+          accommodation_rules?: Json
+          active?: boolean
+          artist_id?: string | null
+          banking?: Json
+          base_fee?: number
+          cancellation_terms?: Json
+          created_at?: string
+          currency?: string
+          default_team_size?: number
+          home_city?: string | null
+          home_country?: string
+          id?: string
+          min_margin_pct?: number
+          name: string
+          notes?: string | null
+          payment_terms?: Json
+          per_diem_rules?: Json
+          profile_version?: number
+          rider?: Json
+          transport_rules?: Json
+          updated_at?: string
+        }
+        Update: {
+          accommodation_rules?: Json
+          active?: boolean
+          artist_id?: string | null
+          banking?: Json
+          base_fee?: number
+          cancellation_terms?: Json
+          created_at?: string
+          currency?: string
+          default_team_size?: number
+          home_city?: string | null
+          home_country?: string
+          id?: string
+          min_margin_pct?: number
+          name?: string
+          notes?: string | null
+          payment_terms?: Json
+          per_diem_rules?: Json
+          profile_version?: number
+          rider?: Json
+          transport_rules?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_profiles_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artists: {
         Row: {
           active: boolean
@@ -937,12 +1017,20 @@ export type Database = {
       }
       event_quotes: {
         Row: {
+          ai_suggestion: Json | null
+          artist_profile_id: string | null
           breakdown: Json
           created_at: string
           created_by: string | null
+          currency: string
           deposit_pct: number
           event_id: string
+          fee_total: number
           id: string
+          line_items: Json
+          logistics_total: number
+          payment_schedule: Json
+          profile_version: number | null
           status: string
           subtotal_lsl: number
           total_lsl: number
@@ -950,12 +1038,20 @@ export type Database = {
           version: number
         }
         Insert: {
+          ai_suggestion?: Json | null
+          artist_profile_id?: string | null
           breakdown?: Json
           created_at?: string
           created_by?: string | null
+          currency?: string
           deposit_pct?: number
           event_id: string
+          fee_total?: number
           id?: string
+          line_items?: Json
+          logistics_total?: number
+          payment_schedule?: Json
+          profile_version?: number | null
           status?: string
           subtotal_lsl?: number
           total_lsl?: number
@@ -963,12 +1059,20 @@ export type Database = {
           version?: number
         }
         Update: {
+          ai_suggestion?: Json | null
+          artist_profile_id?: string | null
           breakdown?: Json
           created_at?: string
           created_by?: string | null
+          currency?: string
           deposit_pct?: number
           event_id?: string
+          fee_total?: number
           id?: string
+          line_items?: Json
+          logistics_total?: number
+          payment_schedule?: Json
+          profile_version?: number | null
           status?: string
           subtotal_lsl?: number
           total_lsl?: number
@@ -976,6 +1080,13 @@ export type Database = {
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "event_quotes_artist_profile_id_fkey"
+            columns: ["artist_profile_id"]
+            isOneToOne: false
+            referencedRelation: "artist_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "event_quotes_event_id_fkey"
             columns: ["event_id"]
@@ -1283,6 +1394,47 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: []
+      }
+      quotation_templates: {
+        Row: {
+          artist_profile_id: string
+          created_at: string
+          defaults: Json
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          artist_profile_id: string
+          created_at?: string
+          defaults?: Json
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          artist_profile_id?: string
+          created_at?: string
+          defaults?: Json
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotation_templates_artist_profile_id_fkey"
+            columns: ["artist_profile_id"]
+            isOneToOne: false
+            referencedRelation: "artist_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

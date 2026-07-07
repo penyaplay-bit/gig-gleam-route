@@ -29,6 +29,7 @@ import { Route as ApiPublicCronPaymentRemindersRouteImport } from './routes/api/
 import { Route as ApiPublicCronDecisionEngineRouteImport } from './routes/api/public/cron/decision-engine'
 import { Route as ApiPublicBookingsRefRouteImport } from './routes/api/public/bookings.$ref'
 import { Route as AuthenticatedAdminEventsIdRouteImport } from './routes/_authenticated/admin.events.$id'
+import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
 import { Route as AuthenticatedAdminBookingsIdRouteImport } from './routes/_authenticated/admin.bookings.$id'
 
 const BookRoute = BookRouteImport.update({
@@ -138,6 +139,12 @@ const AuthenticatedAdminEventsIdRoute =
     path: '/events/$id',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminBookingsNewRoute =
+  AuthenticatedAdminBookingsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAdminBookingsRoute,
+  } as any)
 const AuthenticatedAdminBookingsIdRoute =
   AuthenticatedAdminBookingsIdRouteImport.update({
     id: '/$id',
@@ -161,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
+  '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
   '/api/public/cron/decision-engine': typeof ApiPublicCronDecisionEngineRoute
@@ -182,6 +190,7 @@ export interface FileRoutesByTo {
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
+  '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
   '/api/public/cron/decision-engine': typeof ApiPublicCronDecisionEngineRoute
@@ -206,6 +215,7 @@ export interface FileRoutesById {
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
+  '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/_authenticated/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
   '/api/public/cron/decision-engine': typeof ApiPublicCronDecisionEngineRoute
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/book/confirm/$ref'
     | '/admin/'
     | '/admin/bookings/$id'
+    | '/admin/bookings/new'
     | '/admin/events/$id'
     | '/api/public/bookings/$ref'
     | '/api/public/cron/decision-engine'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/book/confirm/$ref'
     | '/admin'
     | '/admin/bookings/$id'
+    | '/admin/bookings/new'
     | '/admin/events/$id'
     | '/api/public/bookings/$ref'
     | '/api/public/cron/decision-engine'
@@ -274,6 +286,7 @@ export interface FileRouteTypes {
     | '/book/confirm/$ref'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/bookings/$id'
+    | '/_authenticated/admin/bookings/new'
     | '/_authenticated/admin/events/$id'
     | '/api/public/bookings/$ref'
     | '/api/public/cron/decision-engine'
@@ -436,6 +449,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEventsIdRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/bookings/new': {
+      id: '/_authenticated/admin/bookings/new'
+      path: '/new'
+      fullPath: '/admin/bookings/new'
+      preLoaderRoute: typeof AuthenticatedAdminBookingsNewRouteImport
+      parentRoute: typeof AuthenticatedAdminBookingsRoute
+    }
     '/_authenticated/admin/bookings/$id': {
       id: '/_authenticated/admin/bookings/$id'
       path: '/$id'
@@ -448,11 +468,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminBookingsRouteChildren {
   AuthenticatedAdminBookingsIdRoute: typeof AuthenticatedAdminBookingsIdRoute
+  AuthenticatedAdminBookingsNewRoute: typeof AuthenticatedAdminBookingsNewRoute
 }
 
 const AuthenticatedAdminBookingsRouteChildren: AuthenticatedAdminBookingsRouteChildren =
   {
     AuthenticatedAdminBookingsIdRoute: AuthenticatedAdminBookingsIdRoute,
+    AuthenticatedAdminBookingsNewRoute: AuthenticatedAdminBookingsNewRoute,
   }
 
 const AuthenticatedAdminBookingsRouteWithChildren =
@@ -530,13 +552,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
