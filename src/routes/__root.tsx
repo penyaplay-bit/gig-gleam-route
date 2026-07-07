@@ -78,16 +78,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Penya Play Bookings" },
-      { name: "description", content: "The official booking portal for Ntate Stunna and Penya Play artists." },
-      { property: "og:title", content: "Penya Play Bookings" },
-      { property: "og:description", content: "Book Ntate Stunna & Penya Play artists." },
+      { name: "theme-color", content: "#0a0a10" },
+      { title: "PenyaPlay — Book Ntate Stunna & Penya Play artists" },
+      {
+        name: "description",
+        content:
+          "The official booking OS for Ntate Stunna and Penya Play artists. Request, quote, deposit, confirm — all in one cinematic flow.",
+      },
+      { property: "og:title", content: "PenyaPlay — The Booking OS" },
+      { property: "og:description", content: "Book Ntate Stunna & Penya Play artists. Serious bookings only." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.jpg", type: "image/jpeg" },
+      { rel: "apple-touch-icon", href: "/favicon.jpg" },
     ],
   }),
   shellComponent: RootShell,
