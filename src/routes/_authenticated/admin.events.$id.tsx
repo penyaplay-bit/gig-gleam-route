@@ -112,6 +112,9 @@ function EventWorkspace() {
       </div>
 
       {/* Tabs */}
+      {/* Pulse header + Next Best Action — Decision Engine driven */}
+      <PulseHeader eventId={id} onNavigateTab={(t) => setTab(t as TabId)} />
+
       <div className="flex overflow-x-auto border-b border-primary/10 gap-1">
         {TABS.map(({ id: t, label, Icon }) => (
           <button
@@ -132,6 +135,7 @@ function EventWorkspace() {
       {/* Tab body */}
       <div>
         {tab === "overview" && <OverviewTab data={data} />}
+        {tab === "health" && <HealthTab eventId={id} onNavigateTab={(t) => setTab(t as TabId)} />}
         {tab === "timeline" && <TimelineTab entries={data.timeline} />}
         {tab === "chat" && <ChatTab eventId={id} messages={data.messages} onPosted={() => qc.invalidateQueries({ queryKey: ["event", id] })} />}
         {tab === "parties" && <PartiesTab parties={data.parties} />}
