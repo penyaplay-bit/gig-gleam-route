@@ -16,10 +16,20 @@ export function ScrollScrubVideo() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
 
-  // Scroll-driven progress across the pinned section (no currentTime scrubbing
-  // — that's unreliable on mobile Safari; we let the video autoplay loop and
-  // key text/UI to scroll instead).
+  // Load metadata to get duration
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const onMeta = () => setDuration(v.duration || 0);
+    if (v.readyState >= 1) onMeta();
+    v.addEventListener("loadedmetadata", onMeta);
+    return () => v.removeEventListener("loadedmetadata", onMeta);
+  }, []);
+
+  // Scroll-driven progress across the pinned section.
+  // Drive the video's currentTime from scroll — video ONLY moves when you scroll.
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
@@ -32,6 +42,18 @@ export function ScrollScrubVideo() {
       const scrolled = -rect.top;
       const p = clamp01(total > 0 ? scrolled / total : 0);
       setProgress(p);
+      const v = videoRef.current;
+      if (v && duration > 0) {
+        const target = p * duration;
+        // avoid tiny thrashes
+        if (Math.abs(v.currentTime - target) > 0.03) {
+          try {
+            v.currentTime = target;
+          } catch {
+            /* some browsers throw before seekable range is ready */
+          }
+        }
+      }
     };
     const onScroll = () => {
       if (raf) return;
@@ -48,21 +70,7 @@ export function ScrollScrubVideo() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
-
-  // Autoplay muted loop — always works on mobile with muted + playsInline.
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const tryPlay = () => {
-      v.play().catch(() => {
-        /* ignore — will retry on user interaction */
-      });
-    };
-    tryPlay();
-    v.addEventListener("canplay", tryPlay);
-    return () => v.removeEventListener("canplay", tryPlay);
-  }, []);
+  }, [duration]);
 
   // Text beats keyed to scroll progress
   const t1Opacity = mapClamp(progress, 0.0, 0.05, 0, 1) * mapClamp(progress, 0.25, 0.4, 1, 0);
@@ -86,14 +94,13 @@ export function ScrollScrubVideo() {
           ref={videoRef}
           src={videoAsset.url}
           muted
-          loop
-          autoPlay
           playsInline
           preload="auto"
           disablePictureInPicture
           className="absolute inset-0 h-full w-full object-cover opacity-90 will-change-transform"
           style={{ transform: `scale(${scale})` }}
         />
+
 
         {/* vignette + wash */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
