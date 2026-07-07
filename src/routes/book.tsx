@@ -205,23 +205,43 @@ function BookingForm() {
   const pkg = (data?.packages ?? []).find((p) => p.id === f.package_id);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-primary/10">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-sm">
-            <ArrowLeft className="w-4 h-4" /> Back
+    <div className="relative min-h-screen bg-background text-foreground">
+      <GrainOverlay />
+      <header className="sticky top-0 z-30 border-b border-primary/10 bg-background/70 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+          <Link to="/" className="flex items-center gap-2">
+            <LogoLockup />
           </Link>
-          <span className="text-xs text-muted-foreground">Step {step + 1} of {steps.length}</span>
+          <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+            Step {step + 1} / {steps.length}
+          </span>
         </div>
       </header>
 
-      <div className="max-w-3xl mx-auto px-4 pt-6">
-        <Progress value={((step + 1) / steps.length) * 100} className="h-1" />
-        <div className="mt-2 text-xs text-muted-foreground">{steps[step]}</div>
+      <div className="mx-auto max-w-3xl px-4 pt-6">
+        {/* Gold liquid progress bar */}
+        <div className="relative h-1 w-full overflow-hidden rounded-full bg-primary/10">
+          <motion.div
+            className="h-full rounded-full bg-gradient-to-r from-primary/80 via-primary to-primary/80"
+            initial={false}
+            animate={{ width: `${((step + 1) / steps.length) * 100}%` }}
+            transition={{ type: "spring", stiffness: 120, damping: 20 }}
+          />
+        </div>
+        <div className="mt-2 text-[10px] uppercase tracking-[0.28em] text-primary">{steps[step]}</div>
       </div>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
-        <Card className="p-6 bg-card/60 border-primary/15">
+      <main className="mx-auto max-w-3xl px-4 py-8">
+        <Card className="border-primary/15 bg-card/60 p-6 shadow-quote">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+
           {step === 0 && (
             <div className="space-y-6">
               <div>
