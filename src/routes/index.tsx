@@ -36,8 +36,8 @@ function LandingPage() {
       <GrainOverlay />
 
       <TopNav />
-      <ScrollScrubVideo />
       <Hero />
+      <ScrollScrubVideo />
       <TickerMarquee />
       <StoryPin />
       <StatsRow />
