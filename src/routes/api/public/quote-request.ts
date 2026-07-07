@@ -108,7 +108,7 @@ export const Route = createFileRoute("/api/public/quote-request")({
           .from("bookings")
           .insert({
             ref,
-            artist_id: profile.artist_id ?? undefined,
+            artist_id: profile.artist_id,
             event_name: input.event_name,
             event_type: input.event_type,
             event_date: input.event_date,
