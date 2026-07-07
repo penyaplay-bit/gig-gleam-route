@@ -36,10 +36,10 @@ function LandingPage() {
       <GrainOverlay />
 
       <TopNav />
+      <ScrollScrubVideo />
       <Hero />
       <TickerMarquee />
       <StoryPin />
-      <ScrollScrubVideo />
       <StatsRow />
       <BentoFeatures />
       <RosterStrip />
