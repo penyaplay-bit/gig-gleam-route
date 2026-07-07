@@ -168,6 +168,260 @@ export const listEventHealth = createServerFn({ method: "GET" })
   });
 
 // ---------------------------------------------------------------
+// Mission Control — engine-driven roll-up across the entire roster.
+// ---------------------------------------------------------------
+
+export interface MissionControlEventRow {
+  event_id: string;
+  ref: string;
+  event_name: string;
+  event_date: string | null;
+  city: string | null;
+  days_to_event: number | null;
+  artist_name: string | null;
+  promoter_name: string | null;
+  health_score: number;
+  risk_level: RiskLevel;
+  financial_lock: FinancialLock;
+  next_best_action: NextBestAction;
+  pillar_scores: Record<PillarKey, number>;
+  predicted_failure_pct: number;
+  stale: boolean;
+  evaluated_at: string;
+}
+
+export interface MissionControlAction {
+  event_id: string;
+  ref: string;
+  event_name: string;
+  event_date: string | null;
+  days_to_event: number | null;
+  risk_level: RiskLevel;
+  nba: NextBestAction;
+}
+
+export interface MissionControlDTO {
+  header: {
+    total: number;
+    avg_health: number;
+    green: number;
+    yellow: number;
+    red: number;
+    black: number;
+    financially_unlocked: number;
+    stale: number;
+    last_evaluated_at: string | null;
+  };
+  priority_queue: MissionControlEventRow[];
+  financial_lock: MissionControlEventRow[];
+  action_stack: {
+    critical: MissionControlAction[];
+    today: MissionControlAction[];
+    this_week: MissionControlAction[];
+  };
+  roster: MissionControlEventRow[];
+  filter_facets: {
+    artists: { id: string; name: string }[];
+    promoters: { id: string; name: string }[];
+  };
+}
+
+const RISK_RANK: Record<RiskLevel, number> = { black: 4, red: 3, yellow: 2, green: 1 };
+const LOCK_RANK: Record<FinancialLock, number> = { default: 4, broken: 3, pending: 2, none: 1, cleared: 0 };
+
+function daysBetween(dateStr: string | null): number | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr).getTime();
+  if (Number.isNaN(d)) return null;
+  return Math.ceil((d - Date.now()) / 86400_000);
+}
+
+export const getMissionControl = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        risk: z.array(z.enum(["green", "yellow", "red", "black"])).optional(),
+        lock: z.array(z.enum(["none", "pending", "cleared", "broken", "default"])).optional(),
+        artistId: z.array(z.string().uuid()).optional(),
+        promoterId: z.array(z.string().uuid()).optional(),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+
+    const { data: rows, error } = await supabase
+      .from("event_health")
+      .select(
+        "*, bookings!inner(id, ref, event_name, event_date, city, status, artist_id, promoter_id, artists(id, name), promoters(id, name))",
+      )
+      .limit(500);
+    if (error) throw error;
+
+    const todayIso = new Date(Date.now() - 86400_000).toISOString();
+
+    type Raw = {
+      event_id: string;
+      health_score: number;
+      risk_level: RiskLevel;
+      financial_lock: FinancialLock;
+      pillar_scores: Record<PillarKey, number>;
+      next_best_action: NextBestAction;
+      predicted_failure_pct: number;
+      stale: boolean;
+      evaluated_at: string;
+      bookings: {
+        id: string;
+        ref: string;
+        event_name: string;
+        event_date: string | null;
+        city: string | null;
+        status: string | null;
+        artist_id: string | null;
+        promoter_id: string | null;
+        artists: { id: string; name: string } | null;
+        promoters: { id: string; name: string } | null;
+      };
+    };
+
+    const raw = (rows ?? []) as unknown as Raw[];
+
+    // Live events only: non-cancelled AND (no date OR date within last day forward)
+    const live = raw.filter((r) => {
+      const b = r.bookings;
+      if (!b) return false;
+      if (b.status === "cancelled") return false;
+      if (b.event_date && b.event_date < todayIso.slice(0, 10)) return false;
+      return true;
+    });
+
+    const artistsMap = new Map<string, { id: string; name: string }>();
+    const promotersMap = new Map<string, { id: string; name: string }>();
+    for (const r of live) {
+      if (r.bookings.artists) artistsMap.set(r.bookings.artists.id, r.bookings.artists);
+      if (r.bookings.promoters) promotersMap.set(r.bookings.promoters.id, r.bookings.promoters);
+    }
+
+    const filtered = live.filter((r) => {
+      if (data.risk?.length && !data.risk.includes(r.risk_level)) return false;
+      if (data.lock?.length && !data.lock.includes(r.financial_lock)) return false;
+      if (data.artistId?.length && !(r.bookings.artist_id && data.artistId.includes(r.bookings.artist_id))) return false;
+      if (data.promoterId?.length && !(r.bookings.promoter_id && data.promoterId.includes(r.bookings.promoter_id))) return false;
+      if (data.dateFrom && r.bookings.event_date && r.bookings.event_date < data.dateFrom) return false;
+      if (data.dateTo && r.bookings.event_date && r.bookings.event_date > data.dateTo) return false;
+      return true;
+    });
+
+    const toRow = (r: Raw): MissionControlEventRow => ({
+      event_id: r.event_id,
+      ref: r.bookings.ref,
+      event_name: r.bookings.event_name,
+      event_date: r.bookings.event_date,
+      city: r.bookings.city,
+      days_to_event: daysBetween(r.bookings.event_date),
+      artist_name: r.bookings.artists?.name ?? null,
+      promoter_name: r.bookings.promoters?.name ?? null,
+      health_score: r.health_score,
+      risk_level: r.risk_level,
+      financial_lock: r.financial_lock,
+      next_best_action: r.next_best_action,
+      pillar_scores: r.pillar_scores,
+      predicted_failure_pct: r.predicted_failure_pct ?? 0,
+      stale: r.stale,
+      evaluated_at: r.evaluated_at,
+    });
+
+    const roster = filtered.map(toRow);
+
+    // Priority sort: risk desc, lock desc, prediction desc, days asc, health asc
+    const priority_queue = [...roster].sort((a, b) => {
+      const rr = (RISK_RANK[b.risk_level] ?? 0) - (RISK_RANK[a.risk_level] ?? 0);
+      if (rr) return rr;
+      const lr = (LOCK_RANK[b.financial_lock] ?? 0) - (LOCK_RANK[a.financial_lock] ?? 0);
+      if (lr) return lr;
+      const pr = (b.predicted_failure_pct ?? 0) - (a.predicted_failure_pct ?? 0);
+      if (pr) return pr;
+      const da = a.days_to_event ?? 9999;
+      const db = b.days_to_event ?? 9999;
+      if (da !== db) return da - db;
+      return a.health_score - b.health_score;
+    });
+
+    const financial_lock = roster
+      .filter((r) => r.financial_lock === "default" || r.financial_lock === "broken" || r.financial_lock === "pending")
+      .sort((a, b) => {
+        const lr = (LOCK_RANK[b.financial_lock] ?? 0) - (LOCK_RANK[a.financial_lock] ?? 0);
+        if (lr) return lr;
+        return (a.days_to_event ?? 9999) - (b.days_to_event ?? 9999);
+      });
+
+    const urgencyRank: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
+    const actions: MissionControlAction[] = roster
+      .filter((r) => r.next_best_action && r.next_best_action.code !== "on_track")
+      .map((r) => ({
+        event_id: r.event_id,
+        ref: r.ref,
+        event_name: r.event_name,
+        event_date: r.event_date,
+        days_to_event: r.days_to_event,
+        risk_level: r.risk_level,
+        nba: r.next_best_action,
+      }))
+      .sort((a, b) => {
+        const ur = (urgencyRank[b.nba.urgency] ?? 0) - (urgencyRank[a.nba.urgency] ?? 0);
+        if (ur) return ur;
+        return (a.days_to_event ?? 9999) - (b.days_to_event ?? 9999);
+      });
+
+    const action_stack = {
+      critical: actions.filter((a) => a.nba.urgency === "critical" || a.risk_level === "black"),
+      today: actions.filter(
+        (a) => a.nba.urgency === "high" || (a.days_to_event !== null && a.days_to_event <= 3),
+      ).filter((a) => !(a.nba.urgency === "critical" || a.risk_level === "black")),
+      this_week: actions.filter(
+        (a) =>
+          a.nba.urgency === "medium" ||
+          (a.days_to_event !== null && a.days_to_event > 3 && a.days_to_event <= 7),
+      ).filter((a) => a.nba.urgency !== "critical" && a.nba.urgency !== "high" && a.risk_level !== "black"),
+    };
+
+    const header = {
+      total: roster.length,
+      avg_health: roster.length
+        ? Math.round(roster.reduce((s, r) => s + r.health_score, 0) / roster.length)
+        : 0,
+      green: roster.filter((r) => r.risk_level === "green").length,
+      yellow: roster.filter((r) => r.risk_level === "yellow").length,
+      red: roster.filter((r) => r.risk_level === "red").length,
+      black: roster.filter((r) => r.risk_level === "black").length,
+      financially_unlocked: roster.filter(
+        (r) => r.financial_lock === "default" || r.financial_lock === "broken" || r.financial_lock === "pending",
+      ).length,
+      stale: roster.filter((r) => r.stale).length,
+      last_evaluated_at: roster.reduce<string | null>(
+        (acc, r) => (!acc || r.evaluated_at > acc ? r.evaluated_at : acc),
+        null,
+      ),
+    };
+
+    const dto: MissionControlDTO = {
+      header,
+      priority_queue,
+      financial_lock,
+      action_stack,
+      roster,
+      filter_facets: {
+        artists: [...artistsMap.values()].sort((a, b) => a.name.localeCompare(b.name)),
+        promoters: [...promotersMap.values()].sort((a, b) => a.name.localeCompare(b.name)),
+      },
+    };
+    return dto;
+  });
+
+// ---------------------------------------------------------------
 // Evaluation
 // ---------------------------------------------------------------
 

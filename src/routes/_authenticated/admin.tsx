@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users, Package, Calendar, LogOut, Table2, Radio } from "lucide-react";
+import { LayoutDashboard, Users, Package, Calendar, LogOut, Table2, Radio, Gauge } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminShell,
@@ -16,6 +16,7 @@ function AdminShell() {
   }
 
   const nav = [
+    { to: "/admin", label: "Mission Control", Icon: Gauge },
     { to: "/admin/pipeline", label: "Pipeline", Icon: LayoutDashboard },
     { to: "/admin/bookings", label: "Events", Icon: Radio },
     { to: "/admin/calendar", label: "Calendar", Icon: Calendar },
@@ -36,8 +37,9 @@ function AdminShell() {
             <nav className="hidden md:flex items-center gap-1">
               {nav.map(({ to, label, Icon }) => (
                 <Link
-                  key={to}
+                  key={label}
                   to={to as never}
+                  activeOptions={to === "/admin" ? { exact: true } : undefined}
                   className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent"
                   activeProps={{ className: "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-foreground bg-primary/10" }}
                 >
@@ -53,8 +55,9 @@ function AdminShell() {
         <nav className="md:hidden flex overflow-x-auto border-t border-border/50 px-2">
           {nav.map(({ to, label, Icon }) => (
             <Link
-              key={to}
+              key={label}
               to={to as never}
+              activeOptions={to === "/admin" ? { exact: true } : undefined}
               className="flex items-center gap-1 px-3 py-2 text-xs text-muted-foreground whitespace-nowrap"
               activeProps={{ className: "flex items-center gap-1 px-3 py-2 text-xs text-primary whitespace-nowrap" }}
             >
