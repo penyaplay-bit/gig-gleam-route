@@ -48,6 +48,8 @@ export interface ArtistProfileConfig {
   base_fee: number;
   default_team_size: number;
   home_city: string | null;
+  home_address: string | null;
+  home_country_code: string | null;
   home_country: string;
   transport_rules: TransportRules;
   accommodation_rules: AccommodationRules;
