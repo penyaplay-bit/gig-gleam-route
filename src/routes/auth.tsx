@@ -1,4 +1,4 @@
-// Staff sign-in / sign-up. First signup becomes admin (via DB trigger).
+// Sign-in / sign-up for staff, promoters, and managers.
 import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { LogoLockup } from "@/components/brand/logo-mark";
+import { useServerFn } from "@tanstack/react-start";
+import { bootstrapProfile } from "@/lib/gigs/profile.functions";
 
 const searchSchema = z
   .object({ next: z.string().optional(), forbidden: z.string().optional() })
@@ -19,29 +21,45 @@ export const Route = createFileRoute("/auth")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Staff sign-in — Penya Play Bookings" },
-      { name: "description", content: "Staff-only access to the Penya Play Booking OS." },
+      { title: "Sign in — Fare Deal Bookings" },
+      { name: "description", content: "Sign in as a promoter, manager, or staff to access the Fare Deal marketplace." },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: AuthPage,
 });
 
+type Role = "manager" | "promoter";
+
 function AuthPage() {
   const navigate = useNavigate();
   const { next, forbidden } = useSearch({ from: "/auth" });
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [role, setRole] = useState<Role>("manager");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const bootstrap = useServerFn(bootstrapProfile);
 
-  async function goNext() {
-    // Only allow same-origin relative paths
-    if (next && next.startsWith("/") && !next.startsWith("//")) {
-      window.location.href = next;
-    } else {
-      navigate({ to: "/_authenticated/admin/pipeline" as never });
+  async function routeToRoleHome() {
+    // Try to detect admin/staff — otherwise send by role.
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
+      const roleSet = new Set((roles ?? []).map((r) => r.role));
+      if (next && next.startsWith("/") && !next.startsWith("//")) {
+        window.location.href = next;
+        return;
+      }
+      if (roleSet.has("admin") || roleSet.has("staff")) {
+        navigate({ to: "/_authenticated/admin/pipeline" as never });
+        return;
+      }
+      if (roleSet.has("promoter")) return navigate({ to: "/my-gigs" });
+      if (roleSet.has("manager")) return navigate({ to: "/find-gigs" });
     }
+    navigate({ to: "/find-gigs" });
   }
 
   async function handlePassword(e: React.FormEvent) {
@@ -52,15 +70,23 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else {
+        if (!name.trim()) throw new Error("Please tell us your name");
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("Account created. Check your email if confirmation is required.");
+        // Bootstrap the profile + role via server fn (needs authenticated session; supabase.auth.signUp signs in immediately when confirmation is off).
+        try {
+          await bootstrap({ data: { role, contact_name: name } });
+        } catch (bErr) {
+          // Non-fatal — user can bootstrap later from post-gig / my-roster.
+          console.warn("bootstrap failed", bErr);
+        }
+        toast.success("Account created.");
       }
-      await goNext();
+      await routeToRoleHome();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign-in failed");
     } finally {
@@ -76,7 +102,7 @@ function AuthPage() {
       });
       if (result.error) throw result.error;
       if (result.redirected) return;
-      await goNext();
+      await routeToRoleHome();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Google sign-in failed");
     } finally {
@@ -86,33 +112,50 @@ function AuthPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
-      {/* Cinematic glow */}
       <div className="pointer-events-none absolute left-1/2 top-1/3 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[120px]" />
       <div className="relative w-full max-w-md">
         <Link to="/" className="mb-8 flex justify-center">
           <LogoLockup />
         </Link>
 
-
         <Card className="p-6 border-primary/20 bg-card/60 backdrop-blur">
-          <h1 className="text-xl font-display mb-1">Staff access</h1>
+          <h1 className="text-xl font-display mb-1">{mode === "signin" ? "Welcome back" : "Join Fare Deal"}</h1>
           <p className="text-sm text-muted-foreground mb-6">
-            {mode === "signin" ? "Sign in to the ops dashboard." : "Create your staff account."}
+            {mode === "signin" ? "Sign in to your marketplace account." : "Create your account to start booking."}
           </p>
 
           {forbidden && (
             <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-              Your account does not have admin access. Ask an existing admin to grant it.
+              You don't have access to that area.
             </div>
           )}
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full mb-4"
-            onClick={handleGoogle}
-            disabled={busy}
-          >
+          {mode === "signup" && (
+            <div className="mb-4">
+              <Label>I am a…</Label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setRole("manager")}
+                  className={`rounded-md border px-3 py-2 text-sm transition ${role === "manager" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  Manager / Agent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("promoter")}
+                  className={`rounded-md border px-3 py-2 text-sm transition ${role === "promoter" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  Promoter
+                </button>
+              </div>
+              <p className="text-[11px] mt-2 text-muted-foreground">
+                {role === "manager" ? "Browse gigs and apply on behalf of artists in your roster." : "Post gigs and receive applications from managers."}
+              </p>
+            </div>
+          )}
+
+          <Button type="button" variant="outline" className="w-full mb-4" onClick={handleGoogle} disabled={busy}>
             Continue with Google
           </Button>
 
@@ -124,23 +167,22 @@ function AuthPage() {
           </div>
 
           <form onSubmit={handlePassword} className="space-y-3">
+            {mode === "signup" && (
+              <div>
+                <Label htmlFor="name">Your name</Label>
+                <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+            )}
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <Input id="password" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <Button type="submit" className="w-full" disabled={busy}>
-              {mode === "signin" ? "Sign in" : "Create account"}
+              {mode === "signin" ? "Sign in" : `Create ${role} account`}
             </Button>
           </form>
 
@@ -151,14 +193,10 @@ function AuthPage() {
           >
             {mode === "signin" ? "No account? Create one" : "Have an account? Sign in"}
           </button>
-
-          <p className="mt-6 text-[11px] text-muted-foreground text-center">
-            The first account created becomes the admin automatically.
-          </p>
         </Card>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Not staff? <Link to="/book" className="text-primary underline underline-offset-2">Request a booking</Link>
+          Just browsing? <Link to="/find-gigs" className="text-primary underline underline-offset-2">Explore open gigs</Link>
         </p>
       </div>
     </div>
