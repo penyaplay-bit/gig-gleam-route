@@ -1,13 +1,16 @@
 // Public gig marketplace browse.
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { listOpenGigs } from "@/lib/gigs/gigs.functions";
+import { listSavedGigs, toggleSaveGig } from "@/lib/gigs/saved.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Calendar, DollarSign, Clock, ShieldCheck, ArrowRight } from "lucide-react";
+import { MapPin, Users, Calendar, DollarSign, Clock, ShieldCheck, ArrowRight, Heart } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/find-gigs")({
   head: () => ({
