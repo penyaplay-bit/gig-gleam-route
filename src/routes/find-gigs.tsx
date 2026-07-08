@@ -40,10 +40,20 @@ function daysUntil(iso: string) {
 
 function FindGigsPage() {
   const fetchGigs = useServerFn(listOpenGigs);
+  const fetchSaved = useServerFn(listSavedGigs);
+  const toggleSave = useServerFn(toggleSaveGig);
+  const qc = useQueryClient();
   const [city, setCity] = useState("");
   const [genre, setGenre] = useState("");
   const [minBudget, setMinBudget] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["open-gigs", city, genre, minBudget, verifiedOnly],
@@ -56,6 +66,22 @@ function FindGigsPage() {
           verified_only: verifiedOnly || undefined,
         },
       }),
+  });
+
+  const { data: savedData } = useQuery({
+    queryKey: ["saved-gigs"],
+    queryFn: () => fetchSaved(),
+    enabled: signedIn,
+  });
+  const savedIds = new Set<string>(savedData?.savedIds ?? []);
+
+  const saveMutation = useMutation({
+    mutationFn: (gigId: string) => toggleSave({ data: { gig_id: gigId } }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["saved-gigs"] });
+      toast.success(res.saved ? "Gig saved" : "Removed from saved");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Save failed. Verified manager profile required."),
   });
 
   const gigs = data?.gigs ?? [];
