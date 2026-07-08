@@ -169,7 +169,17 @@ function FindGigsPage() {
   );
 }
 
-function GigCard({ gig }: { gig: any }) {
+function GigCard({
+  gig,
+  saved,
+  canSave,
+  onToggleSave,
+}: {
+  gig: any;
+  saved: boolean;
+  canSave: boolean;
+  onToggleSave: () => void;
+}) {
   const deadlineDays = daysUntil(gig.application_deadline);
   const p = gig.promoter_profiles;
   const statusMap: Record<string, { label: string; tone: string }> = {
@@ -180,16 +190,32 @@ function GigCard({ gig }: { gig: any }) {
   const s = statusMap[gig.status] ?? { label: gig.status.toUpperCase(), tone: "bg-muted text-muted-foreground" };
 
   return (
-    <Link
-      to="/find-gigs/$id"
-      params={{ id: gig.id }}
-      className="group relative overflow-hidden rounded-2xl border border-primary/10 bg-card/60 p-5 backdrop-blur transition hover:border-primary/40 hover:-translate-y-0.5"
-    >
+    <div className="group relative overflow-hidden rounded-2xl border border-primary/10 bg-card/60 p-5 backdrop-blur transition hover:border-primary/40 hover:-translate-y-0.5">
+      <Link to="/find-gigs/$id" params={{ id: gig.id }} className="absolute inset-0 z-0" aria-label={gig.event_name} />
       {gig.boost_until && new Date(gig.boost_until) > new Date() && (
-        <span className="absolute right-4 top-4 text-[10px] uppercase font-bold tracking-widest bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+        <span className="absolute right-14 top-4 z-10 text-[10px] uppercase font-bold tracking-widest bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
           Boosted
         </span>
       )}
+      {canSave && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleSave();
+          }}
+          className={`absolute right-4 top-4 z-10 rounded-full border p-1.5 backdrop-blur transition ${
+            saved
+              ? "border-primary/60 bg-primary/20 text-primary"
+              : "border-white/10 bg-black/30 text-muted-foreground hover:text-primary hover:border-primary/40"
+          }`}
+          aria-label={saved ? "Unsave gig" : "Save gig"}
+        >
+          <Heart className={`w-4 h-4 ${saved ? "fill-current" : ""}`} />
+        </button>
+      )}
+      <div className="relative z-[1] pointer-events-none">
       <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest mb-3">
         <span className={`rounded-full border px-2 py-0.5 ${s.tone}`}>{s.label}</span>
         {p?.verified && (
