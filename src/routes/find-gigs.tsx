@@ -153,7 +153,15 @@ function FindGigsPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {gigs.map((g: any) => <GigCard key={g.id} gig={g} />)}
+            {gigs.map((g: any) => (
+              <GigCard
+                key={g.id}
+                gig={g}
+                saved={savedIds.has(g.id)}
+                canSave={signedIn}
+                onToggleSave={() => saveMutation.mutate(g.id)}
+              />
+            ))}
           </div>
         )}
       </section>
