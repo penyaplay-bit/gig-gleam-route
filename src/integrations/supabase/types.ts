@@ -100,6 +100,62 @@ export type Database = {
           },
         ]
       }
+      artist_rosters: {
+        Row: {
+          active: boolean
+          artist_name: string
+          artist_type: string | null
+          base_city: string | null
+          base_country: string | null
+          bio: string | null
+          created_at: string
+          currency: string
+          genre: string | null
+          id: string
+          manager_id: string
+          rate_hint_cents: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          artist_name: string
+          artist_type?: string | null
+          base_city?: string | null
+          base_country?: string | null
+          bio?: string | null
+          created_at?: string
+          currency?: string
+          genre?: string | null
+          id?: string
+          manager_id: string
+          rate_hint_cents?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          artist_name?: string
+          artist_type?: string | null
+          base_city?: string | null
+          base_country?: string | null
+          bio?: string | null
+          created_at?: string
+          currency?: string
+          genre?: string | null
+          id?: string
+          manager_id?: string
+          rate_hint_cents?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_rosters_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "manager_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artists: {
         Row: {
           active: boolean
@@ -218,6 +274,8 @@ export type Database = {
           ref: string
           score: number
           score_breakdown: Json
+          source_application_id: string | null
+          source_gig_id: string | null
           start_time: string | null
           status: Database["public"]["Enums"]["booking_status"]
           ticket_price: number | null
@@ -260,6 +318,8 @@ export type Database = {
           ref: string
           score?: number
           score_breakdown?: Json
+          source_application_id?: string | null
+          source_gig_id?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
           ticket_price?: number | null
@@ -302,6 +362,8 @@ export type Database = {
           ref?: string
           score?: number
           score_breakdown?: Json
+          source_application_id?: string | null
+          source_gig_id?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
           ticket_price?: number | null
@@ -328,6 +390,20 @@ export type Database = {
             columns: ["promoter_id"]
             isOneToOne: false
             referencedRelation: "promoters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_source_application_id_fkey"
+            columns: ["source_application_id"]
+            isOneToOne: false
+            referencedRelation: "gig_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_source_gig_id_fkey"
+            columns: ["source_gig_id"]
+            isOneToOne: false
+            referencedRelation: "gigs"
             referencedColumns: ["id"]
           },
         ]
@@ -1205,6 +1281,299 @@ export type Database = {
           },
         ]
       }
+      gig_applications: {
+        Row: {
+          availability_notes: string | null
+          booked_at: string | null
+          created_at: string
+          currency: string
+          gig_id: string
+          id: string
+          manager_id: string
+          message: string | null
+          quote_cents: number
+          rider_notes: string | null
+          roster_artist_id: string | null
+          shortlisted_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          availability_notes?: string | null
+          booked_at?: string | null
+          created_at?: string
+          currency?: string
+          gig_id: string
+          id?: string
+          manager_id: string
+          message?: string | null
+          quote_cents: number
+          rider_notes?: string | null
+          roster_artist_id?: string | null
+          shortlisted_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          availability_notes?: string | null
+          booked_at?: string | null
+          created_at?: string
+          currency?: string
+          gig_id?: string
+          id?: string
+          manager_id?: string
+          message?: string | null
+          quote_cents?: number
+          rider_notes?: string | null
+          roster_artist_id?: string | null
+          shortlisted_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gig_applications_gig_id_fkey"
+            columns: ["gig_id"]
+            isOneToOne: false
+            referencedRelation: "gigs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gig_applications_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "manager_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gig_applications_roster_artist_id_fkey"
+            columns: ["roster_artist_id"]
+            isOneToOne: false
+            referencedRelation: "artist_rosters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gig_messages: {
+        Row: {
+          application_id: string | null
+          body: string
+          created_at: string
+          gig_id: string
+          id: string
+          sender_user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          body: string
+          created_at?: string
+          gig_id: string
+          id?: string
+          sender_user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          body?: string
+          created_at?: string
+          gig_id?: string
+          id?: string
+          sender_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gig_messages_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "gig_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gig_messages_gig_id_fkey"
+            columns: ["gig_id"]
+            isOneToOne: false
+            referencedRelation: "gigs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gig_status_history: {
+        Row: {
+          at: string
+          changed_by: string | null
+          from_status: string | null
+          gig_id: string
+          id: string
+          note: string | null
+          to_status: string
+        }
+        Insert: {
+          at?: string
+          changed_by?: string | null
+          from_status?: string | null
+          gig_id: string
+          id?: string
+          note?: string | null
+          to_status: string
+        }
+        Update: {
+          at?: string
+          changed_by?: string | null
+          from_status?: string | null
+          gig_id?: string
+          id?: string
+          note?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gig_status_history_gig_id_fkey"
+            columns: ["gig_id"]
+            isOneToOne: false
+            referencedRelation: "gigs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gigs: {
+        Row: {
+          admin_notes: string | null
+          application_deadline: string
+          approved_at: string | null
+          approved_by: string | null
+          artist_type_needed: string[]
+          booked_application_id: string | null
+          boost_until: string | null
+          budget_high_cents: number
+          budget_low_cents: number
+          city: string
+          country: string
+          created_at: string
+          crowd_size: number
+          currency: string
+          description: string | null
+          event_date: string
+          event_name: string
+          event_type: string | null
+          genre_needed: string[]
+          id: string
+          promoter_id: string
+          status: string
+          updated_at: string
+          venue: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          application_deadline: string
+          approved_at?: string | null
+          approved_by?: string | null
+          artist_type_needed?: string[]
+          booked_application_id?: string | null
+          boost_until?: string | null
+          budget_high_cents: number
+          budget_low_cents: number
+          city: string
+          country: string
+          created_at?: string
+          crowd_size?: number
+          currency?: string
+          description?: string | null
+          event_date: string
+          event_name: string
+          event_type?: string | null
+          genre_needed?: string[]
+          id?: string
+          promoter_id: string
+          status?: string
+          updated_at?: string
+          venue: string
+        }
+        Update: {
+          admin_notes?: string | null
+          application_deadline?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          artist_type_needed?: string[]
+          booked_application_id?: string | null
+          boost_until?: string | null
+          budget_high_cents?: number
+          budget_low_cents?: number
+          city?: string
+          country?: string
+          created_at?: string
+          crowd_size?: number
+          currency?: string
+          description?: string | null
+          event_date?: string
+          event_name?: string
+          event_type?: string | null
+          genre_needed?: string[]
+          id?: string
+          promoter_id?: string
+          status?: string
+          updated_at?: string
+          venue?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gigs_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "promoter_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manager_profiles: {
+        Row: {
+          agency_name: string | null
+          bio: string | null
+          city: string | null
+          contact_name: string
+          country: string | null
+          created_at: string
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
+          website: string | null
+        }
+        Insert: {
+          agency_name?: string | null
+          bio?: string | null
+          city?: string | null
+          contact_name: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          website?: string | null
+        }
+        Update: {
+          agency_name?: string | null
+          bio?: string | null
+          city?: string | null
+          contact_name?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -1344,6 +1713,63 @@ export type Database = {
           },
         ]
       }
+      promoter_profiles: {
+        Row: {
+          bio: string | null
+          city: string | null
+          company_name: string | null
+          confirmed_bookings: number
+          contact_name: string
+          country: string | null
+          created_at: string
+          id: string
+          phone: string | null
+          trust_score: number
+          updated_at: string
+          user_id: string
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
+          website: string | null
+        }
+        Insert: {
+          bio?: string | null
+          city?: string | null
+          company_name?: string | null
+          confirmed_bookings?: number
+          contact_name: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          phone?: string | null
+          trust_score?: number
+          updated_at?: string
+          user_id: string
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          website?: string | null
+        }
+        Update: {
+          bio?: string | null
+          city?: string | null
+          company_name?: string | null
+          confirmed_bookings?: number
+          contact_name?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          phone?: string | null
+          trust_score?: number
+          updated_at?: string
+          user_id?: string
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       promoters: {
         Row: {
           blacklisted: boolean
@@ -1442,6 +1868,42 @@ export type Database = {
           },
         ]
       }
+      saved_gigs: {
+        Row: {
+          gig_id: string
+          id: string
+          manager_id: string
+          saved_at: string
+        }
+        Insert: {
+          gig_id: string
+          id?: string
+          manager_id: string
+          saved_at?: string
+        }
+        Update: {
+          gig_id?: string
+          id?: string
+          manager_id?: string
+          saved_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_gigs_gig_id_fkey"
+            columns: ["gig_id"]
+            isOneToOne: false
+            referencedRelation: "gigs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_gigs_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "manager_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1496,7 +1958,7 @@ export type Database = {
       is_staff_or_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "staff"
+      app_role: "admin" | "staff" | "promoter" | "manager" | "artist"
       booking_status:
         | "new"
         | "reviewing"
@@ -1636,7 +2098,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "staff"],
+      app_role: ["admin", "staff", "promoter", "manager", "artist"],
       booking_status: [
         "new",
         "reviewing",
