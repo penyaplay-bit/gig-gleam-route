@@ -250,6 +250,7 @@ function GigCard({
           View <ArrowRight className="w-3 h-3" />
         </span>
       </div>
-    </Link>
+      </div>
+    </div>
   );
 }
