@@ -110,11 +110,11 @@ export const verifyManager = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), verified: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const patch: Record<string, unknown> = { verified: data.verified };
-    if (data.verified) {
-      patch.verified_at = new Date().toISOString();
-      patch.verified_by = context.userId;
-    }
+    const patch = {
+      verified: data.verified,
+      verified_at: data.verified ? new Date().toISOString() : null,
+      verified_by: data.verified ? context.userId : null,
+    };
     const { error } = await context.supabase.from("manager_profiles").update(patch).eq("id", data.id);
     if (error) throw error;
     return { ok: true };
