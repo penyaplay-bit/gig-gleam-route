@@ -26,6 +26,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as BookConfirmRefRouteImport } from './routes/book.confirm.$ref'
 import { Route as ApiPublicQuoteRequestRouteImport } from './routes/api/public/quote-request'
+import { Route as ApiPublicGigsRouteImport } from './routes/api/public/gigs'
 import { Route as ApiPublicBookingsRouteImport } from './routes/api/public/bookings'
 import { Route as ApiPublicArtistsRouteImport } from './routes/api/public/artists'
 import { Route as SignedinMyGigsIdRouteImport } from './routes/_signedin/my-gigs.$id'
@@ -125,6 +126,11 @@ const BookConfirmRefRoute = BookConfirmRefRouteImport.update({
 const ApiPublicQuoteRequestRoute = ApiPublicQuoteRequestRouteImport.update({
   id: '/api/public/quote-request',
   path: '/api/public/quote-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicGigsRoute = ApiPublicGigsRouteImport.update({
+  id: '/api/public/gigs',
+  path: '/api/public/gigs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicBookingsRoute = ApiPublicBookingsRouteImport.update({
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/my-gigs/$id': typeof SignedinMyGigsIdRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
   '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/gigs': typeof ApiPublicGigsRoute
   '/api/public/quote-request': typeof ApiPublicQuoteRequestRoute
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/my-gigs/$id': typeof SignedinMyGigsIdRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
   '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/gigs': typeof ApiPublicGigsRoute
   '/api/public/quote-request': typeof ApiPublicQuoteRequestRoute
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/_signedin/my-gigs/$id': typeof SignedinMyGigsIdRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
   '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/gigs': typeof ApiPublicGigsRoute
   '/api/public/quote-request': typeof ApiPublicQuoteRequestRoute
   '/book/confirm/$ref': typeof BookConfirmRefRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -353,6 +362,7 @@ export interface FileRouteTypes {
     | '/my-gigs/$id'
     | '/api/public/artists'
     | '/api/public/bookings'
+    | '/api/public/gigs'
     | '/api/public/quote-request'
     | '/book/confirm/$ref'
     | '/admin/'
@@ -386,6 +396,7 @@ export interface FileRouteTypes {
     | '/my-gigs/$id'
     | '/api/public/artists'
     | '/api/public/bookings'
+    | '/api/public/gigs'
     | '/api/public/quote-request'
     | '/book/confirm/$ref'
     | '/admin'
@@ -422,6 +433,7 @@ export interface FileRouteTypes {
     | '/_signedin/my-gigs/$id'
     | '/api/public/artists'
     | '/api/public/bookings'
+    | '/api/public/gigs'
     | '/api/public/quote-request'
     | '/book/confirm/$ref'
     | '/_authenticated/admin/'
@@ -445,6 +457,7 @@ export interface RootRouteChildren {
   PayRefRoute: typeof PayRefRoute
   ApiPublicArtistsRoute: typeof ApiPublicArtistsRoute
   ApiPublicBookingsRoute: typeof ApiPublicBookingsRouteWithChildren
+  ApiPublicGigsRoute: typeof ApiPublicGigsRoute
   ApiPublicQuoteRequestRoute: typeof ApiPublicQuoteRequestRoute
   ApiPublicCronDecisionEngineRoute: typeof ApiPublicCronDecisionEngineRoute
   ApiPublicCronPaymentRemindersRoute: typeof ApiPublicCronPaymentRemindersRoute
@@ -570,6 +583,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/quote-request'
       fullPath: '/api/public/quote-request'
       preLoaderRoute: typeof ApiPublicQuoteRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gigs': {
+      id: '/api/public/gigs'
+      path: '/api/public/gigs'
+      fullPath: '/api/public/gigs'
+      preLoaderRoute: typeof ApiPublicGigsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/bookings': {
@@ -822,6 +842,7 @@ const rootRouteChildren: RootRouteChildren = {
   PayRefRoute: PayRefRoute,
   ApiPublicArtistsRoute: ApiPublicArtistsRoute,
   ApiPublicBookingsRoute: ApiPublicBookingsRouteWithChildren,
+  ApiPublicGigsRoute: ApiPublicGigsRoute,
   ApiPublicQuoteRequestRoute: ApiPublicQuoteRequestRoute,
   ApiPublicCronDecisionEngineRoute: ApiPublicCronDecisionEngineRoute,
   ApiPublicCronPaymentRemindersRoute: ApiPublicCronPaymentRemindersRoute,
