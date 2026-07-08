@@ -1,13 +1,16 @@
 // Public gig marketplace browse.
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { listOpenGigs } from "@/lib/gigs/gigs.functions";
+import { listSavedGigs, toggleSaveGig } from "@/lib/gigs/saved.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Calendar, DollarSign, Clock, ShieldCheck, ArrowRight } from "lucide-react";
+import { MapPin, Users, Calendar, DollarSign, Clock, ShieldCheck, ArrowRight, Heart } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/find-gigs")({
   head: () => ({
@@ -37,10 +40,20 @@ function daysUntil(iso: string) {
 
 function FindGigsPage() {
   const fetchGigs = useServerFn(listOpenGigs);
+  const fetchSaved = useServerFn(listSavedGigs);
+  const toggleSave = useServerFn(toggleSaveGig);
+  const qc = useQueryClient();
   const [city, setCity] = useState("");
   const [genre, setGenre] = useState("");
   const [minBudget, setMinBudget] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["open-gigs", city, genre, minBudget, verifiedOnly],
@@ -53,6 +66,22 @@ function FindGigsPage() {
           verified_only: verifiedOnly || undefined,
         },
       }),
+  });
+
+  const { data: savedData } = useQuery({
+    queryKey: ["saved-gigs"],
+    queryFn: () => fetchSaved(),
+    enabled: signedIn,
+  });
+  const savedIds = new Set<string>(savedData?.savedIds ?? []);
+
+  const saveMutation = useMutation({
+    mutationFn: (gigId: string) => toggleSave({ data: { gig_id: gigId } }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["saved-gigs"] });
+      toast.success(res.saved ? "Gig saved" : "Removed from saved");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Save failed. Verified manager profile required."),
   });
 
   const gigs = data?.gigs ?? [];
@@ -124,7 +153,15 @@ function FindGigsPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {gigs.map((g: any) => <GigCard key={g.id} gig={g} />)}
+            {gigs.map((g: any) => (
+              <GigCard
+                key={g.id}
+                gig={g}
+                saved={savedIds.has(g.id)}
+                canSave={signedIn}
+                onToggleSave={() => saveMutation.mutate(g.id)}
+              />
+            ))}
           </div>
         )}
       </section>
@@ -132,7 +169,17 @@ function FindGigsPage() {
   );
 }
 
-function GigCard({ gig }: { gig: any }) {
+function GigCard({
+  gig,
+  saved,
+  canSave,
+  onToggleSave,
+}: {
+  gig: any;
+  saved: boolean;
+  canSave: boolean;
+  onToggleSave: () => void;
+}) {
   const deadlineDays = daysUntil(gig.application_deadline);
   const p = gig.promoter_profiles;
   const statusMap: Record<string, { label: string; tone: string }> = {
@@ -143,16 +190,32 @@ function GigCard({ gig }: { gig: any }) {
   const s = statusMap[gig.status] ?? { label: gig.status.toUpperCase(), tone: "bg-muted text-muted-foreground" };
 
   return (
-    <Link
-      to="/find-gigs/$id"
-      params={{ id: gig.id }}
-      className="group relative overflow-hidden rounded-2xl border border-primary/10 bg-card/60 p-5 backdrop-blur transition hover:border-primary/40 hover:-translate-y-0.5"
-    >
+    <div className="group relative overflow-hidden rounded-2xl border border-primary/10 bg-card/60 p-5 backdrop-blur transition hover:border-primary/40 hover:-translate-y-0.5">
+      <Link to="/find-gigs/$id" params={{ id: gig.id }} className="absolute inset-0 z-0" aria-label={gig.event_name} />
       {gig.boost_until && new Date(gig.boost_until) > new Date() && (
-        <span className="absolute right-4 top-4 text-[10px] uppercase font-bold tracking-widest bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+        <span className="absolute right-14 top-4 z-10 text-[10px] uppercase font-bold tracking-widest bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
           Boosted
         </span>
       )}
+      {canSave && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleSave();
+          }}
+          className={`absolute right-4 top-4 z-10 rounded-full border p-1.5 backdrop-blur transition ${
+            saved
+              ? "border-primary/60 bg-primary/20 text-primary"
+              : "border-white/10 bg-black/30 text-muted-foreground hover:text-primary hover:border-primary/40"
+          }`}
+          aria-label={saved ? "Unsave gig" : "Save gig"}
+        >
+          <Heart className={`w-4 h-4 ${saved ? "fill-current" : ""}`} />
+        </button>
+      )}
+      <div className="relative z-[1] pointer-events-none">
       <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest mb-3">
         <span className={`rounded-full border px-2 py-0.5 ${s.tone}`}>{s.label}</span>
         {p?.verified && (
@@ -187,6 +250,7 @@ function GigCard({ gig }: { gig: any }) {
           View <ArrowRight className="w-3 h-3" />
         </span>
       </div>
-    </Link>
+      </div>
+    </div>
   );
 }
