@@ -1,117 +1,97 @@
+# Two-Sided Gig Marketplace — Implementation Plan
 
-# Fare Deal Marketplace — v1 Plan
+Build the manager-facing `/find-gigs` marketplace on top of the existing app without touching `/request-quote`, the Booking Command Centre, or current auth. Cinematic dark premium UI with glassmorphism.
 
-Big brief. Shipping a **functional vertical slice** first so the marketplace works end-to-end, then layering revenue features (boosts, subscriptions, escrow, commission tracking) in a follow-up. Existing `/request-quote` and admin Booking Command Centre stay untouched.
+## 1. Database (single migration)
 
-## v1 scope (this plan)
+Extend `app_role` enum with `promoter`, `manager`, `artist` (keep `admin`, `staff`).
 
-Roles, profiles, gig posting, browse/filter/apply, admin approval, notifications, status tracking.
+Create 8 tables with RLS + GRANTs:
 
-## Deferred to v2 (called out, not built now)
+- **promoter_profiles** — user_id, company, bio, website, trust_score (int), verified (bool), confirmed_bookings (int)
+- **manager_profiles** — user_id, agency, bio, phone, verified (bool), subscription_tier
+- **artist_rosters** — manager_id, artist_name, genre, artist_type, base_fee, bio, image_url, tech_rider_url
+- **gigs** — promoter_id, title, description, event_date, location, city, crowd_size, budget_min, budget_max, genre, artist_type, application_deadline, status (`pending|open|reviewing|shortlisted|booked|expired|rejected`), admin_approved, boosted, source (`request_quote|post_gig`), linked_booking_id
+- **gig_applications** — gig_id, manager_id, artist_id (roster), quote_amount, rider_notes, availability_confirmed, message, status (`submitted|shortlisted|negotiating|accepted|rejected|withdrawn`)
+- **saved_gigs** — manager_id, gig_id (unique)
+- **gig_messages** — gig_id, application_id, sender_id, body
+- **gig_status_history** — gig_id, from_status, to_status, changed_by (auto-logged via existing `log_gig_status_change` trigger)
 
-Gig messaging thread, saved gigs, promoter negotiation UI, commission tracking dashboard, paid boosts, manager subscription tiers, artist verification fee, escrow. Tables for messaging/saved gigs will be created in v1 so the API surface is stable, but no UI.
+RLS highlights:
+- `gigs` SELECT for `anon` **only** where `status='open' AND admin_approved AND application_deadline >= today` (SEO/public)
+- `gigs` full CRUD for owning promoter; admin full access
+- `gig_applications` visible to owning manager, gig's promoter, and admin
+- `manager_profiles`/`promoter_profiles` public read of safe columns; owner + admin write
+- `saved_gigs`, `artist_rosters` owner-scoped
 
----
+Trust score formula (computed on read via view or on write):
+`trust_score = (verified ? 60 : 0) + LEAST(40, confirmed_bookings * 5)`
 
-## Roles & auth
+Seed data: 2 verified promoters, 2 verified managers with 3-artist rosters each, 6 approved open gigs across genres/cities, 4 sample applications in mixed statuses.
 
-- Extend `app_role` enum with `promoter`, `manager`, `artist` (keep existing `admin`, `staff`).
-- `/auth` gets an "I am a…" selector on signup → creates the matching profile row + `user_roles` entry.
-- Existing `_authenticated` gate stays admin/staff-only; new routes get their own role gates.
+## 2. Auth extension
 
-## New route map
+Extend `/auth` with a role picker (Promoter / Manager / Artist) on signup:
+- Inserts into `user_roles`
+- Creates stub `promoter_profiles` or `manager_profiles` row
+- Post-signup redirect: manager → `/find-gigs`, promoter → `/my-gigs`, artist → landing
 
-| Route | Who | Purpose |
-|---|---|---|
-| `/find-gigs` | manager (auth) | Browse open, approved gigs. Filters + apply. |
-| `/find-gigs/$id` | manager (auth) | Gig detail + application form. |
-| `/my-applications` | manager | Track submitted applications. |
-| `/post-gig` | promoter (auth) | Create a gig listing (goes to admin queue). |
-| `/my-gigs` | promoter | List own gigs + view applications, shortlist, confirm. |
-| `/my-gigs/$id` | promoter | Applications compare view. |
-| `/admin/gigs` | admin/staff | Moderation queue: approve, reject, verify promoter. |
-| `/admin/verify` | admin/staff | Verify managers & promoters. |
+Existing sign-in and admin/staff roles untouched.
 
-Existing `/request-quote` stays as the direct-quote path.
+## 3. Server functions (`createServerFn` + `requireSupabaseAuth`)
 
-## Database (single migration)
+- `src/lib/gigs.functions.ts` — `listPublicGigs` (filters), `getGig`, `createGig`, `updateGigStatus`
+- `src/lib/applications.functions.ts` — `applyToGig`, `listMyApplications`, `listGigApplications` (promoter), `shortlistApplication`, `acceptApplication` → sets gig `booked`, creates `bookings` row, links `linked_booking_id`
+- `src/lib/roster.functions.ts` — CRUD for artist_rosters
+- `src/lib/saved-gigs.functions.ts` — save/unsave/list
+- `src/lib/gig-admin.functions.ts` — approve/reject gig, verify promoter/manager, moderation
+- All state changes insert into `notifications`
 
-Tables in `public`, each with proper GRANTs + RLS:
+## 4. Public API route
 
-- **promoter_profiles** — `user_id`, `company_name`, `contact_name`, `phone`, `country`, `verified`, `verified_at`, `trust_score` (0–100, computed from verified + confirmed_bookings), `bio`.
-- **manager_profiles** — `user_id`, `agency_name`, `contact_name`, `phone`, `country`, `verified`, `verified_at`, `bio`.
-- **artist_rosters** — `manager_id` (→ manager_profiles), `artist_name`, `genre`, `artist_type` (dj/band/vocalist/etc), `base_city`, `bio`, `rate_hint_cents`, `active`. Manager's roster of representable artists (independent of internal `artists` table).
-- **gigs** — `promoter_id`, `event_name`, `event_type`, `event_date`, `venue`, `city`, `country`, `crowd_size`, `budget_low_cents`, `budget_high_cents`, `currency`, `genre_needed[]`, `artist_type_needed[]`, `application_deadline`, `description`, `status` (`draft` / `pending_review` / `open` / `reviewing` / `shortlisted` / `booked` / `expired` / `rejected`), `admin_notes`, `approved_at`, `approved_by`, `booked_application_id` (nullable).
-- **gig_applications** — `gig_id`, `manager_id`, `roster_artist_id`, `quote_cents`, `availability_notes`, `rider_notes`, `message`, `status` (`submitted` / `shortlisted` / `rejected` / `withdrawn` / `booked`), `created_at`, `updated_at`.
-- **saved_gigs** — `manager_id`, `gig_id`, `saved_at`. UI in v2, table now for API stability.
-- **gig_messages** — `gig_id`, `application_id`, `sender_user_id`, `body`, `created_at`. Schema only in v1.
-- **gig_status_history** — `gig_id`, `from_status`, `to_status`, `changed_by`, `note`, `at`. Written by triggers on `gigs.status` change.
+`src/routes/api/public/gigs.ts` — GET list of approved open gigs (safe columns only) for SSR and share links. Uses server publishable client + narrow `TO anon` policy.
 
-### RLS summary
-- `gigs`: `anon` SELECT only where `status = 'open'` and `application_deadline >= today` (public browse works even signed-out for SEO); `manager` role SELECT same; promoter SELECT own; admin/staff full.
-- `gig_applications`: manager SELECT/INSERT/UPDATE own; promoter SELECT applications on own gigs, UPDATE only `status` for shortlist/reject; admin full.
-- `promoter_profiles` / `manager_profiles`: owner SELECT/UPDATE own, admin full, public SELECT of `verified`/`trust_score`/display name only via a view.
-- `artist_rosters`: manager owns own; admin full.
-- `saved_gigs`: manager owns.
-- All timestamped tables get `updated_at` trigger via existing `set_updated_at()`.
+## 5. Routes (all cinematic dark + glassmorphism)
 
-### Status transitions (enforced by triggers)
-- `draft` → `pending_review` (promoter submits)
-- `pending_review` → `open` | `rejected` (admin)
-- `open` → `reviewing` (first application) → `shortlisted` (promoter shortlists) → `booked` (promoter confirms)
-- Any → `expired` (cron when deadline passes)
+**Public / manager**
+- `/find-gigs` — browse grid, filter sidebar (date / city / budget slider / genre / crowd size), save toggle, gig cards with all required fields + trust score + verified badge + status pill
+- `/find-gigs/$id` — gig detail + apply drawer (artist picker from roster, quote, rider, availability, message)
+- `/my-applications` — manager's applications with status tracking
+- `/roster` — manager manages artist roster
 
-## Server functions (all `.functions.ts`, auth-gated)
+**Promoter**
+- `/post-gig` — create gig (enters `pending` awaiting admin approval)
+- `/my-gigs` — list own gigs
+- `/my-gigs/$id` — see applications, compare quotes side-by-side, shortlist, negotiate, confirm booking
 
-- `src/lib/gigs/gigs.functions.ts` — `listOpenGigs(filters)`, `getGig(id)`, `createGig(input)`, `submitGigForReview(id)`, `updateGigStatus({id, status, note})` (promoter shortlist/book actions), `listMyGigs()`, `listMyApplications()`.
-- `src/lib/gigs/applications.functions.ts` — `applyToGig(input)`, `withdrawApplication(id)`, `shortlistApplication(id)`, `bookApplication(id)` (moves gig → `booked`, notifies all applicants).
-- `src/lib/gigs/roster.functions.ts` — CRUD for `artist_rosters`.
-- `src/lib/gigs/admin.functions.ts` — `listPendingGigs()`, `approveGig(id)`, `rejectGig({id, reason})`, `verifyPromoter(id)`, `verifyManager(id)`, `convertToBooking(applicationId)` — creates a row in existing `bookings` table pre-filled from the gig + winning application, linking `admin.bookings.$id` workflow to the marketplace.
-- **Public API**: `src/routes/api/public/gigs.ts` GET list (approved+open only, safe columns) so `/find-gigs` can SSR + share.
+**Admin**
+- `/admin/gigs` — approve/reject queue, moderation, convert-to-booking control
+- `/admin/verify` — verify promoters/managers, view trust scores
 
-## UI (matches current cinematic dark theme)
+All new routes under `_authenticated/` except `/find-gigs` (public browse, apply requires auth).
 
-- **Gig card** component: event name, city/country, date, crowd, budget range (never exact if promoter hides), genre tags, deadline countdown, promoter `verified` badge + trust score, status pill. Reuse existing shadcn tokens; ticket-card feel like `/request-quote`.
-- **Find Gigs page**: hero + filter bar (date range, city, budget slider, genre multi-select, crowd size, verified-only toggle), responsive card grid, empty state.
-- **Gig detail**: full description + apply form (pick roster artist, quote, availability, rider notes, message).
-- **My Applications**: table with status chips.
-- **Post Gig**: multi-section form; submit → `pending_review` with "Under review" screen.
-- **My Gigs**: promoter dashboard, applications comparison table (quote/artist/manager verified/actions).
-- **Admin gigs queue**: approve/reject with reason; "Convert to booking" button on `booked` gigs.
+## 6. UI system
 
-## Notifications
+Reuse existing tokens in `src/styles.css`. New shared components:
+- `GigCard` — glass surface, gradient border on hover, status pill, verified checkmark, trust score chip
+- `GigFilters` — sticky sidebar / mobile drawer
+- `ApplicationDrawer` — slide-over with roster picker
+- `StatusPill` — semantic color per status
+- `TrustBadge` — score + verified icon
 
-Reuse existing `notifications` table. Trigger inserts on: gig submitted (→ admin), gig approved (→ promoter), application received (→ promoter), shortlisted / booked / rejected (→ manager), gig expiring in 48h (→ promoter, via existing decision-engine cron).
+Mobile: filters collapse to sheet, cards single column, drawer becomes fullscreen.
 
-## Signup
+## 7. Out of scope for this pass (scaffolded, flagged `TODO(v2)`)
 
-Extend `/auth` with a role picker chip group (Promoter / Manager / Artist). After signup:
-- Insert into `user_roles`.
-- Insert stub row in matching profile table.
-- Redirect: promoter → `/my-gigs`, manager → `/find-gigs`, artist → landing (artist onboarding is v2).
+Messaging thread UI, paid boosts checkout, manager subscription checkout, artist verification fee, escrow, commission dashboard. Schema supports them; UI ships in a follow-up.
 
-## Explicitly NOT in v1
+## Build order
 
-Messaging thread UI, saved gigs UI, negotiation flow, commission dashboard, paid boosts, manager subscription paywall, artist verification fee flow, escrow. All flagged in code with `TODO(v2)` where hooks exist.
-
-## Order of build
-
-1. Migration (all 8 tables + enum extension + RLS + triggers + history trigger).
-2. Extend `/auth` with role picker + profile bootstrap.
-3. Server fns: gigs, applications, roster, admin.
-4. Public `/api/public/gigs` GET.
-5. `/find-gigs` + detail + apply.
-6. `/post-gig` + `/my-gigs` + comparison.
-7. `/my-applications`.
-8. `/admin/gigs` + `/admin/verify` + convert-to-booking wiring.
-9. Add nav links to admin shell and public header.
-
-## Technical notes
-
-- Follows existing `_authenticated` pattern; add pathless `_manager`, `_promoter` layout gates under `_authenticated/` using `has_role`.
-- Public `/find-gigs` is SSR-safe (uses public server fn with publishable-key client + narrow `TO anon` policy) so gigs are shareable/SEO-indexable.
-- All money in cents, matches existing `bookings.quoted_amount` convention.
-- Trust score derived: `verified ? 60 : 0` + `min(40, confirmed_bookings * 5)`.
-- Convert-to-booking creates a `bookings` row with `ref = GIG-<yymmdd>-<rand>`, links back via `bookings.source_gig_id` (add column in same migration).
-
-Ready to build on approval.
+1. Migration + seed
+2. Extend `/auth` role picker
+3. Server functions + public API
+4. `/find-gigs` + detail + apply
+5. `/roster`, `/my-applications`
+6. `/post-gig`, `/my-gigs`, `/my-gigs/$id`
+7. `/admin/gigs`, `/admin/verify`
+8. Verify nothing on `/request-quote`, Booking Command Centre, or existing auth changed
