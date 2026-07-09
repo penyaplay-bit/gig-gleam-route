@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Users, Calendar, DollarSign, Clock, ShieldCheck, ArrowRight, Heart } from "lucide-react";
 import { toast } from "sonner";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 
 export const Route = createFileRoute("/find-gigs")({
   head: () => ({
