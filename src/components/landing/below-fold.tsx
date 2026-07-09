@@ -3,7 +3,8 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, Shield, Zap, Calendar, Music, Radio, BadgeCheck } from "lucide-react";
-import ntateStunnaAsset from "@/assets/ntate-stunna.jpeg.asset.json";
+import ntateStunnaPicture from "@/assets/ntate-stunna.picture.json";
+import { Picture } from "@/components/brand/picture";
 import { LightShafts } from "@/components/brand/stage-elements";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { NumberTicker } from "@/components/motion/number-ticker";
@@ -171,7 +172,7 @@ function BentoCard({ children, className = "", tint = false }: { children: React
 
 function RosterStrip() {
   const artists = [
-    { name: "Ntate Stunna", tag: "Famo · Icon", accent: true, verified: true, photo: ntateStunnaAsset.url },
+    { name: "Ntate Stunna", tag: "Famo · Icon", accent: true, verified: true, picture: ntateStunnaPicture },
     { name: "Nthabi Sings", tag: "Afro-Soul" },
     { name: "+ More coming", tag: "Roster expanding", faded: true },
   ];
@@ -186,9 +187,15 @@ function RosterStrip() {
         <StaggerGroup className="mt-10 grid gap-4 sm:grid-cols-3">
           {artists.map((a) => (
             <StaggerItem key={a.name} className={`group relative overflow-hidden rounded-2xl border p-6 transition ${a.accent ? "border-primary/40 bg-gradient-to-br from-primary/15 via-primary/5 to-card" : a.faded ? "border-primary/10 bg-card/40 text-muted-foreground" : "border-primary/15 bg-card/50 hover:border-primary/30"}`}>
-              {a.photo ? (
+              {a.picture ? (
                 <div className="relative h-48 -mx-6 -mt-6 mb-4 overflow-hidden rounded-t-2xl">
-                  <img src={a.photo} alt={a.name} width={400} height={192} loading="lazy" decoding="async" fetchPriority="low" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
+                  <Picture
+                    manifest={a.picture}
+                    alt={a.name}
+                    sizes="(min-width: 640px) 400px, 100vw"
+                    className="block h-full w-full"
+                    imgClassName="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
                   {a.verified && (
                     <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-background/70 px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-primary backdrop-blur">
@@ -199,7 +206,7 @@ function RosterStrip() {
               ) : (
                 <Music className={`h-6 w-6 ${a.accent ? "text-primary" : "text-muted-foreground"}`} />
               )}
-              <div className={`${a.photo ? "" : "mt-8"} flex items-center gap-1.5 font-display text-2xl font-bold`}>
+              <div className={`${a.picture ? "" : "mt-8"} flex items-center gap-1.5 font-display text-2xl font-bold`}>
                 {a.name}
                 {a.verified && !a.photo && <BadgeCheck className="h-5 w-5 text-primary" />}
               </div>

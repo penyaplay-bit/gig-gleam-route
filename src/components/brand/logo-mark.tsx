@@ -1,4 +1,5 @@
-import logoAsset from "@/assets/penya-play-logo.jpg.asset.json";
+import logoPicture from "@/assets/penya-play-logo.picture.json";
+import { Picture } from "@/components/brand/picture";
 
 interface LogoMarkProps {
   size?: number;
@@ -9,7 +10,7 @@ interface LogoMarkProps {
 
 /**
  * PenyaPlay brand mark. Renders the film-reel + play monogram
- * from the CDN with rounded gold frame.
+ * from the CDN with rounded gold frame. Serves AVIF/WebP with JPG fallback.
  */
 export function LogoMark({ size = 44, className = "", alt = "Penya Play", priority = false }: LogoMarkProps) {
   return (
@@ -18,15 +19,15 @@ export function LogoMark({ size = 44, className = "", alt = "Penya Play", priori
       style={{ width: size, height: size }}
       aria-label={alt}
     >
-      <img
-        src={logoAsset.url}
+      <Picture
+        manifest={logoPicture}
         alt={alt}
+        sizes={`${size}px`}
         width={size}
         height={size}
-        className="h-full w-full object-cover"
-        loading={priority ? "eager" : "lazy"}
-        decoding={priority ? "sync" : "async"}
-        fetchPriority={priority ? "high" : "auto"}
+        priority={priority}
+        className="block h-full w-full"
+        imgClassName="h-full w-full object-cover"
       />
     </span>
   );
