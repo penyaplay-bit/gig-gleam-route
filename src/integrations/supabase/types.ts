@@ -702,6 +702,7 @@ export type Database = {
       booking_intents: {
         Row: {
           active: boolean
+          additional_territories: string[]
           artist_owner_id: string | null
           categories: Database["public"]["Enums"]["opportunity_category"][]
           created_at: string
@@ -713,12 +714,14 @@ export type Database = {
           id: string
           min_acceptable: number | null
           owner_id: string
+          primary_territory: string | null
           roles: string[]
           travel_ok: boolean
           updated_at: string
         }
         Insert: {
           active?: boolean
+          additional_territories?: string[]
           artist_owner_id?: string | null
           categories?: Database["public"]["Enums"]["opportunity_category"][]
           created_at?: string
@@ -730,12 +733,14 @@ export type Database = {
           id?: string
           min_acceptable?: number | null
           owner_id: string
+          primary_territory?: string | null
           roles?: string[]
           travel_ok?: boolean
           updated_at?: string
         }
         Update: {
           active?: boolean
+          additional_territories?: string[]
           artist_owner_id?: string | null
           categories?: Database["public"]["Enums"]["opportunity_category"][]
           created_at?: string
@@ -747,6 +752,7 @@ export type Database = {
           id?: string
           min_acceptable?: number | null
           owner_id?: string
+          primary_territory?: string | null
           roles?: string[]
           travel_ok?: boolean
           updated_at?: string
@@ -2274,6 +2280,7 @@ export type Database = {
       opportunities: {
         Row: {
           application_deadline: string | null
+          attendance_public: number | null
           audience_estimate: number | null
           budget_max: number | null
           budget_min: number | null
@@ -2291,20 +2298,27 @@ export type Database = {
           estimates_json: Json
           genres: string[]
           id: string
+          kind: Database["public"]["Enums"]["opportunity_kind"]
           organizer: string | null
+          public_organizer: string | null
+          public_socials_json: Json
+          public_website: string | null
           raw_json: Json
           source_id: string | null
           source_url: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["opportunity_status"]
+          ticketing_url: string | null
           title: string
           trust_score: number
           updated_at: string
           venue: string | null
           venue_capacity: number | null
+          verified_promoter_id: string | null
         }
         Insert: {
           application_deadline?: string | null
+          attendance_public?: number | null
           audience_estimate?: number | null
           budget_max?: number | null
           budget_min?: number | null
@@ -2322,20 +2336,27 @@ export type Database = {
           estimates_json?: Json
           genres?: string[]
           id?: string
+          kind?: Database["public"]["Enums"]["opportunity_kind"]
           organizer?: string | null
+          public_organizer?: string | null
+          public_socials_json?: Json
+          public_website?: string | null
           raw_json?: Json
           source_id?: string | null
           source_url?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
+          ticketing_url?: string | null
           title: string
           trust_score?: number
           updated_at?: string
           venue?: string | null
           venue_capacity?: number | null
+          verified_promoter_id?: string | null
         }
         Update: {
           application_deadline?: string | null
+          attendance_public?: number | null
           audience_estimate?: number | null
           budget_max?: number | null
           budget_min?: number | null
@@ -2353,17 +2374,23 @@ export type Database = {
           estimates_json?: Json
           genres?: string[]
           id?: string
+          kind?: Database["public"]["Enums"]["opportunity_kind"]
           organizer?: string | null
+          public_organizer?: string | null
+          public_socials_json?: Json
+          public_website?: string | null
           raw_json?: Json
           source_id?: string | null
           source_url?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["opportunity_status"]
+          ticketing_url?: string | null
           title?: string
           trust_score?: number
           updated_at?: string
           venue?: string | null
           venue_capacity?: number | null
+          verified_promoter_id?: string | null
         }
         Relationships: [
           {
@@ -2371,6 +2398,13 @@ export type Database = {
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "opportunity_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_verified_promoter_id_fkey"
+            columns: ["verified_promoter_id"]
+            isOneToOne: false
+            referencedRelation: "promoters"
             referencedColumns: ["id"]
           },
         ]
@@ -2986,6 +3020,7 @@ export type Database = {
         | "sports"
         | "international"
         | "other"
+      opportunity_kind: "verified" | "discovered"
       opportunity_status: "active" | "closed" | "cancelled" | "draft"
       outreach_status:
         | "draft"
@@ -3170,6 +3205,7 @@ export const Constants = {
         "international",
         "other",
       ],
+      opportunity_kind: ["verified", "discovered"],
       opportunity_status: ["active", "closed", "cancelled", "draft"],
       outreach_status: [
         "draft",
