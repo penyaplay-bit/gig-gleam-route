@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles, Shield, Zap, Calendar, Music, Radio, Users } from
 import { LogoMark, LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
 import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
+import { StageFloor, LightShafts } from "@/components/brand/stage-elements";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { NumberTicker } from "@/components/motion/number-ticker";
 import { MarqueeStrip } from "@/components/motion/marquee-strip";
