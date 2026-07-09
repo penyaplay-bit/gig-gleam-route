@@ -444,7 +444,31 @@ function BookingForm() {
                 </div>
                 <div>
                   <Label>Event date *</Label>
-                  <Input type="date" value={f.event_date} onChange={(e) => set("event_date", e.target.value)} />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          "mt-1 w-full justify-start text-left font-normal",
+                          !f.event_date && "text-muted-foreground",
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {f.event_date ? format(parseISO(f.event_date), "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={f.event_date ? parseISO(f.event_date) : undefined}
+                        onSelect={(d) => set("event_date", d ? format(d, "yyyy-MM-dd") : "")}
+                        disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label>Event class</Label>
