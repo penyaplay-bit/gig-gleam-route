@@ -57,9 +57,10 @@ function ArtistDashboard() {
         <Card className="p-4">
           <h3 className="font-medium text-sm">Complete your profile</h3>
           <p className="text-xs text-muted-foreground mt-1 mb-3">
-            {artist?.profile_completed ? "Your profile looks good." : "Add fee range, media links and rider notes."}
+            {artist?.profile_completed ? "Keep socials, awards and media kit fresh." : "Add bio, socials, awards, media kit and rider notes."}
           </p>
-          <Button size="sm" variant="outline" disabled>Edit profile (coming soon)</Button>
+          <Link to="/artist/profile" className="text-primary text-sm underline underline-offset-2">Edit credibility profile</Link>
+        </Card>
         </Card>
       </div>
     </div>
