@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMyRoles } from "@/lib/gigs/profile.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CalendarClock, MessageCircle, Music4 } from "lucide-react";
+import { CalendarClock, MessageCircle, Music4, Brain } from "lucide-react";
 
 export const Route = createFileRoute("/_signedin/artist")({
   head: () => ({ meta: [{ title: "Artist dashboard — Fare Deal" }, { name: "robots", content: "noindex" }] }),
@@ -27,6 +27,26 @@ function ArtistDashboard() {
       </div>
 
       <Card className="p-5 border-primary/30 bg-primary/5">
+        <div className="flex items-start gap-3">
+          <Brain className="w-5 h-5 text-primary mt-0.5" />
+          <div className="flex-1">
+            <h2 className="font-medium">Build your Booking DNA</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Map the shows you've performed — even before Penya Play — so the engine learns your fanbase heat map, promoter relationships and touring corridors. You'll get sharper matches.
+            </p>
+            <div className="mt-3 flex gap-2">
+              <Button asChild size="sm">
+                <Link to="/artist/intelligence/onboarding">Start career mapping</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/artist/intelligence">View intelligence</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-5 border-primary/20 bg-background/40">
         <div className="flex items-start gap-3">
           <CalendarClock className="w-5 h-5 text-primary mt-0.5" />
           <div className="flex-1">

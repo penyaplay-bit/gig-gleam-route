@@ -123,6 +123,72 @@ export type Database = {
           },
         ]
       }
+      artist_learning_events: {
+        Row: {
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["artist_learning_event_kind"]
+          meta_json: Json
+          opportunity_id: string | null
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["artist_learning_event_kind"]
+          meta_json?: Json
+          opportunity_id?: string | null
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["artist_learning_event_kind"]
+          meta_json?: Json
+          opportunity_id?: string | null
+          owner_id?: string
+        }
+        Relationships: []
+      }
+      artist_market_signals: {
+        Row: {
+          avg_crowd: number | null
+          city: string
+          country: string | null
+          id: string
+          last_show_at: string | null
+          owner_id: string
+          repeat_bookings: number
+          season_json: Json
+          show_count: number
+          updated_at: string
+        }
+        Insert: {
+          avg_crowd?: number | null
+          city: string
+          country?: string | null
+          id?: string
+          last_show_at?: string | null
+          owner_id: string
+          repeat_bookings?: number
+          season_json?: Json
+          show_count?: number
+          updated_at?: string
+        }
+        Update: {
+          avg_crowd?: number | null
+          city?: string
+          country?: string | null
+          id?: string
+          last_show_at?: string | null
+          owner_id?: string
+          repeat_bookings?: number
+          season_json?: Json
+          show_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       artist_media: {
         Row: {
           artist_owner_id: string
@@ -266,6 +332,115 @@ export type Database = {
           },
         ]
       }
+      artist_performances: {
+        Row: {
+          artist_id: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          crowd_est: number | null
+          end_time: string | null
+          event_date: string
+          event_name: string
+          event_type: Database["public"]["Enums"]["performance_event_type"]
+          fee_currency: string | null
+          fee_private: number | null
+          headliner_bool: boolean
+          id: string
+          notes_private: string | null
+          owner_id: string
+          promoter_id: string | null
+          promoter_name: string | null
+          proof_urls: string[]
+          province: string | null
+          rating: number | null
+          start_time: string | null
+          support_for: string | null
+          updated_at: string
+          venue_address: string | null
+          venue_id: string | null
+          venue_name: string | null
+        }
+        Insert: {
+          artist_id?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          crowd_est?: number | null
+          end_time?: string | null
+          event_date: string
+          event_name: string
+          event_type?: Database["public"]["Enums"]["performance_event_type"]
+          fee_currency?: string | null
+          fee_private?: number | null
+          headliner_bool?: boolean
+          id?: string
+          notes_private?: string | null
+          owner_id: string
+          promoter_id?: string | null
+          promoter_name?: string | null
+          proof_urls?: string[]
+          province?: string | null
+          rating?: number | null
+          start_time?: string | null
+          support_for?: string | null
+          updated_at?: string
+          venue_address?: string | null
+          venue_id?: string | null
+          venue_name?: string | null
+        }
+        Update: {
+          artist_id?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          crowd_est?: number | null
+          end_time?: string | null
+          event_date?: string
+          event_name?: string
+          event_type?: Database["public"]["Enums"]["performance_event_type"]
+          fee_currency?: string | null
+          fee_private?: number | null
+          headliner_bool?: boolean
+          id?: string
+          notes_private?: string | null
+          owner_id?: string
+          promoter_id?: string | null
+          promoter_name?: string | null
+          proof_urls?: string[]
+          province?: string | null
+          rating?: number | null
+          start_time?: string | null
+          support_for?: string | null
+          updated_at?: string
+          venue_address?: string | null
+          venue_id?: string | null
+          venue_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_performances_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artist_performances_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "promoters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artist_performances_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "artist_venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artist_profiles: {
         Row: {
           accommodation_rules: Json
@@ -348,6 +523,50 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artist_promoter_relations: {
+        Row: {
+          avg_fee_private: number | null
+          booking_count: number
+          id: string
+          last_booked_at: string | null
+          owner_id: string
+          promoter_id: string | null
+          promoter_name: string
+          strength_score: number
+          updated_at: string
+        }
+        Insert: {
+          avg_fee_private?: number | null
+          booking_count?: number
+          id?: string
+          last_booked_at?: string | null
+          owner_id: string
+          promoter_id?: string | null
+          promoter_name: string
+          strength_score?: number
+          updated_at?: string
+        }
+        Update: {
+          avg_fee_private?: number | null
+          booking_count?: number
+          id?: string
+          last_booked_at?: string | null
+          owner_id?: string
+          promoter_id?: string | null
+          promoter_name?: string
+          strength_score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_promoter_relations_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "promoters"
             referencedColumns: ["id"]
           },
         ]
@@ -562,6 +781,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      artist_venues: {
+        Row: {
+          address: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lat: number | null
+          lng: number | null
+          name: string
+          province: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name: string
+          province?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          province?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       artist_verifications: {
         Row: {
@@ -2975,9 +3236,20 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_staff_or_admin: { Args: never; Returns: boolean }
+      refresh_artist_intel: { Args: { _owner: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "staff" | "promoter" | "manager" | "artist"
+      artist_learning_event_kind:
+        | "pitch_sent"
+        | "pitch_opened"
+        | "pitch_replied"
+        | "offer_received"
+        | "accepted"
+        | "declined"
+        | "cancelled"
+        | "booked"
+        | "completed"
       booking_status:
         | "new"
         | "reviewing"
@@ -3031,6 +3303,18 @@ export type Database = {
         | "negotiating"
         | "booked"
         | "declined"
+      performance_event_type:
+        | "festival"
+        | "club"
+        | "corporate"
+        | "wedding"
+        | "government"
+        | "private"
+        | "university"
+        | "tv"
+        | "radio"
+        | "brand"
+        | "other"
       watchlist_cadence: "realtime" | "daily" | "weekly"
     }
     CompositeTypes: {
@@ -3160,6 +3444,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "staff", "promoter", "manager", "artist"],
+      artist_learning_event_kind: [
+        "pitch_sent",
+        "pitch_opened",
+        "pitch_replied",
+        "offer_received",
+        "accepted",
+        "declined",
+        "cancelled",
+        "booked",
+        "completed",
+      ],
       booking_status: [
         "new",
         "reviewing",
@@ -3216,6 +3511,19 @@ export const Constants = {
         "negotiating",
         "booked",
         "declined",
+      ],
+      performance_event_type: [
+        "festival",
+        "club",
+        "corporate",
+        "wedding",
+        "government",
+        "private",
+        "university",
+        "tv",
+        "radio",
+        "brand",
+        "other",
       ],
       watchlist_cadence: ["realtime", "daily", "weekly"],
     },
