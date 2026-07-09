@@ -99,7 +99,7 @@ function Hero() {
         <motion.div style={{ scale: logoScale, y: logoY }} className="mx-auto flex justify-center">
           <div className="relative">
             <div className="absolute -inset-8 rounded-full bg-primary/30 blur-3xl" aria-hidden />
-            <LogoMark size={140} className="relative rounded-2xl ring-2 ring-primary/50 shadow-cinema" />
+            <LogoMark size={140} priority className="relative rounded-2xl ring-2 ring-primary/50 shadow-cinema" />
           </div>
         </motion.div>
 
