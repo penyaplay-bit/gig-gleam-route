@@ -289,8 +289,7 @@ function BookingForm() {
     }
   }
 
-  const artist = artists.find((a) => a.id === f.artist_id);
-  const pkg = (data?.packages ?? []).find((p) => p.id === f.package_id);
+
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
