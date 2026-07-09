@@ -208,7 +208,7 @@ function RosterStrip() {
               )}
               <div className={`${a.picture ? "" : "mt-8"} flex items-center gap-1.5 font-display text-2xl font-bold`}>
                 {a.name}
-                {a.verified && !a.photo && <BadgeCheck className="h-5 w-5 text-primary" />}
+                {a.verified && !a.picture && <BadgeCheck className="h-5 w-5 text-primary" />}
               </div>
               <div className="text-xs uppercase tracking-widest text-muted-foreground">{a.tag}</div>
               {a.accent && (
