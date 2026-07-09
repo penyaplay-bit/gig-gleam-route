@@ -9,7 +9,7 @@ export const Route = createFileRoute("/api/public/artists")({
         const [aRes, pRes] = await Promise.all([
           supabaseAdmin
             .from("artists")
-            .select("id, slug, name, tagline, home_city, base_fee, photo")
+            .select("id, slug, name, tagline, home_city, home_address, base_fee, photo")
             .eq("active", true)
             .order("name"),
           supabaseAdmin

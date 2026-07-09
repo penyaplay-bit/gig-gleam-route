@@ -27,6 +27,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as BookConfirmRefRouteImport } from './routes/book.confirm.$ref'
 import { Route as ApiPublicQuoteRequestRouteImport } from './routes/api/public/quote-request'
 import { Route as ApiPublicGigsRouteImport } from './routes/api/public/gigs'
+import { Route as ApiPublicDistanceRouteImport } from './routes/api/public/distance'
 import { Route as ApiPublicBookingsRouteImport } from './routes/api/public/bookings'
 import { Route as ApiPublicArtistsRouteImport } from './routes/api/public/artists'
 import { Route as SignedinMyGigsIdRouteImport } from './routes/_signedin/my-gigs.$id'
@@ -131,6 +132,11 @@ const ApiPublicQuoteRequestRoute = ApiPublicQuoteRequestRouteImport.update({
 const ApiPublicGigsRoute = ApiPublicGigsRouteImport.update({
   id: '/api/public/gigs',
   path: '/api/public/gigs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDistanceRoute = ApiPublicDistanceRouteImport.update({
+  id: '/api/public/distance',
+  path: '/api/public/distance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicBookingsRoute = ApiPublicBookingsRouteImport.update({
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/my-gigs/$id': typeof SignedinMyGigsIdRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
   '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/distance': typeof ApiPublicDistanceRoute
   '/api/public/gigs': typeof ApiPublicGigsRoute
   '/api/public/quote-request': typeof ApiPublicQuoteRequestRoute
   '/book/confirm/$ref': typeof BookConfirmRefRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/my-gigs/$id': typeof SignedinMyGigsIdRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
   '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/distance': typeof ApiPublicDistanceRoute
   '/api/public/gigs': typeof ApiPublicGigsRoute
   '/api/public/quote-request': typeof ApiPublicQuoteRequestRoute
   '/book/confirm/$ref': typeof BookConfirmRefRoute
@@ -325,6 +333,7 @@ export interface FileRoutesById {
   '/_signedin/my-gigs/$id': typeof SignedinMyGigsIdRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
   '/api/public/bookings': typeof ApiPublicBookingsRouteWithChildren
+  '/api/public/distance': typeof ApiPublicDistanceRoute
   '/api/public/gigs': typeof ApiPublicGigsRoute
   '/api/public/quote-request': typeof ApiPublicQuoteRequestRoute
   '/book/confirm/$ref': typeof BookConfirmRefRoute
@@ -362,6 +371,7 @@ export interface FileRouteTypes {
     | '/my-gigs/$id'
     | '/api/public/artists'
     | '/api/public/bookings'
+    | '/api/public/distance'
     | '/api/public/gigs'
     | '/api/public/quote-request'
     | '/book/confirm/$ref'
@@ -396,6 +406,7 @@ export interface FileRouteTypes {
     | '/my-gigs/$id'
     | '/api/public/artists'
     | '/api/public/bookings'
+    | '/api/public/distance'
     | '/api/public/gigs'
     | '/api/public/quote-request'
     | '/book/confirm/$ref'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '/_signedin/my-gigs/$id'
     | '/api/public/artists'
     | '/api/public/bookings'
+    | '/api/public/distance'
     | '/api/public/gigs'
     | '/api/public/quote-request'
     | '/book/confirm/$ref'
@@ -457,6 +469,7 @@ export interface RootRouteChildren {
   PayRefRoute: typeof PayRefRoute
   ApiPublicArtistsRoute: typeof ApiPublicArtistsRoute
   ApiPublicBookingsRoute: typeof ApiPublicBookingsRouteWithChildren
+  ApiPublicDistanceRoute: typeof ApiPublicDistanceRoute
   ApiPublicGigsRoute: typeof ApiPublicGigsRoute
   ApiPublicQuoteRequestRoute: typeof ApiPublicQuoteRequestRoute
   ApiPublicCronDecisionEngineRoute: typeof ApiPublicCronDecisionEngineRoute
@@ -590,6 +603,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/gigs'
       fullPath: '/api/public/gigs'
       preLoaderRoute: typeof ApiPublicGigsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/distance': {
+      id: '/api/public/distance'
+      path: '/api/public/distance'
+      fullPath: '/api/public/distance'
+      preLoaderRoute: typeof ApiPublicDistanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/bookings': {
@@ -842,6 +862,7 @@ const rootRouteChildren: RootRouteChildren = {
   PayRefRoute: PayRefRoute,
   ApiPublicArtistsRoute: ApiPublicArtistsRoute,
   ApiPublicBookingsRoute: ApiPublicBookingsRouteWithChildren,
+  ApiPublicDistanceRoute: ApiPublicDistanceRoute,
   ApiPublicGigsRoute: ApiPublicGigsRoute,
   ApiPublicQuoteRequestRoute: ApiPublicQuoteRequestRoute,
   ApiPublicCronDecisionEngineRoute: ApiPublicCronDecisionEngineRoute,

@@ -161,6 +161,7 @@ export type Database = {
           active: boolean
           base_fee: number
           created_at: string
+          home_address: string | null
           home_city: string
           id: string
           name: string
@@ -173,6 +174,7 @@ export type Database = {
           active?: boolean
           base_fee?: number
           created_at?: string
+          home_address?: string | null
           home_city?: string
           id?: string
           name: string
@@ -185,6 +187,7 @@ export type Database = {
           active?: boolean
           base_fee?: number
           created_at?: string
+          home_address?: string | null
           home_city?: string
           id?: string
           name?: string

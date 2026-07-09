@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
+import { supabase } from "@/integrations/supabase/client";
+import { BedDouble, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/book")({
   head: () => ({
@@ -29,6 +31,7 @@ interface Artist {
   name: string;
   tagline: string | null;
   home_city: string;
+  home_address: string | null;
   base_fee: number;
   photo: string | null;
   slug: string;
@@ -121,12 +124,97 @@ function BookingForm() {
   const artists = data?.artists ?? [];
   const packagesFor = (aid: string) => (data?.packages ?? []).filter((p) => p.artist_id === aid);
 
+  const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((x) => ({ ...x, [k]: v }));
+  const artist = artists.find((a) => a.id === f.artist_id);
+  const pkg = (data?.packages ?? []).find((p) => p.id === f.package_id);
+
   // Auto-select single artist
   useEffect(() => {
     if (!f.artist_id && artists.length === 1) setF((x) => ({ ...x, artist_id: artists[0].id }));
   }, [artists, f.artist_id]);
 
-  const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((x) => ({ ...x, [k]: v }));
+  // Autofill contact from signed-in user (event organizer / promoter)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const u = data.user;
+      if (!u || cancelled) return;
+      const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
+      const name =
+        (typeof meta.full_name === "string" && meta.full_name) ||
+        (typeof meta.name === "string" && meta.name) ||
+        "";
+      const phone =
+        (typeof meta.phone === "string" && meta.phone) ||
+        (typeof u.phone === "string" && u.phone) ||
+        "";
+      const company = (typeof meta.company === "string" && meta.company) || "";
+      setF((x) => ({
+        ...x,
+        contact_email: x.contact_email || u.email || "",
+        contact_name: x.contact_name || name,
+        contact_phone: x.contact_phone || phone,
+        contact_whatsapp: x.contact_whatsapp || phone,
+        contact_company: x.contact_company || company,
+      }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Distance / overnight lookup — runs when we know the artist origin + destination
+  const [distance, setDistance] = useState<{
+    km: number;
+    minutes: number;
+    overnight: boolean;
+    origin: string;
+    destination: string;
+  } | null>(null);
+  const [distanceLoading, setDistanceLoading] = useState(false);
+  const [distanceError, setDistanceError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const artistOrigin = artist?.home_address || artist?.home_city;
+    const destination = [f.venue, f.city, f.country].filter(Boolean).join(", ");
+    if (!artistOrigin || !f.city.trim()) {
+      setDistance(null);
+      setDistanceError(null);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      setDistanceLoading(true);
+      setDistanceError(null);
+      try {
+        const r = await fetch("/api/public/distance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ origin: artistOrigin, destination }),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error ?? "Distance lookup failed");
+        setDistance({
+          km: j.distance_km,
+          minutes: j.duration_min,
+          overnight: !!j.overnight_recommended,
+          origin: artistOrigin,
+          destination,
+        });
+        if (j.overnight_recommended) {
+          setF((x) => (x.ends_after_10pm ? x : { ...x, ends_after_10pm: true }));
+        }
+      } catch (err) {
+        setDistance(null);
+        setDistanceError(err instanceof Error ? err.message : "Distance lookup failed");
+      } finally {
+        setDistanceLoading(false);
+      }
+    }, 600);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [artist?.home_address, artist?.home_city, f.city, f.country, f.venue]);
+
 
   const steps = ["Artist & package", "Event", "Logistics & budget", "Contact", "Review"];
 
@@ -201,8 +289,7 @@ function BookingForm() {
     }
   }
 
-  const artist = artists.find((a) => a.id === f.artist_id);
-  const pkg = (data?.packages ?? []).find((p) => p.id === f.package_id);
+
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
@@ -359,6 +446,48 @@ function BookingForm() {
                   <Input type="time" value={f.end_time} onChange={(e) => set("end_time", e.target.value)} />
                 </div>
               </div>
+
+              {artist && (distanceLoading || distance || distanceError) && (
+                <div className="rounded-lg border border-primary/15 bg-primary/5 p-4 text-sm">
+                  {distanceLoading && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MapPin className="h-4 w-4 animate-pulse" />
+                      Calculating driving distance from {artist.name}'s base…
+                    </div>
+                  )}
+                  {!distanceLoading && distance && (
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="mt-0.5 h-4 w-4 text-primary" />
+                        <div>
+                          <div className="font-medium">
+                            {distance.km.toLocaleString()} km · ~{Math.floor(distance.minutes / 60)}h {distance.minutes % 60}m drive
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            From {artist.home_address ?? artist.home_city} → {distance.destination}
+                          </div>
+                        </div>
+                      </div>
+                      {distance.overnight && (
+                        <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-amber-200">
+                          <BedDouble className="mt-0.5 h-4 w-4" />
+                          <div>
+                            <div className="font-medium">Overnight recommended</div>
+                            <div className="text-xs opacity-80">
+                              Trip exceeds 150 km — accommodation for the artist and crew will be included in the quote.
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {!distanceLoading && distanceError && (
+                    <div className="text-xs text-muted-foreground">
+                      Couldn't estimate the drive right now — our team will confirm travel logistics when they review your request.
+                    </div>
+                  )}
+                </div>
+              )}
 
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox checked={f.ends_after_10pm} onCheckedChange={(v) => set("ends_after_10pm", !!v)} />
