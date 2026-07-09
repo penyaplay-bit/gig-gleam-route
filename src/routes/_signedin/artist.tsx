@@ -61,7 +61,6 @@ function ArtistDashboard() {
           </p>
           <Link to="/artist/profile" className="text-primary text-sm underline underline-offset-2">Edit credibility profile</Link>
         </Card>
-        </Card>
       </div>
     </div>
   );
