@@ -34,7 +34,7 @@ export function ScrollScrubVideo() {
           }
         }
       },
-      { rootMargin: "600px 0px" },
+      { rootMargin: "200px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -50,7 +50,7 @@ export function ScrollScrubVideo() {
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="none"
             disablePictureInPicture
             style={{ scale, opacity }}
             className="absolute inset-0 h-full w-full object-cover"
