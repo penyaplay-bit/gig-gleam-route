@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, CalendarIcon } from "lucide-react";
 import { LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 import { supabase } from "@/integrations/supabase/client";
 import { BedDouble, MapPin } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
