@@ -70,10 +70,11 @@ function TopNav() {
         <div className="flex items-center gap-2">
           <Link
             to="/find-gigs"
-            className="hidden text-xs text-muted-foreground hover:text-foreground sm:inline-block"
+            className="text-xs text-muted-foreground hover:text-foreground"
           >
             Find Gigs
           </Link>
+
           <Link
             to="/book"
             className="group inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground shadow-quote transition hover:-translate-y-0.5 hover:bg-primary/90 sm:text-sm"
