@@ -232,7 +232,7 @@ function BookingForm() {
       if (d.getTime() < Date.now() - 86_400_000) return "Event date must be in the future";
     }
     if (step === 2) {
-      if (!f.client_offer && !f.budget_min) return "Enter an offer or a minimum budget";
+      // no-op: budget fields removed from this step
     }
     if (step === 3) {
       if (!f.contact_name.trim()) return "Full name required";
@@ -511,14 +511,6 @@ function BookingForm() {
                   <Label>Ticket price (M, if ticketed)</Label>
                   <Input type="number" min={0} value={f.ticket_price} onChange={(e) => set("ticket_price", e.target.value)} />
                 </div>
-                <div>
-                  <Label>Your offer (M)</Label>
-                  <Input type="number" min={0} value={f.client_offer} onChange={(e) => set("client_offer", e.target.value)} placeholder="Your all-in offer" />
-                </div>
-                <div>
-                  <Label>Minimum budget (M)</Label>
-                  <Input type="number" min={0} value={f.budget_min} onChange={(e) => set("budget_min", e.target.value)} placeholder="Or a range floor" />
-                </div>
               </div>
 
               <div className="space-y-3 rounded-lg border border-primary/15 bg-primary/5 p-4">
@@ -595,7 +587,7 @@ function BookingForm() {
                 <Row label="Event" value={`${f.event_type} · ${f.event_name}`} />
                 <Row label="Where / when" value={`${f.venue ? f.venue + ", " : ""}${f.city}, ${f.country} · ${f.event_date}`} />
                 <Row label="Crowd" value={f.crowd_size ? `${f.crowd_size} pax` : "—"} />
-                <Row label="Offer" value={f.client_offer ? `M ${Number(f.client_offer).toLocaleString()}` : (f.budget_min ? `Min M ${Number(f.budget_min).toLocaleString()}` : "—")} />
+                <Row label="Ticket price" value={f.ticket_price ? `M ${Number(f.ticket_price).toLocaleString()}` : "—"} />
                 <Row label="Deposit-ready" value={f.deposit_ready ? "Yes" : "No"} />
                 <Row label="Contact" value={`${f.contact_name} · ${f.contact_email}`} />
               </div>
