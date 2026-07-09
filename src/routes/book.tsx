@@ -124,6 +124,10 @@ function BookingForm() {
   const artists = data?.artists ?? [];
   const packagesFor = (aid: string) => (data?.packages ?? []).filter((p) => p.artist_id === aid);
 
+  const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((x) => ({ ...x, [k]: v }));
+  const artist = artists.find((a) => a.id === f.artist_id);
+  const pkg = (data?.packages ?? []).find((p) => p.id === f.package_id);
+
   // Auto-select single artist
   useEffect(() => {
     if (!f.artist_id && artists.length === 1) setF((x) => ({ ...x, artist_id: artists[0].id }));
