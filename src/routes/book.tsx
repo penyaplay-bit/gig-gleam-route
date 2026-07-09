@@ -511,14 +511,6 @@ function BookingForm() {
                   <Label>Ticket price (M, if ticketed)</Label>
                   <Input type="number" min={0} value={f.ticket_price} onChange={(e) => set("ticket_price", e.target.value)} />
                 </div>
-                <div>
-                  <Label>Your offer (M)</Label>
-                  <Input type="number" min={0} value={f.client_offer} onChange={(e) => set("client_offer", e.target.value)} placeholder="Your all-in offer" />
-                </div>
-                <div>
-                  <Label>Minimum budget (M)</Label>
-                  <Input type="number" min={0} value={f.budget_min} onChange={(e) => set("budget_min", e.target.value)} placeholder="Or a range floor" />
-                </div>
               </div>
 
               <div className="space-y-3 rounded-lg border border-primary/15 bg-primary/5 p-4">
