@@ -25,6 +25,7 @@ function SignedInShell() {
     navigate({ to: "/", replace: true });
   }
   const nav = [
+    { to: "/concierge", label: "Concierge", Icon: Sparkles },
     { to: "/find-gigs", label: "Find Gigs", Icon: LayoutGrid },
     { to: "/my-applications", label: "My Applications", Icon: ClipboardList },
     { to: "/my-roster", label: "My Roster", Icon: Users2 },
