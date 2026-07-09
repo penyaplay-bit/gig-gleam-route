@@ -424,7 +424,13 @@ function BentoCard({
 /* ---------- Roster ---------- */
 function RosterStrip() {
   const artists = [
-    { name: "Ntate Stunna", tag: "Famo · Icon", accent: true },
+    {
+      name: "Ntate Stunna",
+      tag: "Famo · Icon",
+      accent: true,
+      verified: true,
+      photo: ntateStunnaAsset.url,
+    },
     { name: "Nthabi Sings", tag: "Afro-Soul" },
     { name: "+ More coming", tag: "Roster expanding", faded: true },
   ];
@@ -432,7 +438,6 @@ function RosterStrip() {
     <section className="relative border-y border-primary/10 bg-card/30">
       <LightShafts count={3} />
       <div className="relative mx-auto max-w-6xl px-4 py-20">
-
         <Reveal>
           <span className="text-[10px] uppercase tracking-[0.35em] text-primary">The roster</span>
           <h2 className="mt-3 font-display text-4xl font-black sm:text-5xl">Book the whole Penya family.</h2>
@@ -445,12 +450,31 @@ function RosterStrip() {
                 a.accent
                   ? "border-primary/40 bg-gradient-to-br from-primary/15 via-primary/5 to-card"
                   : a.faded
-                  ? "border-primary/10 bg-card/40 text-muted-foreground"
-                  : "border-primary/15 bg-card/50 hover:border-primary/30"
+                    ? "border-primary/10 bg-card/40 text-muted-foreground"
+                    : "border-primary/15 bg-card/50 hover:border-primary/30"
               }`}
             >
-              <Music className={`h-6 w-6 ${a.accent ? "text-primary" : "text-muted-foreground"}`} />
-              <div className="mt-8 font-display text-2xl font-bold">{a.name}</div>
+              {a.photo ? (
+                <div className="relative h-48 -mx-6 -mt-6 mb-4 overflow-hidden rounded-t-2xl">
+                  <img
+                    src={a.photo}
+                    alt={a.name}
+                    className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+                  {a.verified && (
+                    <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-background/70 px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-primary backdrop-blur">
+                      <BadgeCheck className="h-3.5 w-3.5" /> Verified
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Music className={`h-6 w-6 ${a.accent ? "text-primary" : "text-muted-foreground"}`} />
+              )}
+              <div className={`${a.photo ? "" : "mt-8"} flex items-center gap-1.5 font-display text-2xl font-bold`}>
+                {a.name}
+                {a.verified && !a.photo && <BadgeCheck className="h-5 w-5 text-primary" />}
+              </div>
               <div className="text-xs uppercase tracking-widest text-muted-foreground">{a.tag}</div>
               {a.accent && (
                 <div className="mt-6 inline-flex items-center gap-2 text-xs text-primary">
