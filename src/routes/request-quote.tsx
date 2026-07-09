@@ -259,7 +259,8 @@ function Row({ icon, label, children }: { icon?: React.ReactNode; label: string;
 
 function SuccessTicket({ data, artistName }: { data: SuccessResp; artistName: string }) {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+    <div className="relative min-h-screen flex items-center justify-center px-4">
+      <div className="fixed inset-0 z-0 pointer-events-none"><CinematicBackdrop variant="ambient" /></div>
       <div className="max-w-md w-full rounded-xl border border-primary/40 bg-card/60 overflow-hidden">
         <div className="relative px-6 py-4 border-b border-dashed border-border/70 bg-primary/10">
           <div className="flex items-center gap-2">
