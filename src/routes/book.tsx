@@ -31,7 +31,6 @@ interface Artist {
   name: string;
   tagline: string | null;
   home_city: string;
-  home_address: string | null;
   base_fee: number;
   photo: string | null;
   slug: string;
@@ -176,9 +175,9 @@ function BookingForm() {
   const [distanceError, setDistanceError] = useState<string | null>(null);
 
   useEffect(() => {
-    const artistOrigin = artist?.home_address || artist?.home_city;
+    const artistId = artist?.id;
     const destination = [f.venue, f.city, f.country].filter(Boolean).join(", ");
-    if (!artistOrigin || !f.city.trim()) {
+    if (!artistId || !f.city.trim()) {
       setDistance(null);
       setDistanceError(null);
       return;
@@ -190,7 +189,7 @@ function BookingForm() {
         const r = await fetch("/api/public/distance", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ origin: artistOrigin, destination }),
+          body: JSON.stringify({ artist_id: artistId, destination }),
         });
         const j = await r.json();
         if (!r.ok) throw new Error(j.error ?? "Distance lookup failed");
@@ -198,7 +197,7 @@ function BookingForm() {
           km: j.distance_km,
           minutes: j.duration_min,
           overnight: !!j.overnight_recommended,
-          origin: artistOrigin,
+          origin: artist?.home_city ?? "",
           destination,
         });
         if (j.overnight_recommended) {
@@ -213,7 +212,7 @@ function BookingForm() {
     }, 600);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [artist?.home_address, artist?.home_city, f.city, f.country, f.venue]);
+  }, [artist?.id, artist?.home_city, f.city, f.country, f.venue]);
 
 
   const steps = ["Artist & package", "Event", "Logistics & budget", "Contact", "Review"];
@@ -464,7 +463,7 @@ function BookingForm() {
                             {distance.km.toLocaleString()} km · ~{Math.floor(distance.minutes / 60)}h {distance.minutes % 60}m drive
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            From {artist.home_address ?? artist.home_city} → {distance.destination}
+                            From {artist.home_city} → {distance.destination}
                           </div>
                         </div>
                       </div>

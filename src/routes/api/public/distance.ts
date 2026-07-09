@@ -1,12 +1,13 @@
 // Public driving-distance lookup for the booking form.
-// Uses the Lovable Google Maps connector via the gateway.
+// The origin address is resolved server-side from the artist id so home
+// addresses never leave the server.
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
 
 const Body = z.object({
-  origin: z.string().min(2).max(300),
+  artist_id: z.string().uuid(),
   destination: z.string().min(2).max(300),
 });
 
@@ -30,6 +31,21 @@ export const Route = createFileRoute("/api/public/distance")({
           return Response.json({ error: "Maps not configured" }, { status: 503 });
         }
 
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data: artist, error: aErr } = await supabaseAdmin
+          .from("artists")
+          .select("home_address, home_city, active")
+          .eq("id", parsed.data.artist_id)
+          .maybeSingle();
+        if (aErr) return Response.json({ error: "Artist lookup failed" }, { status: 500 });
+        if (!artist || artist.active === false) {
+          return Response.json({ error: "Artist not found" }, { status: 404 });
+        }
+        const origin = artist.home_address || artist.home_city;
+        if (!origin) {
+          return Response.json({ error: "Artist origin not configured" }, { status: 404 });
+        }
+
         const resp = await fetch(`${GATEWAY}/routes/directions/v2:computeRoutes`, {
           method: "POST",
           headers: {
@@ -39,7 +55,7 @@ export const Route = createFileRoute("/api/public/distance")({
             "X-Goog-FieldMask": "routes.distanceMeters,routes.duration",
           },
           body: JSON.stringify({
-            origin: { address: parsed.data.origin },
+            origin: { address: origin },
             destination: { address: parsed.data.destination },
             travelMode: "DRIVE",
             routingPreference: "TRAFFIC_UNAWARE",
