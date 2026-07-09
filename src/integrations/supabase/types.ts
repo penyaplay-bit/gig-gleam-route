@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_briefs: {
+        Row: {
+          artist_owner_id: string | null
+          brief_date: string
+          created_at: string
+          id: string
+          owner_id: string
+          summary_json: Json
+        }
+        Insert: {
+          artist_owner_id?: string | null
+          brief_date: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          summary_json?: Json
+        }
+        Update: {
+          artist_owner_id?: string | null
+          brief_date?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          summary_json?: Json
+        }
+        Relationships: []
+      }
       artist_availability: {
         Row: {
           artist_owner_id: string
@@ -622,6 +649,110 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_deals: {
+        Row: {
+          artist_owner_id: string | null
+          created_at: string
+          currency: string | null
+          id: string
+          last_activity_at: string
+          notes: string | null
+          opportunity_id: string | null
+          owner_id: string
+          stage: Database["public"]["Enums"]["deal_stage"]
+          updated_at: string
+          value_estimate: number | null
+        }
+        Insert: {
+          artist_owner_id?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          last_activity_at?: string
+          notes?: string | null
+          opportunity_id?: string | null
+          owner_id: string
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          updated_at?: string
+          value_estimate?: number | null
+        }
+        Update: {
+          artist_owner_id?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          last_activity_at?: string
+          notes?: string | null
+          opportunity_id?: string | null
+          owner_id?: string
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          updated_at?: string
+          value_estimate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_deals_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_intents: {
+        Row: {
+          active: boolean
+          artist_owner_id: string | null
+          categories: Database["public"]["Enums"]["opportunity_category"][]
+          created_at: string
+          fee_currency: string | null
+          fee_max: number | null
+          fee_min: number | null
+          filters_json: Json
+          geo_scope: string
+          id: string
+          min_acceptable: number | null
+          owner_id: string
+          roles: string[]
+          travel_ok: boolean
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          artist_owner_id?: string | null
+          categories?: Database["public"]["Enums"]["opportunity_category"][]
+          created_at?: string
+          fee_currency?: string | null
+          fee_max?: number | null
+          fee_min?: number | null
+          filters_json?: Json
+          geo_scope?: string
+          id?: string
+          min_acceptable?: number | null
+          owner_id: string
+          roles?: string[]
+          travel_ok?: boolean
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          artist_owner_id?: string | null
+          categories?: Database["public"]["Enums"]["opportunity_category"][]
+          created_at?: string
+          fee_currency?: string | null
+          fee_max?: number | null
+          fee_min?: number | null
+          filters_json?: Json
+          geo_scope?: string
+          id?: string
+          min_acceptable?: number | null
+          owner_id?: string
+          roles?: string[]
+          travel_ok?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booking_notes: {
         Row: {
           author_id: string | null
@@ -831,6 +962,41 @@ export type Database = {
             columns: ["source_gig_id"]
             isOneToOne: false
             referencedRelation: "gigs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          deal_id: string
+          id: string
+          kind: string
+          payload_json: Json
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          deal_id: string
+          id?: string
+          kind: string
+          payload_json?: Json
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          deal_id?: string
+          id?: string
+          kind?: string
+          payload_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_events_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "booking_deals"
             referencedColumns: ["id"]
           },
         ]
@@ -2007,6 +2173,47 @@ export type Database = {
         }
         Relationships: []
       }
+      match_scores: {
+        Row: {
+          artist_owner_id: string
+          checks_json: Json
+          computed_at: string
+          id: string
+          opportunity_id: string
+          reasons_json: Json
+          score: number
+          subscores_json: Json
+        }
+        Insert: {
+          artist_owner_id: string
+          checks_json?: Json
+          computed_at?: string
+          id?: string
+          opportunity_id: string
+          reasons_json?: Json
+          score: number
+          subscores_json?: Json
+        }
+        Update: {
+          artist_owner_id?: string
+          checks_json?: Json
+          computed_at?: string
+          id?: string
+          opportunity_id?: string
+          reasons_json?: Json
+          score?: number
+          subscores_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_scores_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -2061,6 +2268,240 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "event_financial_state"
             referencedColumns: ["event_id"]
+          },
+        ]
+      }
+      opportunities: {
+        Row: {
+          application_deadline: string | null
+          audience_estimate: number | null
+          budget_max: number | null
+          budget_min: number | null
+          category: Database["public"]["Enums"]["opportunity_category"]
+          city: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          country: string | null
+          created_at: string
+          currency: string | null
+          dedupe_hash: string
+          description: string | null
+          discovered_at: string
+          end_date: string | null
+          estimates_json: Json
+          genres: string[]
+          id: string
+          organizer: string | null
+          raw_json: Json
+          source_id: string | null
+          source_url: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["opportunity_status"]
+          title: string
+          trust_score: number
+          updated_at: string
+          venue: string | null
+          venue_capacity: number | null
+        }
+        Insert: {
+          application_deadline?: string | null
+          audience_estimate?: number | null
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: Database["public"]["Enums"]["opportunity_category"]
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          dedupe_hash: string
+          description?: string | null
+          discovered_at?: string
+          end_date?: string | null
+          estimates_json?: Json
+          genres?: string[]
+          id?: string
+          organizer?: string | null
+          raw_json?: Json
+          source_id?: string | null
+          source_url?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          title: string
+          trust_score?: number
+          updated_at?: string
+          venue?: string | null
+          venue_capacity?: number | null
+        }
+        Update: {
+          application_deadline?: string | null
+          audience_estimate?: number | null
+          budget_max?: number | null
+          budget_min?: number | null
+          category?: Database["public"]["Enums"]["opportunity_category"]
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          dedupe_hash?: string
+          description?: string | null
+          discovered_at?: string
+          end_date?: string | null
+          estimates_json?: Json
+          genres?: string[]
+          id?: string
+          organizer?: string | null
+          raw_json?: Json
+          source_id?: string | null
+          source_url?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          title?: string
+          trust_score?: number
+          updated_at?: string
+          venue?: string | null
+          venue_capacity?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_ingest_runs: {
+        Row: {
+          errors_json: Json
+          finished_at: string | null
+          found: number
+          id: string
+          new_count: number
+          source_id: string | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          errors_json?: Json
+          finished_at?: string | null
+          found?: number
+          id?: string
+          new_count?: number
+          source_id?: string | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          errors_json?: Json
+          finished_at?: string | null
+          found?: number
+          id?: string
+          new_count?: number
+          source_id?: string | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_ingest_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_sources: {
+        Row: {
+          cadence: string
+          created_at: string
+          enabled: boolean
+          id: string
+          kind: string
+          last_run_at: string | null
+          name: string
+          parser: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          cadence?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind: string
+          last_run_at?: string | null
+          name: string
+          parser?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          cadence?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          last_run_at?: string | null
+          name?: string
+          parser?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      outreach_messages: {
+        Row: {
+          body: string
+          created_at: string
+          deal_id: string
+          id: string
+          opened_at: string | null
+          owner_id: string
+          replied_at: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["outreach_status"]
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          deal_id: string
+          id?: string
+          opened_at?: string | null
+          owner_id: string
+          replied_at?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["outreach_status"]
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deal_id?: string
+          id?: string
+          opened_at?: string | null
+          owner_id?: string
+          replied_at?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["outreach_status"]
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_messages_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "booking_deals"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2145,6 +2586,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      promoter_intel: {
+        Row: {
+          city: string | null
+          company: string
+          country: string | null
+          created_at: string
+          genres: string[]
+          id: string
+          primary_venue: string | null
+          prior_events_json: Json
+          public_email: string | null
+          public_phone: string | null
+          scale: string | null
+          socials_json: Json
+          trust_score: number
+          updated_at: string
+          verified: boolean
+          website: string | null
+        }
+        Insert: {
+          city?: string | null
+          company: string
+          country?: string | null
+          created_at?: string
+          genres?: string[]
+          id?: string
+          primary_venue?: string | null
+          prior_events_json?: Json
+          public_email?: string | null
+          public_phone?: string | null
+          scale?: string | null
+          socials_json?: Json
+          trust_score?: number
+          updated_at?: string
+          verified?: boolean
+          website?: string | null
+        }
+        Update: {
+          city?: string | null
+          company?: string
+          country?: string | null
+          created_at?: string
+          genres?: string[]
+          id?: string
+          primary_venue?: string | null
+          prior_events_json?: Json
+          public_email?: string | null
+          public_phone?: string | null
+          scale?: string | null
+          socials_json?: Json
+          trust_score?: number
+          updated_at?: string
+          verified?: boolean
+          website?: string | null
+        }
+        Relationships: []
       }
       promoter_profiles: {
         Row: {
@@ -2370,6 +2868,48 @@ export type Database = {
         }
         Relationships: []
       }
+      watchlists: {
+        Row: {
+          active: boolean
+          artist_owner_id: string | null
+          cadence: Database["public"]["Enums"]["watchlist_cadence"]
+          channels: string[]
+          created_at: string
+          criteria_json: Json
+          id: string
+          last_notified_at: string | null
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          artist_owner_id?: string | null
+          cadence?: Database["public"]["Enums"]["watchlist_cadence"]
+          channels?: string[]
+          created_at?: string
+          criteria_json?: Json
+          id?: string
+          last_notified_at?: string | null
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          artist_owner_id?: string | null
+          cadence?: Database["public"]["Enums"]["watchlist_cadence"]
+          channels?: string[]
+          created_at?: string
+          criteria_json?: Json
+          id?: string
+          last_notified_at?: string | null
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       event_financial_state: {
@@ -2415,7 +2955,48 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "declined"
+      deal_stage:
+        | "discovered"
+        | "qualified"
+        | "contact_available"
+        | "proposal_prepared"
+        | "proposal_sent"
+        | "opened"
+        | "interested"
+        | "negotiating"
+        | "contract_sent"
+        | "deposit_paid"
+        | "booked"
+        | "completed"
+        | "review_collected"
       deposit_status: "uploaded" | "verified" | "rejected"
+      opportunity_category:
+        | "festival"
+        | "corporate"
+        | "government"
+        | "university"
+        | "club"
+        | "lounge"
+        | "wedding"
+        | "private"
+        | "brand"
+        | "tv"
+        | "radio"
+        | "cultural"
+        | "sports"
+        | "international"
+        | "other"
+      opportunity_status: "active" | "closed" | "cancelled" | "draft"
+      outreach_status:
+        | "draft"
+        | "sent"
+        | "opened"
+        | "replied"
+        | "meeting"
+        | "negotiating"
+        | "booked"
+        | "declined"
+      watchlist_cadence: "realtime" | "daily" | "weekly"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2556,7 +3137,51 @@ export const Constants = {
         "cancelled",
         "declined",
       ],
+      deal_stage: [
+        "discovered",
+        "qualified",
+        "contact_available",
+        "proposal_prepared",
+        "proposal_sent",
+        "opened",
+        "interested",
+        "negotiating",
+        "contract_sent",
+        "deposit_paid",
+        "booked",
+        "completed",
+        "review_collected",
+      ],
       deposit_status: ["uploaded", "verified", "rejected"],
+      opportunity_category: [
+        "festival",
+        "corporate",
+        "government",
+        "university",
+        "club",
+        "lounge",
+        "wedding",
+        "private",
+        "brand",
+        "tv",
+        "radio",
+        "cultural",
+        "sports",
+        "international",
+        "other",
+      ],
+      opportunity_status: ["active", "closed", "cancelled", "draft"],
+      outreach_status: [
+        "draft",
+        "sent",
+        "opened",
+        "replied",
+        "meeting",
+        "negotiating",
+        "booked",
+        "declined",
+      ],
+      watchlist_cadence: ["realtime", "daily", "weekly"],
     },
   },
 } as const
