@@ -344,7 +344,26 @@ function BookingForm() {
                       f.artist_id === a.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
                     }`}
                   >
-                    <div className="text-2xl text-primary">{a.photo ?? "◆"}</div>
+                    <div className="mb-3 flex justify-center">
+                      <div className="relative h-16 w-16 rotate-45 overflow-hidden rounded-md border border-primary/40 bg-primary/10 shadow-[0_0_20px_-8px] shadow-primary/40">
+                        {a.photo && /^(https?:|\/)/.test(a.photo) ? (
+                          <img
+                            src={a.photo}
+                            alt={a.name}
+                            className="absolute inset-0 h-full w-full -rotate-45 scale-150 object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 -rotate-45 flex items-center justify-center text-lg font-display text-primary">
+                            {a.name
+                              .split(/\s+/)
+                              .map((s) => s[0])
+                              .slice(0, 2)
+                              .join("")
+                              .toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <div className="mt-2 font-semibold">{a.name}</div>
                     <div className="text-xs text-muted-foreground">{a.tagline}</div>
                   </button>
