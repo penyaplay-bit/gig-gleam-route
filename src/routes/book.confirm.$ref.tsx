@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { formatDateLong } from "@/lib/formatting";
 import { LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 
 export const Route = createFileRoute("/book/confirm/$ref")({
   head: ({ params }) => ({
