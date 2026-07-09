@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles, Shield, Zap, Calendar, Music, Radio, Users } from
 import { LogoMark, LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
 import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
+import { StageFloor, LightShafts } from "@/components/brand/stage-elements";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { NumberTicker } from "@/components/motion/number-ticker";
 import { MarqueeStrip } from "@/components/motion/marquee-strip";
@@ -164,6 +165,7 @@ function Hero() {
           </Reveal>
         </motion.div>
       </div>
+      <StageFloor />
     </section>
   );
 }
@@ -344,7 +346,9 @@ function StatsRow() {
 /* ---------- Bento features ---------- */
 function BentoFeatures() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-24">
+    <section className="relative mx-auto max-w-6xl px-4 py-24">
+      <LightShafts count={4} />
+
       <Reveal>
         <span className="text-[10px] uppercase tracking-[0.35em] text-primary">Why PenyaPlay</span>
         <h2 className="mt-3 max-w-2xl font-display text-4xl font-black leading-[1] sm:text-6xl">
@@ -424,8 +428,10 @@ function RosterStrip() {
     { name: "+ More coming", tag: "Roster expanding", faded: true },
   ];
   return (
-    <section className="border-y border-primary/10 bg-card/30">
-      <div className="mx-auto max-w-6xl px-4 py-20">
+    <section className="relative border-y border-primary/10 bg-card/30">
+      <LightShafts count={3} />
+      <div className="relative mx-auto max-w-6xl px-4 py-20">
+
         <Reveal>
           <span className="text-[10px] uppercase tracking-[0.35em] text-primary">The roster</span>
           <h2 className="mt-3 font-display text-4xl font-black sm:text-5xl">Book the whole Penya family.</h2>
