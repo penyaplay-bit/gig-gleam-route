@@ -7,6 +7,7 @@ import { LogoMark, LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
 import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 import logoAsset from "@/assets/penya-play-logo.jpg.asset.json";
+import logoPicture from "@/assets/penya-play-logo.picture.json";
 import { StageFloor } from "@/components/brand/stage-elements";
 import { Reveal } from "@/components/motion/reveal";
 
@@ -33,7 +34,13 @@ export const Route = createFileRoute("/")({
       { name: "twitter:image", content: logoAsset.url },
     ],
     links: [
-      { rel: "preload", as: "image", href: logoAsset.url, fetchpriority: "high" },
+      {
+        rel: "preload",
+        as: "image",
+        href: logoPicture.sources[0].srcset[2].url,
+        type: logoPicture.sources[0].type,
+        fetchpriority: "high",
+      },
     ],
   }),
   component: LandingPage,

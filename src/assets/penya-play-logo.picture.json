@@ -1,0 +1,23 @@
+{
+  "fallback": "/__l5e/assets-v1/93d2fdb9-df98-43d6-9d75-c0c330896a8c/penya-play-logo.jpg",
+  "width": 420,
+  "height": 348,
+  "sources": [
+    {
+      "type": "image/avif",
+      "srcset": [
+        { "url": "/__l5e/assets-v1/289906ed-f25b-4f27-88e4-733422a3cab8/logo-140.avif", "w": 140 },
+        { "url": "/__l5e/assets-v1/6762c67f-5d7a-4209-82e2-5f9f981d0f17/logo-280.avif", "w": 280 },
+        { "url": "/__l5e/assets-v1/152797f1-1b88-4055-9a07-efa99ac3bdb2/logo-420.avif", "w": 420 }
+      ]
+    },
+    {
+      "type": "image/webp",
+      "srcset": [
+        { "url": "/__l5e/assets-v1/040a07a5-0b6a-48e5-a0fa-06ba90538734/logo-140.webp", "w": 140 },
+        { "url": "/__l5e/assets-v1/1adcd7f3-bf68-4be2-a886-55c26280a396/logo-280.webp", "w": 280 },
+        { "url": "/__l5e/assets-v1/c9f509e6-8489-4843-af04-5233021c53e3/logo-420.webp", "w": 420 }
+      ]
+    }
+  ]
+}
