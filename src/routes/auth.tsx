@@ -29,16 +29,19 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type Role = "manager" | "promoter";
+type Role = "artist" | "manager" | "promoter";
 
 function AuthPage() {
   const navigate = useNavigate();
   const { next, forbidden } = useSearch({ from: "/auth" });
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [role, setRole] = useState<Role>("manager");
+  const [role, setRole] = useState<Role>("artist");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [stageName, setStageName] = useState("");
+  const [companyOrAgency, setCompanyOrAgency] = useState("");
   const [busy, setBusy] = useState(false);
   const bootstrap = useServerFn(bootstrapProfile);
 
