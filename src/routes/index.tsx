@@ -428,8 +428,10 @@ function RosterStrip() {
     { name: "+ More coming", tag: "Roster expanding", faded: true },
   ];
   return (
-    <section className="border-y border-primary/10 bg-card/30">
-      <div className="mx-auto max-w-6xl px-4 py-20">
+    <section className="relative border-y border-primary/10 bg-card/30">
+      <LightShafts count={3} />
+      <div className="relative mx-auto max-w-6xl px-4 py-20">
+
         <Reveal>
           <span className="text-[10px] uppercase tracking-[0.35em] text-primary">The roster</span>
           <h2 className="mt-3 font-display text-4xl font-black sm:text-5xl">Book the whole Penya family.</h2>
