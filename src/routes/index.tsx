@@ -29,6 +29,11 @@ export const Route = createFileRoute("/")({
         content: "Book Ntate Stunna & Penya Play artists. Serious bookings only.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: logoAsset.url },
+      { name: "twitter:image", content: logoAsset.url },
+    ],
+    links: [
+      { rel: "preload", as: "image", href: logoAsset.url, fetchpriority: "high" },
     ],
   }),
   component: LandingPage,
