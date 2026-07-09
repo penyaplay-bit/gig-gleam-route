@@ -447,6 +447,48 @@ function BookingForm() {
                 </div>
               </div>
 
+              {artist && (distanceLoading || distance || distanceError) && (
+                <div className="rounded-lg border border-primary/15 bg-primary/5 p-4 text-sm">
+                  {distanceLoading && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MapPin className="h-4 w-4 animate-pulse" />
+                      Calculating driving distance from {artist.name}'s base…
+                    </div>
+                  )}
+                  {!distanceLoading && distance && (
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="mt-0.5 h-4 w-4 text-primary" />
+                        <div>
+                          <div className="font-medium">
+                            {distance.km.toLocaleString()} km · ~{Math.floor(distance.minutes / 60)}h {distance.minutes % 60}m drive
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            From {artist.home_address ?? artist.home_city} → {distance.destination}
+                          </div>
+                        </div>
+                      </div>
+                      {distance.overnight && (
+                        <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-amber-200">
+                          <BedDouble className="mt-0.5 h-4 w-4" />
+                          <div>
+                            <div className="font-medium">Overnight recommended</div>
+                            <div className="text-xs opacity-80">
+                              Trip exceeds 150 km — accommodation for the artist and crew will be included in the quote.
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {!distanceLoading && distanceError && (
+                    <div className="text-xs text-muted-foreground">
+                      Couldn't estimate the drive right now — our team will confirm travel logistics when they review your request.
+                    </div>
+                  )}
+                </div>
+              )}
+
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox checked={f.ends_after_10pm} onCheckedChange={(v) => set("ends_after_10pm", !!v)} />
                 Event ends after 10pm (may require overnight)
