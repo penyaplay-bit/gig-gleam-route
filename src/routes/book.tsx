@@ -10,11 +10,15 @@ import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CalendarIcon } from "lucide-react";
 import { LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
 import { supabase } from "@/integrations/supabase/client";
 import { BedDouble, MapPin } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/book")({
   head: () => ({
