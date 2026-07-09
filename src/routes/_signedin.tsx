@@ -32,9 +32,9 @@ function SignedInShell() {
     { to: "/my-gigs", label: "My Gigs", Icon: Sparkles },
   ];
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
-      <div className="fixed inset-0 -z-10"><CinematicBackdrop variant="ambient" /></div>
-      <header className="border-b border-primary/10 bg-background/60 sticky top-0 z-30 backdrop-blur-xl">
+    <div className="relative min-h-screen text-foreground">
+      <div className="fixed inset-0 z-0"><CinematicBackdrop variant="ambient" /></div>
+      <header className="relative z-30 border-b border-primary/10 bg-background/60 sticky top-0 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to="/" className="flex items-center gap-2">
