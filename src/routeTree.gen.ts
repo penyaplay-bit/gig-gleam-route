@@ -22,6 +22,7 @@ import { Route as SignedinPostGigRouteImport } from './routes/_signedin/post-gig
 import { Route as SignedinMyRosterRouteImport } from './routes/_signedin/my-roster'
 import { Route as SignedinMyGigsRouteImport } from './routes/_signedin/my-gigs'
 import { Route as SignedinMyApplicationsRouteImport } from './routes/_signedin/my-applications'
+import { Route as SignedinArtistRouteImport } from './routes/_signedin/artist'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as BookConfirmRefRouteImport } from './routes/book.confirm.$ref'
@@ -107,6 +108,11 @@ const SignedinMyGigsRoute = SignedinMyGigsRouteImport.update({
 const SignedinMyApplicationsRoute = SignedinMyApplicationsRouteImport.update({
   id: '/my-applications',
   path: '/my-applications',
+  getParentRoute: () => SignedinRoute,
+} as any)
+const SignedinArtistRoute = SignedinArtistRouteImport.update({
+  id: '/artist',
+  path: '/artist',
   getParentRoute: () => SignedinRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/find-gigs': typeof FindGigsRouteWithChildren
   '/request-quote': typeof RequestQuoteRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/artist': typeof SignedinArtistRoute
   '/my-applications': typeof SignedinMyApplicationsRoute
   '/my-gigs': typeof SignedinMyGigsRouteWithChildren
   '/my-roster': typeof SignedinMyRosterRoute
@@ -278,6 +285,7 @@ export interface FileRoutesByTo {
   '/book': typeof BookRouteWithChildren
   '/find-gigs': typeof FindGigsRouteWithChildren
   '/request-quote': typeof RequestQuoteRoute
+  '/artist': typeof SignedinArtistRoute
   '/my-applications': typeof SignedinMyApplicationsRoute
   '/my-gigs': typeof SignedinMyGigsRouteWithChildren
   '/my-roster': typeof SignedinMyRosterRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/find-gigs': typeof FindGigsRouteWithChildren
   '/request-quote': typeof RequestQuoteRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_signedin/artist': typeof SignedinArtistRoute
   '/_signedin/my-applications': typeof SignedinMyApplicationsRoute
   '/_signedin/my-gigs': typeof SignedinMyGigsRouteWithChildren
   '/_signedin/my-roster': typeof SignedinMyRosterRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/find-gigs'
     | '/request-quote'
     | '/admin'
+    | '/artist'
     | '/my-applications'
     | '/my-gigs'
     | '/my-roster'
@@ -390,6 +400,7 @@ export interface FileRouteTypes {
     | '/book'
     | '/find-gigs'
     | '/request-quote'
+    | '/artist'
     | '/my-applications'
     | '/my-gigs'
     | '/my-roster'
@@ -428,6 +439,7 @@ export interface FileRouteTypes {
     | '/find-gigs'
     | '/request-quote'
     | '/_authenticated/admin'
+    | '/_signedin/artist'
     | '/_signedin/my-applications'
     | '/_signedin/my-gigs'
     | '/_signedin/my-roster'
@@ -568,6 +580,13 @@ declare module '@tanstack/react-router' {
       path: '/my-applications'
       fullPath: '/my-applications'
       preLoaderRoute: typeof SignedinMyApplicationsRouteImport
+      parentRoute: typeof SignedinRoute
+    }
+    '/_signedin/artist': {
+      id: '/_signedin/artist'
+      path: '/artist'
+      fullPath: '/artist'
+      preLoaderRoute: typeof SignedinArtistRouteImport
       parentRoute: typeof SignedinRoute
     }
     '/_authenticated/admin': {
@@ -801,6 +820,7 @@ const SignedinMyGigsRouteWithChildren = SignedinMyGigsRoute._addFileChildren(
 )
 
 interface SignedinRouteChildren {
+  SignedinArtistRoute: typeof SignedinArtistRoute
   SignedinMyApplicationsRoute: typeof SignedinMyApplicationsRoute
   SignedinMyGigsRoute: typeof SignedinMyGigsRouteWithChildren
   SignedinMyRosterRoute: typeof SignedinMyRosterRoute
@@ -808,6 +828,7 @@ interface SignedinRouteChildren {
 }
 
 const SignedinRouteChildren: SignedinRouteChildren = {
+  SignedinArtistRoute: SignedinArtistRoute,
   SignedinMyApplicationsRoute: SignedinMyApplicationsRoute,
   SignedinMyGigsRoute: SignedinMyGigsRouteWithChildren,
   SignedinMyRosterRoute: SignedinMyRosterRoute,
@@ -872,13 +893,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

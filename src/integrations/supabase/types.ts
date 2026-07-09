@@ -14,6 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
+      artist_availability: {
+        Row: {
+          artist_owner_id: string
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          artist_owner_id: string
+          created_at?: string
+          date: string
+          id?: string
+          note?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          artist_owner_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_availability_artist_owner_id_fkey"
+            columns: ["artist_owner_id"]
+            isOneToOne: false
+            referencedRelation: "artist_owner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artist_owner_profiles: {
+        Row: {
+          active: boolean
+          artist_id: string | null
+          availability_status: string
+          bio: string | null
+          booking_fee_max_cents: number | null
+          booking_fee_min_cents: number | null
+          contact_email: string | null
+          created_at: string
+          currency: string
+          external_bookings_note: string | null
+          genres: string[]
+          id: string
+          last_schedule_update_at: string | null
+          location_city: string | null
+          location_country: string | null
+          manager_id: string | null
+          media_links: string[]
+          photo_url: string | null
+          profile_completed: boolean
+          rider_notes: string | null
+          stage_name: string
+          updated_at: string
+          user_id: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          active?: boolean
+          artist_id?: string | null
+          availability_status?: string
+          bio?: string | null
+          booking_fee_max_cents?: number | null
+          booking_fee_min_cents?: number | null
+          contact_email?: string | null
+          created_at?: string
+          currency?: string
+          external_bookings_note?: string | null
+          genres?: string[]
+          id?: string
+          last_schedule_update_at?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          manager_id?: string | null
+          media_links?: string[]
+          photo_url?: string | null
+          profile_completed?: boolean
+          rider_notes?: string | null
+          stage_name: string
+          updated_at?: string
+          user_id: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          active?: boolean
+          artist_id?: string | null
+          availability_status?: string
+          bio?: string | null
+          booking_fee_max_cents?: number | null
+          booking_fee_min_cents?: number | null
+          contact_email?: string | null
+          created_at?: string
+          currency?: string
+          external_bookings_note?: string | null
+          genres?: string[]
+          id?: string
+          last_schedule_update_at?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          manager_id?: string | null
+          media_links?: string[]
+          photo_url?: string | null
+          profile_completed?: boolean
+          rider_notes?: string | null
+          stage_name?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_owner_profiles_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artist_owner_profiles_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "manager_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artist_profiles: {
         Row: {
           accommodation_rules: Json
@@ -1536,12 +1673,14 @@ export type Database = {
           created_at: string
           id: string
           phone: string | null
+          profile_completed: boolean
           updated_at: string
           user_id: string
           verified: boolean
           verified_at: string | null
           verified_by: string | null
           website: string | null
+          whatsapp_number: string | null
         }
         Insert: {
           agency_name?: string | null
@@ -1552,12 +1691,14 @@ export type Database = {
           created_at?: string
           id?: string
           phone?: string | null
+          profile_completed?: boolean
           updated_at?: string
           user_id: string
           verified?: boolean
           verified_at?: string | null
           verified_by?: string | null
           website?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
           agency_name?: string | null
@@ -1568,12 +1709,14 @@ export type Database = {
           created_at?: string
           id?: string
           phone?: string | null
+          profile_completed?: boolean
           updated_at?: string
           user_id?: string
           verified?: boolean
           verified_at?: string | null
           verified_by?: string | null
           website?: string | null
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
@@ -1725,8 +1868,11 @@ export type Database = {
           contact_name: string
           country: string | null
           created_at: string
+          event_type: string | null
           id: string
+          organization_type: string | null
           phone: string | null
+          profile_completed: boolean
           trust_score: number
           updated_at: string
           user_id: string
@@ -1734,6 +1880,7 @@ export type Database = {
           verified_at: string | null
           verified_by: string | null
           website: string | null
+          whatsapp_number: string | null
         }
         Insert: {
           bio?: string | null
@@ -1743,8 +1890,11 @@ export type Database = {
           contact_name: string
           country?: string | null
           created_at?: string
+          event_type?: string | null
           id?: string
+          organization_type?: string | null
           phone?: string | null
+          profile_completed?: boolean
           trust_score?: number
           updated_at?: string
           user_id: string
@@ -1752,6 +1902,7 @@ export type Database = {
           verified_at?: string | null
           verified_by?: string | null
           website?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
           bio?: string | null
@@ -1761,8 +1912,11 @@ export type Database = {
           contact_name?: string
           country?: string | null
           created_at?: string
+          event_type?: string | null
           id?: string
+          organization_type?: string | null
           phone?: string | null
+          profile_completed?: boolean
           trust_score?: number
           updated_at?: string
           user_id?: string
@@ -1770,6 +1924,7 @@ export type Database = {
           verified_at?: string | null
           verified_by?: string | null
           website?: string | null
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
