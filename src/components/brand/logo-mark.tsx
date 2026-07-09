@@ -4,13 +4,14 @@ interface LogoMarkProps {
   size?: number;
   className?: string;
   alt?: string;
+  priority?: boolean;
 }
 
 /**
  * PenyaPlay brand mark. Renders the film-reel + play monogram
  * from the CDN with rounded gold frame.
  */
-export function LogoMark({ size = 44, className = "", alt = "Penya Play" }: LogoMarkProps) {
+export function LogoMark({ size = 44, className = "", alt = "Penya Play", priority = false }: LogoMarkProps) {
   return (
     <span
       className={`inline-flex items-center justify-center overflow-hidden rounded-xl ring-1 ring-primary/30 ${className}`}
@@ -23,7 +24,9 @@ export function LogoMark({ size = 44, className = "", alt = "Penya Play" }: Logo
         width={size}
         height={size}
         className="h-full w-full object-cover"
-        loading="eager"
+        loading={priority ? "eager" : "lazy"}
+        decoding={priority ? "sync" : "async"}
+        fetchPriority={priority ? "high" : "auto"}
       />
     </span>
   );

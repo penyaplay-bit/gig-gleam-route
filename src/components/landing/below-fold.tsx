@@ -188,7 +188,7 @@ function RosterStrip() {
             <StaggerItem key={a.name} className={`group relative overflow-hidden rounded-2xl border p-6 transition ${a.accent ? "border-primary/40 bg-gradient-to-br from-primary/15 via-primary/5 to-card" : a.faded ? "border-primary/10 bg-card/40 text-muted-foreground" : "border-primary/15 bg-card/50 hover:border-primary/30"}`}>
               {a.photo ? (
                 <div className="relative h-48 -mx-6 -mt-6 mb-4 overflow-hidden rounded-t-2xl">
-                  <img src={a.photo} alt={a.name} loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
+                  <img src={a.photo} alt={a.name} width={400} height={192} loading="lazy" decoding="async" fetchPriority="low" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
                   {a.verified && (
                     <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-background/70 px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-primary backdrop-blur">

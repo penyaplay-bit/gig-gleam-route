@@ -6,6 +6,7 @@ import { ArrowRight, Users } from "lucide-react";
 import { LogoMark, LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
 import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
+import logoAsset from "@/assets/penya-play-logo.jpg.asset.json";
 import { StageFloor } from "@/components/brand/stage-elements";
 import { Reveal } from "@/components/motion/reveal";
 
@@ -28,6 +29,11 @@ export const Route = createFileRoute("/")({
         content: "Book Ntate Stunna & Penya Play artists. Serious bookings only.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: logoAsset.url },
+      { name: "twitter:image", content: logoAsset.url },
+    ],
+    links: [
+      { rel: "preload", as: "image", href: logoAsset.url, fetchpriority: "high" },
     ],
   }),
   component: LandingPage,
@@ -99,7 +105,7 @@ function Hero() {
         <motion.div style={{ scale: logoScale, y: logoY }} className="mx-auto flex justify-center">
           <div className="relative">
             <div className="absolute -inset-8 rounded-full bg-primary/30 blur-3xl" aria-hidden />
-            <LogoMark size={140} className="relative rounded-2xl ring-2 ring-primary/50 shadow-cinema" />
+            <LogoMark size={140} priority className="relative rounded-2xl ring-2 ring-primary/50 shadow-cinema" />
           </div>
         </motion.div>
 
