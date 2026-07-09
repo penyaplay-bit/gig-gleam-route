@@ -6,6 +6,7 @@ import { ArrowRight, Users } from "lucide-react";
 import { LogoMark, LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
 import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
+import logoAsset from "@/assets/penya-play-logo.jpg.asset.json";
 import { StageFloor } from "@/components/brand/stage-elements";
 import { Reveal } from "@/components/motion/reveal";
 
