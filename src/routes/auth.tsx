@@ -145,24 +145,24 @@ function AuthPage() {
           {mode === "signup" && (
             <div className="mb-4">
               <Label>I am a…</Label>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <button
-                  type="button"
-                  onClick={() => setRole("manager")}
-                  className={`rounded-md border px-3 py-2 text-sm transition ${role === "manager" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
-                >
-                  Manager / Agent
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("promoter")}
-                  className={`rounded-md border px-3 py-2 text-sm transition ${role === "promoter" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
-                >
-                  Promoter
-                </button>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {(["artist", "manager", "promoter"] as Role[]).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    className={`rounded-md border px-2 py-2 text-xs transition ${role === r ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {r === "artist" ? "Artist" : r === "manager" ? "Manager" : "Promoter"}
+                  </button>
+                ))}
               </div>
               <p className="text-[11px] mt-2 text-muted-foreground">
-                {role === "manager" ? "Browse gigs and apply on behalf of artists in your roster." : "Post gigs and receive applications from managers."}
+                {role === "artist"
+                  ? "Get discovered — set your fee range, media links, rider and calendar."
+                  : role === "manager"
+                    ? "Browse gigs and apply on behalf of artists in your roster."
+                    : "Post gigs and receive applications from managers and artists."}
               </p>
             </div>
           )}
@@ -180,10 +180,29 @@ function AuthPage() {
 
           <form onSubmit={handlePassword} className="space-y-3">
             {mode === "signup" && (
-              <div>
-                <Label htmlFor="name">Your name</Label>
-                <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
+              <>
+                <div>
+                  <Label htmlFor="name">Your name</Label>
+                  <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                {role === "artist" && (
+                  <div>
+                    <Label htmlFor="stageName">Stage name</Label>
+                    <Input id="stageName" required value={stageName} onChange={(e) => setStageName(e.target.value)} placeholder="How promoters will see you" />
+                  </div>
+                )}
+                {role !== "artist" && (
+                  <div>
+                    <Label htmlFor="company">{role === "manager" ? "Agency name" : "Organization name"} <span className="text-muted-foreground">(optional)</span></Label>
+                    <Input id="company" value={companyOrAgency} onChange={(e) => setCompanyOrAgency(e.target.value)} />
+                  </div>
+                )}
+                <div>
+                  <Label htmlFor="whatsapp">WhatsApp number</Label>
+                  <Input id="whatsapp" required inputMode="tel" placeholder="+27 82 000 0000" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+                  <p className="mt-1 text-[11px] text-muted-foreground">Used for booking chats and reminders.</p>
+                </div>
+              </>
             )}
             <div>
               <Label htmlFor="email">Email</Label>
@@ -197,6 +216,7 @@ function AuthPage() {
               {mode === "signin" ? "Sign in" : `Create ${role} account`}
             </Button>
           </form>
+
 
           <button
             type="button"
