@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { formatDateLong, formatM } from "@/lib/formatting";
 import { LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 
 export const Route = createFileRoute("/pay/$ref")({
   head: ({ params }) => ({
@@ -82,7 +83,8 @@ function PayPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
+      <div className="fixed inset-0 z-0 pointer-events-none"><CinematicBackdrop variant="ambient" /></div>
       <GrainOverlay />
       <header className="border-b border-primary/10">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">

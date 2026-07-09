@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCents } from "@/lib/pricing/artist-engine";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 
 export const Route = createFileRoute("/request-quote")({
   head: () => ({
@@ -98,7 +99,8 @@ function RequestQuotePage() {
   if (submit.data) return <SuccessTicket data={submit.data} artistName={artist?.name ?? ""} />;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
+      <div className="fixed inset-0 z-0 pointer-events-none"><CinematicBackdrop variant="ambient" /></div>
       {/* ===== Header band ===== */}
       <header className="border-b border-border/60 bg-card/40">
         <div className="max-w-4xl mx-auto px-4 py-6 flex items-center justify-between">
@@ -257,7 +259,8 @@ function Row({ icon, label, children }: { icon?: React.ReactNode; label: string;
 
 function SuccessTicket({ data, artistName }: { data: SuccessResp; artistName: string }) {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+    <div className="relative min-h-screen flex items-center justify-center px-4">
+      <div className="fixed inset-0 z-0 pointer-events-none"><CinematicBackdrop variant="ambient" /></div>
       <div className="max-w-md w-full rounded-xl border border-primary/40 bg-card/60 overflow-hidden">
         <div className="relative px-6 py-4 border-b border-dashed border-border/70 bg-primary/10">
           <div className="flex items-center gap-2">

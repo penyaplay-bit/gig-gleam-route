@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, CalendarIcon } from "lucide-react";
 import { LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 import { supabase } from "@/integrations/supabase/client";
 import { BedDouble, MapPin } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -297,7 +298,8 @@ function BookingForm() {
 
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
+      <div className="fixed inset-0 z-0 pointer-events-none"><CinematicBackdrop variant="ambient" /></div>
       <GrainOverlay />
       <header className="sticky top-0 z-30 border-b border-primary/10 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">

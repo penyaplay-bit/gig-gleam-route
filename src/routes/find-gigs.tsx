@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Users, Calendar, DollarSign, Clock, ShieldCheck, ArrowRight, Heart } from "lucide-react";
 import { toast } from "sonner";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 
 export const Route = createFileRoute("/find-gigs")({
   head: () => ({
@@ -87,7 +88,8 @@ function FindGigsPage() {
   const gigs = data?.gigs ?? [];
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
+      <div className="fixed inset-0 z-0 pointer-events-none"><CinematicBackdrop variant="ambient" /></div>
       {/* Top nav */}
       <header className="sticky top-0 z-40 border-b border-primary/10 bg-background/70 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
