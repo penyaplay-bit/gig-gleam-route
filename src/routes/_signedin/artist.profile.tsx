@@ -128,7 +128,7 @@ function BasicsTab({ profile, onSaved }: { profile: any; onSaved: () => void }) 
       await save({ data: {
         stage_name: form.stage_name,
         bio: form.bio || undefined,
-        genres: form.genres.split(",").map(s => s.trim()).filter(Boolean),
+        genres: form.genres.split(",").map((s: string) => s.trim()).filter(Boolean),
         location_city: form.location_city || null,
         location_country: form.location_country || null,
         photo_url: form.photo_url || null,
@@ -136,7 +136,7 @@ function BasicsTab({ profile, onSaved }: { profile: any; onSaved: () => void }) 
         booking_fee_max_cents: form.booking_fee_max_cents === "" ? null : Number(form.booking_fee_max_cents),
         currency: form.currency,
         rider_notes: form.rider_notes || null,
-        regional_strength: form.regional_strength.split(",").map(s => s.trim()).filter(Boolean),
+        regional_strength: form.regional_strength.split(",").map((s: string) => s.trim()).filter(Boolean),
       }});
       toast.success("Saved");
       onSaved();
