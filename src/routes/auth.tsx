@@ -59,6 +59,7 @@ function AuthPage() {
         navigate({ to: "/_authenticated/admin/pipeline" as never });
         return;
       }
+      if (roleSet.has("artist")) return navigate({ to: "/artist" as never });
       if (roleSet.has("promoter")) return navigate({ to: "/my-gigs" });
       if (roleSet.has("manager")) return navigate({ to: "/find-gigs" });
     }
