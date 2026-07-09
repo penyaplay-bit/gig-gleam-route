@@ -3,7 +3,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, ClipboardList, Send, Users2, LogOut, Sparkles } from "lucide-react";
+import { LayoutGrid, ClipboardList, Send, Users2, LogOut, Sparkles, Brain } from "lucide-react";
 import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 
 export const Route = createFileRoute("/_signedin")({

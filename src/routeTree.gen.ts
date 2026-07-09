@@ -46,6 +46,7 @@ import { Route as ApiPublicDepositsRefRouteImport } from './routes/api/public/de
 import { Route as ApiPublicCronPaymentRemindersRouteImport } from './routes/api/public/cron/payment-reminders'
 import { Route as ApiPublicCronDecisionEngineRouteImport } from './routes/api/public/cron/decision-engine'
 import { Route as ApiPublicBookingsRefRouteImport } from './routes/api/public/bookings.$ref'
+import { Route as SignedinArtistIntelligenceOnboardingRouteImport } from './routes/_signedin/artist.intelligence.onboarding'
 import { Route as AuthenticatedAdminEventsIdRouteImport } from './routes/_authenticated/admin.events.$id'
 import { Route as AuthenticatedAdminBookingsNewRouteImport } from './routes/_authenticated/admin.bookings.new'
 import { Route as AuthenticatedAdminBookingsIdRouteImport } from './routes/_authenticated/admin.bookings.$id'
@@ -242,6 +243,12 @@ const ApiPublicBookingsRefRoute = ApiPublicBookingsRefRouteImport.update({
   path: '/$ref',
   getParentRoute: () => ApiPublicBookingsRoute,
 } as any)
+const SignedinArtistIntelligenceOnboardingRoute =
+  SignedinArtistIntelligenceOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => SignedinArtistIntelligenceRoute,
+  } as any)
 const AuthenticatedAdminEventsIdRoute =
   AuthenticatedAdminEventsIdRouteImport.update({
     id: '/events/$id',
@@ -283,7 +290,7 @@ export interface FileRoutesByFullPath {
   '/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
   '/admin/promoters': typeof AuthenticatedAdminPromotersRoute
   '/admin/verify': typeof AuthenticatedAdminVerifyRoute
-  '/artist/intelligence': typeof SignedinArtistIntelligenceRoute
+  '/artist/intelligence': typeof SignedinArtistIntelligenceRouteWithChildren
   '/artist/profile': typeof SignedinArtistProfileRoute
   '/my-gigs/$id': typeof SignedinMyGigsIdRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
@@ -296,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
+  '/artist/intelligence/onboarding': typeof SignedinArtistIntelligenceOnboardingRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
   '/api/public/cron/decision-engine': typeof ApiPublicCronDecisionEngineRoute
   '/api/public/cron/payment-reminders': typeof ApiPublicCronPaymentRemindersRoute
@@ -322,7 +330,7 @@ export interface FileRoutesByTo {
   '/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
   '/admin/promoters': typeof AuthenticatedAdminPromotersRoute
   '/admin/verify': typeof AuthenticatedAdminVerifyRoute
-  '/artist/intelligence': typeof SignedinArtistIntelligenceRoute
+  '/artist/intelligence': typeof SignedinArtistIntelligenceRouteWithChildren
   '/artist/profile': typeof SignedinArtistProfileRoute
   '/my-gigs/$id': typeof SignedinMyGigsIdRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
@@ -335,6 +343,7 @@ export interface FileRoutesByTo {
   '/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
   '/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
+  '/artist/intelligence/onboarding': typeof SignedinArtistIntelligenceOnboardingRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
   '/api/public/cron/decision-engine': typeof ApiPublicCronDecisionEngineRoute
   '/api/public/cron/payment-reminders': typeof ApiPublicCronPaymentRemindersRoute
@@ -365,7 +374,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
   '/_authenticated/admin/promoters': typeof AuthenticatedAdminPromotersRoute
   '/_authenticated/admin/verify': typeof AuthenticatedAdminVerifyRoute
-  '/_signedin/artist/intelligence': typeof SignedinArtistIntelligenceRoute
+  '/_signedin/artist/intelligence': typeof SignedinArtistIntelligenceRouteWithChildren
   '/_signedin/artist/profile': typeof SignedinArtistProfileRoute
   '/_signedin/my-gigs/$id': typeof SignedinMyGigsIdRoute
   '/api/public/artists': typeof ApiPublicArtistsRoute
@@ -378,6 +387,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/bookings/$id': typeof AuthenticatedAdminBookingsIdRoute
   '/_authenticated/admin/bookings/new': typeof AuthenticatedAdminBookingsNewRoute
   '/_authenticated/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
+  '/_signedin/artist/intelligence/onboarding': typeof SignedinArtistIntelligenceOnboardingRoute
   '/api/public/bookings/$ref': typeof ApiPublicBookingsRefRoute
   '/api/public/cron/decision-engine': typeof ApiPublicCronDecisionEngineRoute
   '/api/public/cron/payment-reminders': typeof ApiPublicCronPaymentRemindersRoute
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | '/admin/bookings/$id'
     | '/admin/bookings/new'
     | '/admin/events/$id'
+    | '/artist/intelligence/onboarding'
     | '/api/public/bookings/$ref'
     | '/api/public/cron/decision-engine'
     | '/api/public/cron/payment-reminders'
@@ -459,6 +470,7 @@ export interface FileRouteTypes {
     | '/admin/bookings/$id'
     | '/admin/bookings/new'
     | '/admin/events/$id'
+    | '/artist/intelligence/onboarding'
     | '/api/public/bookings/$ref'
     | '/api/public/cron/decision-engine'
     | '/api/public/cron/payment-reminders'
@@ -501,6 +513,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/bookings/$id'
     | '/_authenticated/admin/bookings/new'
     | '/_authenticated/admin/events/$id'
+    | '/_signedin/artist/intelligence/onboarding'
     | '/api/public/bookings/$ref'
     | '/api/public/cron/decision-engine'
     | '/api/public/cron/payment-reminders'
@@ -787,6 +800,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBookingsRefRouteImport
       parentRoute: typeof ApiPublicBookingsRoute
     }
+    '/_signedin/artist/intelligence/onboarding': {
+      id: '/_signedin/artist/intelligence/onboarding'
+      path: '/onboarding'
+      fullPath: '/artist/intelligence/onboarding'
+      preLoaderRoute: typeof SignedinArtistIntelligenceOnboardingRouteImport
+      parentRoute: typeof SignedinArtistIntelligenceRoute
+    }
     '/_authenticated/admin/events/$id': {
       id: '/_authenticated/admin/events/$id'
       path: '/events/$id'
@@ -865,13 +885,28 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface SignedinArtistIntelligenceRouteChildren {
+  SignedinArtistIntelligenceOnboardingRoute: typeof SignedinArtistIntelligenceOnboardingRoute
+}
+
+const SignedinArtistIntelligenceRouteChildren: SignedinArtistIntelligenceRouteChildren =
+  {
+    SignedinArtistIntelligenceOnboardingRoute:
+      SignedinArtistIntelligenceOnboardingRoute,
+  }
+
+const SignedinArtistIntelligenceRouteWithChildren =
+  SignedinArtistIntelligenceRoute._addFileChildren(
+    SignedinArtistIntelligenceRouteChildren,
+  )
+
 interface SignedinArtistRouteChildren {
-  SignedinArtistIntelligenceRoute: typeof SignedinArtistIntelligenceRoute
+  SignedinArtistIntelligenceRoute: typeof SignedinArtistIntelligenceRouteWithChildren
   SignedinArtistProfileRoute: typeof SignedinArtistProfileRoute
 }
 
 const SignedinArtistRouteChildren: SignedinArtistRouteChildren = {
-  SignedinArtistIntelligenceRoute: SignedinArtistIntelligenceRoute,
+  SignedinArtistIntelligenceRoute: SignedinArtistIntelligenceRouteWithChildren,
   SignedinArtistProfileRoute: SignedinArtistProfileRoute,
 }
 
