@@ -1,130 +1,143 @@
-# Penya Play Bookings Intelligence Engine
+# Penya Play Bookings Engine — Revised Spec
 
-Replace the flat `/find-gigs` list with a modular AI booking OS: a concierge that profiles intent, a discovery engine that ingests opportunities from public sources, a match engine that scores fit, an outreach assistant, a pipeline CRM, watchlists, and a daily brief.
+Rewriting the plan around two principles you added:
+1. **Never invent budgets.** Verified vs Discovered is a first-class distinction.
+2. **The engine learns.** Every performance, pitch, and booking feeds an Artist Intelligence layer that improves recommendations over time.
 
-## Architecture — six independent modules over shared services
+Slice 1 (schema + tenant config) is already live. This plan revises slices 2–7 and adds two new slices.
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│  UI: Concierge · Feed · Pipeline · Watchlists · Brief   │
-├─────────────────────────────────────────────────────────┤
-│  Match Engine   │  Outreach   │  Recommender │  CRM     │
-├─────────────────────────────────────────────────────────┤
-│  Discovery Engine (sources → normalize → dedupe)        │
-├─────────────────────────────────────────────────────────┤
-│  Shared services: Artists · Availability · Promoters ·  │
-│  Scoring · AI Gateway · Notifications · Analytics       │
-└─────────────────────────────────────────────────────────┘
-```
+---
 
-Every module is a folder under `src/lib/engine/*` with a thin public API. Marketplace-specific branding, taxonomies, and copy live in a `tenant` config so the engine can be re-skinned later without a rewrite.
+## 1. Opportunity Types — schema changes
 
-## Data model (new tables, Lovable Cloud)
+Add to `opportunities`:
+- `kind` enum: `verified` | `discovered`
+- `verified_promoter_id` (nullable, FK to `promoters`)
+- `public_website`, `public_organizer`, `public_socials_json`, `ticketing_url`
+- Keep `budget_est` / `estimates_json` — but the UI **only** reads them when `kind = 'verified'` AND the field was supplied by the promoter. Discovered rows never render a fee.
+- `attendance_public` (nullable int) — only shown if the organizer published it
 
-- `opportunities` — normalized event (title, org, venue, city, country, start_date, category, budget_est, audience_est, capacity, deadline, source, source_url, dedupe_hash, trust_score, estimates_json, status)
-- `opportunity_sources` — registered source (name, kind, url, parser, cadence, enabled)
-- `opportunity_ingest_runs` — one row per crawl (source_id, started_at, finished_at, found, new, errors)
-- `promoter_intel` — public-only promoter profile (company, website, venue, public_email, public_phone, socials_json, prior_events_json, genres, scale, verified)
-- `booking_intents` — concierge output per artist (roles, categories[], fee_min, fee_currency, geo_scope, travel_ok, filters_json)
-- `watchlists` — saved search (owner_id, artist_id, name, criteria_json, cadence, channels[])
-- `match_scores` — artist × opportunity fit cache (score, subscores_json, reasons_json, computed_at)
-- `booking_deals` — pipeline row (artist_id, opportunity_id, stage, owner_id, last_activity_at, value_est)
-- `deal_events` — pipeline history (deal_id, kind, payload_json, actor_id)
-- `outreach_messages` — proposal drafts + tracking (deal_id, subject, body, status: draft/sent/opened/replied/…)
-- `ai_briefs` — cached daily brief per artist (date, summary_json)
+Verified opportunities come from:
+- Promoters posting via the existing gig flow (migrate `gigs` → `opportunities` with `kind='verified'`)
+- Admin manual entry
 
-All with RLS + GRANTs per Cloud rules. `opportunities` and `promoter_intel` are readable by any authenticated user; write via service role from ingest jobs. Everything with `owner_id` scopes to `auth.uid()`.
+Discovered opportunities come from the Discovery Engine (public sources only).
 
-## Routes
+---
 
-- `/concierge` — 6-step chat wizard, writes to `booking_intents`
-- `/opportunities` — AI feed (replaces `/find-gigs` list view; `/find-gigs/$id` kept as detail)
-- `/opportunities/$id` — detail + match explanation + "Pitch artist"
-- `/watchlists` — list + create/edit
-- `/pipeline` — kanban across the 13 pipeline stages
-- `/brief` — daily AI brief (also embedded on dashboard)
-- `/promoters/$id` — public promoter intel page
-- Owner: `/_signedin/artist/availability` — calendar editor
+## 2. UI — two distinct cards
 
-## AI surfaces (Lovable AI, `google/gemini-3-flash-preview`)
+**Verified card** (green ✅ badge)
+- Full detail: fee, requirements, deadline, promoter Trust Score
+- CTA: **Apply**
 
-- Concierge conversation → structured `booking_intents` via `Output.object`
-- Match reasons (why this fits) → short natural-language rationale
-- Pitch generator → editable proposal from artist profile + opportunity
-- Daily brief → grouped, prioritized summary
+**Discovered card** (blue 🔍 badge)
+- Public info only + `"Budget not publicly available."`
+- CTA: **Pitch My Artist** (opens AI outreach), **View Event** (public URL), **Save**
+- Match block explains *why* in plain language, not just a %
 
-All AI calls in `createServerFn` with Zod schemas. No schema bounds — clamp in code.
+Both cards live in the same `/opportunities` feed with a filter chip.
 
-## Discovery engine
+---
 
-- Server route `/api/public/cron/discover` (CRON_SECRET-guarded) runs per source
-- Per-source parser modules under `src/lib/engine/discovery/sources/*.ts` returning a normalized `RawOpportunity`
-- Normalizer + dedupe by `dedupe_hash = sha256(title|date|venue|city)`
-- Missing fields estimated by AI, stored in `estimates_json` with a `confidence` and flagged in UI
-- pg_cron hits the endpoint hourly for fast sources, nightly for slow ones
-- v1 sources: 3 seed parsers (one ticketing site, one municipality calendar, one university events page) + a manual `POST /api/opportunities` for admin entry. More sources are added as parser files without schema changes.
+## 3. Territory Search (replaces the old "Geo Scope" step)
 
-## Match engine (`src/lib/engine/match/score.ts`)
+Concierge step 4 becomes:
+- **Primary Territory** — single-select country (Lesotho, South Africa, Botswana, Namibia, Zambia, Zimbabwe, +more)
+- **Additional Territories** — multi-select
+- Optional: cities/provinces inside the primary territory
+- Toggle: "Travel if covered"
 
-Pure function `matchScore(artist, opportunity, availability) → { score, subscores, reasons[], checks }`. Sub-scores: Genre, Budget, Location, Audience, Availability, Past Performance, Trust. Recomputed on opportunity insert, artist profile change, and nightly. Cached in `match_scores`.
+Feed ranking multiplies match score by a territory weight (primary = 1.0, additional = 0.7, outside = 0 unless travel_ok).
 
-## Concierge flow (6 steps as specified)
+---
 
-1. Who — self / roster picker (manager sees artist cards with fee, availability, trust, reach)
-2. Booking types — multi-select from the 14 listed categories
-3. Fee — quick ranges + custom + min acceptable + currency
-4. Location — geo scope radio + "travel if covered" toggle
-5. Availability — month calendar with Available/Busy/On Tour/Tentative/Blocked + recurring rules
-6. Preferences — filter chips (Paid Only, Sponsored, VIP, etc.)
+## 4. AI Booking Outreach ("Pitch My Artist")
 
-Output writes `booking_intents` and immediately renders a ranked feed.
+Server fn assembles a proposal from:
+- Artist profile, awards, monthly listeners, socials, media kit
+- Rate card, technical rider, availability
+- **Personalized cover letter** — Lovable AI (`google/gemini-3-flash-preview`) explains fit using the same reasons the match engine surfaced
 
-## Outreach
+Artist/manager edits before send. Send creates `outreach_messages` + a `booking_deals` row at "Proposal Sent".
 
-"Pitch Artist" on any opportunity opens an editable proposal (artist profile, awards, reach, streaming, history, media kit, fee, availability, why-match). Send creates `outreach_messages` row and a `booking_deals` row at stage "Proposal Sent". Open/reply tracking via a tracking pixel + reply-to alias (v2 — v1 is manual stage advance).
+For discovered events with no contact, the proposal is queued as "Contact Needed" — admin/AI hunts a public contact, or the artist can copy/paste the message elsewhere.
 
-## Pipeline
+---
 
-Kanban across 13 stages: Discovered → Qualified → Contact Available → Proposal Prepared → Proposal Sent → Opened → Interested → Negotiating → Contract Sent → Deposit Paid → Booked → Completed → Review Collected. Drag to advance; every move writes `deal_events`.
+## 5. Artist Intelligence Engine (NEW — slices 4.5 & 7.5)
 
-## Watchlists
+### New tables
 
-Saved search (`criteria_json` = subset of intent shape). Nightly job diffs each watchlist against new opportunities and enqueues notifications (email/push/in-app) per user preference and cadence.
+- `artist_performances` — career history (venue, city, country, date, event_type, crowd_est, headliner_bool, fee_private, promoter, rating, proof_urls[]). Feeds Venue Intelligence + Fanbase Heat Map. Private by default; artist controls visibility.
+- `artist_market_signals` — cached per (artist, city|region): show_count, repeat_bookings, streaming_index, social_index, saves, inquiries, last_updated
+- `artist_learning_events` — every pitch/open/reply/accept/decline/cancel, timestamped, for the recommender
 
-## Daily brief
+### Onboarding — "Where have you performed?"
+New step in artist onboarding: search existing venues/events or add custom, capture the fields above. Uploads (posters, contracts) go to storage and can be surfaced to the verifier.
 
-Nightly cron composes per-artist brief: counts by category, top N ranked opportunities with reasons, urgent-deadline callouts, projected value. Rendered on `/brief` and the dashboard.
+### Venue Intelligence + Fanbase Heat Map
+`/artist/intelligence` page:
+- Top markets (city + show count)
+- Repeat promoters
+- Best-converting event types
+- Heat map of demand by city (aggregated signals)
 
-## Build order (7 slices, ship incrementally)
+### Opportunity Score with reasons
+Match engine returns not just a number but a `reasons[]` array:
+> "96% Booking Probability — You've performed in Johannesburg 21 times · The organizer books Amapiano · Your audience overlaps · You're available · Your fee fits event scale"
 
-1. **Schema + tenant config** — all tables + RLS/GRANTs + `src/lib/engine/tenant.ts` (branding, taxonomies, geo scopes)
-2. **Concierge wizard** — `/concierge`, writes `booking_intents`, replaces the empty-state on `/find-gigs`
-3. **Match engine + ranked feed** — `matchScore` + `/opportunities` list + `/opportunities/$id` with reasons
-4. **Discovery v1** — 3 seed parsers + admin manual entry + hourly cron + dedupe
-5. **Watchlists + notifications** — saved searches, nightly diff, in-app + email digest
-6. **Pipeline CRM + outreach** — deals kanban, pitch generator, message tracking (manual stage advance in v1)
-7. **Daily brief + promoter intel pages** — `/brief` + `/promoters/$id`
+### AI Career Advisor (on `/brief`)
+Nightly job composes advisory prompts from `artist_market_signals` diffs:
+> "Streaming in Durban up 38% — consider KZN events"
+> "6 uni shows, 100% repeat rate — 4 similar opportunities this semester"
 
-## Out of scope for v1
+### Smart Learning
+`artist_learning_events` feeds weights into the scorer: promoter response rate, accepted fee ranges, converting cities, seasonal patterns.
 
-- Automated email open/reply tracking (added in slice 6.5)
-- Scraping paid/ToS-restricted sources — only public data, respect robots.txt
-- Contract e-sign and deposits (already exist as separate flows)
-- Reusing engine in a second marketplace (architecture supports it; not shipped)
+### Privacy
+- Fees and contracts private by default
+- Artist toggles per-field visibility
+- AI uses private data internally to score, but never surfaces it to other users
+
+---
+
+## 6. Revised Build Order
+
+| # | Slice | Status |
+|---|-------|--------|
+| 1 | Schema + tenant config | ✅ done |
+| 2 | Concierge wizard + Territory search + `booking_intents` | next |
+| 3 | Match engine (with reasons) + `/opportunities` feed with Verified/Discovered cards | |
+| 4 | Discovery Engine v1 (3 public-source parsers, no budget invention) + admin manual entry | |
+| **4.5** | **Artist Career Mapping onboarding + `artist_performances` table** | new |
+| 5 | Watchlists + notifications (in-app + email) | |
+| 6 | Pipeline CRM + Pitch My Artist outreach | |
+| 7 | Daily brief + promoter intel pages | |
+| **7.5** | **Artist Intelligence dashboard (Venue Intelligence, Heat Map, Career Advisor) + Smart Learning weights** | new |
+
+Ship each slice end-to-end before starting the next.
+
+---
 
 ## Technical section
 
-- Cloudflare Workers runtime: parsers use `fetch` + `linkedom`/regex, never `puppeteer`/`sharp`/`child_process`
-- All ingest and scoring in `createServerFn` or `/api/public/cron/*` routes, service-role writes via dynamic import
-- AI: `Output.object` with tiny schemas, `NoObjectGeneratedError` fallback to parsed text
-- Kanban: `dnd-kit`, optimistic updates via TanStack Query
-- Calendar editor: existing shadcn `Calendar` + `pointer-events-auto`
+- New enum `opportunity_kind` (`verified` | `discovered`); migrate existing rows to `verified`.
+- Discovery parsers under `src/lib/engine/discovery/sources/*.ts`; each returns `RawOpportunity` with `kind='discovered'` and never sets `budget_est`.
+- Territory: reuse existing `africa-locations.ts`; add `booking_intents.primary_territory` (text) + `additional_territories` (text[]).
+- Match score signature becomes `matchScore(artist, opportunity, availability, intel) → { score, subscores, reasons[] }` where `intel` is `artist_market_signals`.
+- Career Advisor: `createServerFn` with Lovable AI `Output.object`, cached in `ai_briefs`.
+- Learning events: single append-only table, nightly rollup into `artist_market_signals` (pg_cron → `/api/public/cron/rollup-intel`).
+- Privacy: `artist_performances.fee_private`, `.notes_private` are hidden by RLS from anyone except owner + service role; the scorer reads via service role during rollup.
+- Cloudflare Workers-safe: `fetch` + `linkedom`, no puppeteer/sharp.
 
-## Open questions (please answer before I start)
+---
 
-1. **Discovery sources for v1** — pick 3 to seed: (a) Computicket/Webtickets style ticketing, (b) a Lesotho/SA municipality events page, (c) NUL/UFS/Wits university events, or name your own 3?
-2. **Concierge for managers** — should the wizard run once per artist on the roster, or a single intent that applies to all roster artists?
-3. **Notifications channels for v1** — in-app only, or in-app + email from day one? (Push needs native app work.)
-4. **Pipeline ownership** — one shared pipeline per manager across all their artists, or one pipeline per artist?
+## Questions before I build slice 2
 
-Say "go with defaults" and I'll pick: (1) municipality + one ticketing + one university, (2) per-artist intent, (3) in-app + email, (4) per-artist pipeline with a roster-wide overview.
+1. **Primary territory default** — Lesotho, or read from artist profile country?
+2. **Career mapping** — mandatory in onboarding, or optional with a "You'll get better matches" prompt?
+3. **Pitch My Artist for verified events** — always show it as a secondary CTA alongside Apply, or only on Discovered?
+4. **Discovered → Verified promotion** — if a discovered event's organizer later signs up and claims it, do we merge the row (keeping history) or replace?
+
+Say "defaults" and I'll pick: (1) profile country → Lesotho fallback, (2) optional with nudge, (3) Discovered only, (4) merge and keep history.
