@@ -99,7 +99,8 @@ function RequestQuotePage() {
   if (submit.data) return <SuccessTicket data={submit.data} artistName={artist?.name ?? ""} />;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
+      <div className="fixed inset-0 z-0 pointer-events-none"><CinematicBackdrop variant="ambient" /></div>
       {/* ===== Header band ===== */}
       <header className="border-b border-border/60 bg-card/40">
         <div className="max-w-4xl mx-auto px-4 py-6 flex items-center justify-between">
