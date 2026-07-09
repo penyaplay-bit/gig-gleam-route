@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { LogoLockup } from "@/components/brand/logo-mark";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 import { useServerFn } from "@tanstack/react-start";
 import { bootstrapProfile } from "@/lib/gigs/profile.functions";
 
