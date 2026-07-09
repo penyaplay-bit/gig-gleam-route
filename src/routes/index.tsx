@@ -2,7 +2,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
 import { useRef } from "react";
-import { ArrowRight, Sparkles, Shield, Zap, Calendar, Music, Radio, Users } from "lucide-react";
+import { ArrowRight, Sparkles, Shield, Zap, Calendar, Music, Radio, Users, BadgeCheck } from "lucide-react";
+import ntateStunnaAsset from "@/assets/ntate-stunna.jpeg.asset.json";
 import { LogoMark, LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
 import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
