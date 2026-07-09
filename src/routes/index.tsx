@@ -165,6 +165,7 @@ function Hero() {
           </Reveal>
         </motion.div>
       </div>
+      <StageFloor />
     </section>
   );
 }
