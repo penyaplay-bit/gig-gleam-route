@@ -1,36 +1,62 @@
 "use client";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
 import videoAsset from "@/assets/penya-live-reveal.mp4.asset.json";
 
 export function ScrollScrubVideo() {
   const sectionRef = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
+  const [nearby, setNearby] = useState(false);
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"],
   });
 
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], reduce ? [1, 1, 1] : [1, 1.08, 1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], reduce ? [1, 1, 1] : [1, 1.06, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
-  const textY = useTransform(scrollYProgress, [0, 1], reduce ? ["0px", "0px"] : ["40px", "-40px"]);
+  const textY = useTransform(scrollYProgress, [0, 1], reduce ? ["0px", "0px"] : ["30px", "-30px"]);
+
+  // Only mount the <video> once the section is close to viewport.
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setNearby(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setNearby(true);
+            io.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   return (
-    <section ref={sectionRef} className="relative h-[300vh] bg-black">
+    <section ref={sectionRef} className="relative h-[180vh] bg-black">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
-        <motion.video
-          src={videoAsset.url}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          style={{ scale, opacity }}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        {nearby && (
+          <motion.video
+            src={videoAsset.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            disablePictureInPicture
+            style={{ scale, opacity }}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
 
-        {/* wash + vignette */}
         <div className="pointer-events-none absolute inset-0 bg-black/45" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.85)_100%)]" />
 

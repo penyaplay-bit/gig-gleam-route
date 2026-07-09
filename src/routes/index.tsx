@@ -233,7 +233,7 @@ function StoryPin() {
     <section
       ref={ref}
       className="relative"
-      style={{ height: reduce ? "auto" : `${slides.length * 100}vh` }}
+      style={{ height: reduce ? "auto" : `${slides.length * 55}vh` }}
     >
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
         {/* backdrop */}
