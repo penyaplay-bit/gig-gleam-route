@@ -11,12 +11,12 @@ export const Route = createFileRoute("/api/public/cron/decision-engine")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const provided =
-          request.headers.get("x-cron-secret") ??
-          request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
+        const apikey = request.headers.get("apikey") ?? "";
+        const expected =
+          process.env.SUPABASE_PUBLISHABLE_KEY ??
+          process.env.SUPABASE_ANON_KEY ??
           "";
-        const expected = process.env.CRON_SECRET ?? "";
-        if (!expected || provided.length !== expected.length || provided !== expected) {
+        if (!expected || apikey !== expected) {
           return new Response(JSON.stringify({ error: "unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },
