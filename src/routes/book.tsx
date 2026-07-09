@@ -232,7 +232,7 @@ function BookingForm() {
       if (d.getTime() < Date.now() - 86_400_000) return "Event date must be in the future";
     }
     if (step === 2) {
-      if (!f.client_offer && !f.budget_min) return "Enter an offer or a minimum budget";
+      // no-op: budget fields removed from this step
     }
     if (step === 3) {
       if (!f.contact_name.trim()) return "Full name required";
