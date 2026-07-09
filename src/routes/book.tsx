@@ -19,6 +19,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SADC_COUNTRIES, OTHER_AFRICA, citiesFor } from "@/lib/africa-locations";
 
 export const Route = createFileRoute("/book")({
   head: () => ({
@@ -435,12 +437,57 @@ function BookingForm() {
                   <Input value={f.venue} onChange={(e) => set("venue", e.target.value)} placeholder="Venue name" />
                 </div>
                 <div>
-                  <Label>City *</Label>
-                  <Input value={f.city} onChange={(e) => set("city", e.target.value)} placeholder="Maseru" />
+                  <Label>Country</Label>
+                  <Select
+                    value={f.country}
+                    onValueChange={(v) => setF((x) => ({ ...x, country: v, city: "" }))}
+                  >
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Choose a country" /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      <SelectGroup>
+                        <SelectLabel>SADC</SelectLabel>
+                        {SADC_COUNTRIES.map((c) => (
+                          <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                        ))}
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>Rest of Africa</SelectLabel>
+                        {OTHER_AFRICA.map((c) => (
+                          <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <Label>Country</Label>
-                  <Input value={f.country} onChange={(e) => set("country", e.target.value)} />
+                  <Label>City *</Label>
+                  {citiesFor(f.country).length > 0 ? (
+                    <Select value={f.city} onValueChange={(v) => set("city", v)}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Choose a city" /></SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {citiesFor(f.country).map((city) => (
+                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        ))}
+                        <SelectItem value="__other__">Other / not listed…</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      className="mt-1"
+                      value={f.city}
+                      onChange={(e) => set("city", e.target.value)}
+                      placeholder={f.country ? "Type city name" : "Pick a country first"}
+                      disabled={!f.country}
+                    />
+                  )}
+                  {f.city === "__other__" && (
+                    <Input
+                      className="mt-2"
+                      autoFocus
+                      placeholder="Type city name"
+                      onChange={(e) => set("city", e.target.value)}
+                    />
+                  )}
                 </div>
                 <div>
                   <Label>Event date *</Label>
