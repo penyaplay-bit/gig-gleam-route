@@ -55,6 +55,85 @@ export type Database = {
           },
         ]
       }
+      artist_awards: {
+        Row: {
+          artist_owner_id: string
+          created_at: string
+          id: string
+          name: string
+          organisation: string | null
+          sort_order: number
+          tier: string | null
+          year: number | null
+        }
+        Insert: {
+          artist_owner_id: string
+          created_at?: string
+          id?: string
+          name: string
+          organisation?: string | null
+          sort_order?: number
+          tier?: string | null
+          year?: number | null
+        }
+        Update: {
+          artist_owner_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          organisation?: string | null
+          sort_order?: number
+          tier?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_awards_artist_owner_id_fkey"
+            columns: ["artist_owner_id"]
+            isOneToOne: false
+            referencedRelation: "artist_owner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artist_media: {
+        Row: {
+          artist_owner_id: string
+          caption: string | null
+          created_at: string
+          id: string
+          kind: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          artist_owner_id: string
+          caption?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          artist_owner_id?: string
+          caption?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_media_artist_owner_id_fkey"
+            columns: ["artist_owner_id"]
+            isOneToOne: false
+            referencedRelation: "artist_owner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artist_owner_profiles: {
         Row: {
           active: boolean
@@ -66,6 +145,7 @@ export type Database = {
           contact_email: string | null
           created_at: string
           currency: string
+          demographics_json: Json
           external_bookings_note: string | null
           genres: string[]
           id: string
@@ -76,10 +156,12 @@ export type Database = {
           media_links: string[]
           photo_url: string | null
           profile_completed: boolean
+          regional_strength: string[]
           rider_notes: string | null
           stage_name: string
           updated_at: string
           user_id: string
+          venue_fit_json: Json
           whatsapp_number: string | null
         }
         Insert: {
@@ -92,6 +174,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           currency?: string
+          demographics_json?: Json
           external_bookings_note?: string | null
           genres?: string[]
           id?: string
@@ -102,10 +185,12 @@ export type Database = {
           media_links?: string[]
           photo_url?: string | null
           profile_completed?: boolean
+          regional_strength?: string[]
           rider_notes?: string | null
           stage_name: string
           updated_at?: string
           user_id: string
+          venue_fit_json?: Json
           whatsapp_number?: string | null
         }
         Update: {
@@ -118,6 +203,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           currency?: string
+          demographics_json?: Json
           external_bookings_note?: string | null
           genres?: string[]
           id?: string
@@ -128,10 +214,12 @@ export type Database = {
           media_links?: string[]
           photo_url?: string | null
           profile_completed?: boolean
+          regional_strength?: string[]
           rider_notes?: string | null
           stage_name?: string
           updated_at?: string
           user_id?: string
+          venue_fit_json?: Json
           whatsapp_number?: string | null
         }
         Relationships: [
@@ -237,6 +325,70 @@ export type Database = {
           },
         ]
       }
+      artist_reviews: {
+        Row: {
+          application_id: string | null
+          artist_owner_id: string
+          comment: string | null
+          created_at: string
+          gig_id: string | null
+          id: string
+          on_time: boolean | null
+          professionalism: number | null
+          promoter_id: string
+          rating: number
+          would_rebook: boolean | null
+        }
+        Insert: {
+          application_id?: string | null
+          artist_owner_id: string
+          comment?: string | null
+          created_at?: string
+          gig_id?: string | null
+          id?: string
+          on_time?: boolean | null
+          professionalism?: number | null
+          promoter_id: string
+          rating: number
+          would_rebook?: boolean | null
+        }
+        Update: {
+          application_id?: string | null
+          artist_owner_id?: string
+          comment?: string | null
+          created_at?: string
+          gig_id?: string | null
+          id?: string
+          on_time?: boolean | null
+          professionalism?: number | null
+          promoter_id?: string
+          rating?: number
+          would_rebook?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_reviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "gig_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artist_reviews_artist_owner_id_fkey"
+            columns: ["artist_owner_id"]
+            isOneToOne: false
+            referencedRelation: "artist_owner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artist_reviews_gig_id_fkey"
+            columns: ["gig_id"]
+            isOneToOne: false
+            referencedRelation: "gigs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artist_rosters: {
         Row: {
           active: boolean
@@ -289,6 +441,141 @@ export type Database = {
             columns: ["manager_id"]
             isOneToOne: false
             referencedRelation: "manager_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artist_socials: {
+        Row: {
+          artist_owner_id: string
+          created_at: string
+          followers: number
+          handle: string | null
+          id: string
+          platform: string
+          updated_at: string
+          url: string | null
+          verified: boolean
+        }
+        Insert: {
+          artist_owner_id: string
+          created_at?: string
+          followers?: number
+          handle?: string | null
+          id?: string
+          platform: string
+          updated_at?: string
+          url?: string | null
+          verified?: boolean
+        }
+        Update: {
+          artist_owner_id?: string
+          created_at?: string
+          followers?: number
+          handle?: string | null
+          id?: string
+          platform?: string
+          updated_at?: string
+          url?: string | null
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_socials_artist_owner_id_fkey"
+            columns: ["artist_owner_id"]
+            isOneToOne: false
+            referencedRelation: "artist_owner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artist_stats: {
+        Row: {
+          artist_owner_id: string
+          computed_at: string | null
+          history_json: Json
+          insights_json: Json
+          intelligence_score: number | null
+          momentum_json: Json
+          reach_json: Json
+          subscores_json: Json
+          tier: string | null
+          updated_at: string
+        }
+        Insert: {
+          artist_owner_id: string
+          computed_at?: string | null
+          history_json?: Json
+          insights_json?: Json
+          intelligence_score?: number | null
+          momentum_json?: Json
+          reach_json?: Json
+          subscores_json?: Json
+          tier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          artist_owner_id?: string
+          computed_at?: string | null
+          history_json?: Json
+          insights_json?: Json
+          intelligence_score?: number | null
+          momentum_json?: Json
+          reach_json?: Json
+          subscores_json?: Json
+          tier?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_stats_artist_owner_id_fkey"
+            columns: ["artist_owner_id"]
+            isOneToOne: true
+            referencedRelation: "artist_owner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artist_verifications: {
+        Row: {
+          artist_owner_id: string
+          created_at: string
+          id: string
+          kind: string
+          notes: string | null
+          reviewer_id: string | null
+          status: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          artist_owner_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          notes?: string | null
+          reviewer_id?: string | null
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          artist_owner_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          reviewer_id?: string | null
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_verifications_artist_owner_id_fkey"
+            columns: ["artist_owner_id"]
+            isOneToOne: false
+            referencedRelation: "artist_owner_profiles"
             referencedColumns: ["id"]
           },
         ]
