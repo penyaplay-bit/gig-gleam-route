@@ -498,7 +498,7 @@ function BookingForm() {
                   {distanceLoading && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <MapPin className="h-4 w-4 animate-pulse" />
-                      Calculating driving distance from {artist.name}'s base…
+                      Calculating driving distance from Home…
                     </div>
                   )}
                   {!distanceLoading && distance && (
