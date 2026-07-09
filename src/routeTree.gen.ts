@@ -22,6 +22,7 @@ import { Route as SignedinPostGigRouteImport } from './routes/_signedin/post-gig
 import { Route as SignedinMyRosterRouteImport } from './routes/_signedin/my-roster'
 import { Route as SignedinMyGigsRouteImport } from './routes/_signedin/my-gigs'
 import { Route as SignedinMyApplicationsRouteImport } from './routes/_signedin/my-applications'
+import { Route as SignedinConciergeRouteImport } from './routes/_signedin/concierge'
 import { Route as SignedinArtistRouteImport } from './routes/_signedin/artist'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -109,6 +110,11 @@ const SignedinMyGigsRoute = SignedinMyGigsRouteImport.update({
 const SignedinMyApplicationsRoute = SignedinMyApplicationsRouteImport.update({
   id: '/my-applications',
   path: '/my-applications',
+  getParentRoute: () => SignedinRoute,
+} as any)
+const SignedinConciergeRoute = SignedinConciergeRouteImport.update({
+  id: '/concierge',
+  path: '/concierge',
   getParentRoute: () => SignedinRoute,
 } as any)
 const SignedinArtistRoute = SignedinArtistRouteImport.update({
@@ -256,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/request-quote': typeof RequestQuoteRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/artist': typeof SignedinArtistRouteWithChildren
+  '/concierge': typeof SignedinConciergeRoute
   '/my-applications': typeof SignedinMyApplicationsRoute
   '/my-gigs': typeof SignedinMyGigsRouteWithChildren
   '/my-roster': typeof SignedinMyRosterRoute
@@ -293,6 +300,7 @@ export interface FileRoutesByTo {
   '/find-gigs': typeof FindGigsRouteWithChildren
   '/request-quote': typeof RequestQuoteRoute
   '/artist': typeof SignedinArtistRouteWithChildren
+  '/concierge': typeof SignedinConciergeRoute
   '/my-applications': typeof SignedinMyApplicationsRoute
   '/my-gigs': typeof SignedinMyGigsRouteWithChildren
   '/my-roster': typeof SignedinMyRosterRoute
@@ -334,6 +342,7 @@ export interface FileRoutesById {
   '/request-quote': typeof RequestQuoteRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_signedin/artist': typeof SignedinArtistRouteWithChildren
+  '/_signedin/concierge': typeof SignedinConciergeRoute
   '/_signedin/my-applications': typeof SignedinMyApplicationsRoute
   '/_signedin/my-gigs': typeof SignedinMyGigsRouteWithChildren
   '/_signedin/my-roster': typeof SignedinMyRosterRoute
@@ -374,6 +383,7 @@ export interface FileRouteTypes {
     | '/request-quote'
     | '/admin'
     | '/artist'
+    | '/concierge'
     | '/my-applications'
     | '/my-gigs'
     | '/my-roster'
@@ -411,6 +421,7 @@ export interface FileRouteTypes {
     | '/find-gigs'
     | '/request-quote'
     | '/artist'
+    | '/concierge'
     | '/my-applications'
     | '/my-gigs'
     | '/my-roster'
@@ -451,6 +462,7 @@ export interface FileRouteTypes {
     | '/request-quote'
     | '/_authenticated/admin'
     | '/_signedin/artist'
+    | '/_signedin/concierge'
     | '/_signedin/my-applications'
     | '/_signedin/my-gigs'
     | '/_signedin/my-roster'
@@ -592,6 +604,13 @@ declare module '@tanstack/react-router' {
       path: '/my-applications'
       fullPath: '/my-applications'
       preLoaderRoute: typeof SignedinMyApplicationsRouteImport
+      parentRoute: typeof SignedinRoute
+    }
+    '/_signedin/concierge': {
+      id: '/_signedin/concierge'
+      path: '/concierge'
+      fullPath: '/concierge'
+      preLoaderRoute: typeof SignedinConciergeRouteImport
       parentRoute: typeof SignedinRoute
     }
     '/_signedin/artist': {
@@ -852,6 +871,7 @@ const SignedinMyGigsRouteWithChildren = SignedinMyGigsRoute._addFileChildren(
 
 interface SignedinRouteChildren {
   SignedinArtistRoute: typeof SignedinArtistRouteWithChildren
+  SignedinConciergeRoute: typeof SignedinConciergeRoute
   SignedinMyApplicationsRoute: typeof SignedinMyApplicationsRoute
   SignedinMyGigsRoute: typeof SignedinMyGigsRouteWithChildren
   SignedinMyRosterRoute: typeof SignedinMyRosterRoute
@@ -860,6 +880,7 @@ interface SignedinRouteChildren {
 
 const SignedinRouteChildren: SignedinRouteChildren = {
   SignedinArtistRoute: SignedinArtistRouteWithChildren,
+  SignedinConciergeRoute: SignedinConciergeRoute,
   SignedinMyApplicationsRoute: SignedinMyApplicationsRoute,
   SignedinMyGigsRoute: SignedinMyGigsRouteWithChildren,
   SignedinMyRosterRoute: SignedinMyRosterRoute,

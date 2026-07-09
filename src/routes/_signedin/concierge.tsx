@@ -8,7 +8,7 @@ import { ArrowLeft, ArrowRight, Check, Sparkles, MapPin, DollarSign, Filter, Lis
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { tenant, type OpportunityCategory, type GeoScope } from "@/lib/engine/tenant";
+import { tenant, type OpportunityCategory } from "@/lib/engine/tenant";
 import { SADC_COUNTRIES, OTHER_AFRICA } from "@/lib/africa-locations";
 import { saveBookingIntent, getMyBookingIntent } from "@/lib/engine/intents.functions";
 
