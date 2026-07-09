@@ -510,7 +510,7 @@ function BookingForm() {
                             {distance.km.toLocaleString()} km · ~{Math.floor(distance.minutes / 60)}h {distance.minutes % 60}m drive
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            From {artist.home_city} → {distance.destination}
+                            From Home → {distance.destination}
                           </div>
                         </div>
                       </div>
