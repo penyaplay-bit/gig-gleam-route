@@ -1,0 +1,23 @@
+{
+  "fallback": "/__l5e/assets-v1/74210b7a-f319-4e49-854e-2f94c659bb23/ntate-stunna.jpeg",
+  "width": 1200,
+  "height": 1600,
+  "sources": [
+    {
+      "type": "image/avif",
+      "srcset": [
+        { "url": "/__l5e/assets-v1/12af7faf-a305-4ebc-b8c1-622dc6f6e8fd/ntate-400.avif", "w": 400 },
+        { "url": "/__l5e/assets-v1/bc79be14-eaf8-4d1d-8cd3-807926b15c04/ntate-800.avif", "w": 800 },
+        { "url": "/__l5e/assets-v1/67028c0e-667d-4879-8eb7-9ac013c92270/ntate-1200.avif", "w": 1200 }
+      ]
+    },
+    {
+      "type": "image/webp",
+      "srcset": [
+        { "url": "/__l5e/assets-v1/e90310a1-9925-411d-8668-e510a4c1e4a2/ntate-400.webp", "w": 400 },
+        { "url": "/__l5e/assets-v1/b38b484e-3632-48d0-94e5-87e45857ceb6/ntate-800.webp", "w": 800 },
+        { "url": "/__l5e/assets-v1/f17cf6e8-71b9-4c9f-b4a4-43b8b8d7886c/ntate-1200.webp", "w": 1200 }
+      ]
+    }
+  ]
+}
