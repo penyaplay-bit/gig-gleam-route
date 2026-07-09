@@ -75,17 +75,25 @@ function AuthPage() {
         if (error) throw error;
       } else {
         if (!name.trim()) throw new Error("Please tell us your name");
+        if (!whatsapp.trim()) throw new Error("WhatsApp number is required");
+        if (role === "artist" && !stageName.trim()) throw new Error("Stage name is required");
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        // Bootstrap the profile + role via server fn (needs authenticated session; supabase.auth.signUp signs in immediately when confirmation is off).
         try {
-          await bootstrap({ data: { role, contact_name: name } });
+          await bootstrap({
+            data: {
+              role,
+              contact_name: name,
+              whatsapp_number: whatsapp,
+              stage_name: role === "artist" ? stageName : undefined,
+              company_or_agency: role !== "artist" ? companyOrAgency || undefined : undefined,
+            },
+          });
         } catch (bErr) {
-          // Non-fatal — user can bootstrap later from post-gig / my-roster.
           console.warn("bootstrap failed", bErr);
         }
         toast.success("Account created.");
