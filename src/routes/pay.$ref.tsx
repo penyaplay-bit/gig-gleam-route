@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { formatDateLong, formatM } from "@/lib/formatting";
 import { LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 
 export const Route = createFileRoute("/pay/$ref")({
   head: ({ params }) => ({
