@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { ArrowRight, Sparkles, Shield, Zap, Calendar, Music, Radio, Users } from "lucide-react";
 import { LogoMark, LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { NumberTicker } from "@/components/motion/number-ticker";
 import { MarqueeStrip } from "@/components/motion/marquee-strip";
