@@ -346,7 +346,9 @@ function StatsRow() {
 /* ---------- Bento features ---------- */
 function BentoFeatures() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-24">
+    <section className="relative mx-auto max-w-6xl px-4 py-24">
+      <LightShafts count={4} />
+
       <Reveal>
         <span className="text-[10px] uppercase tracking-[0.35em] text-primary">Why PenyaPlay</span>
         <h2 className="mt-3 max-w-2xl font-display text-4xl font-black leading-[1] sm:text-6xl">
