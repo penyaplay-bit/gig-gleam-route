@@ -129,7 +129,88 @@ function BookingForm() {
     if (!f.artist_id && artists.length === 1) setF((x) => ({ ...x, artist_id: artists[0].id }));
   }, [artists, f.artist_id]);
 
-  const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((x) => ({ ...x, [k]: v }));
+  // Autofill contact from signed-in user (event organizer / promoter)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const u = data.user;
+      if (!u || cancelled) return;
+      const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
+      const name =
+        (typeof meta.full_name === "string" && meta.full_name) ||
+        (typeof meta.name === "string" && meta.name) ||
+        "";
+      const phone =
+        (typeof meta.phone === "string" && meta.phone) ||
+        (typeof u.phone === "string" && u.phone) ||
+        "";
+      const company = (typeof meta.company === "string" && meta.company) || "";
+      setF((x) => ({
+        ...x,
+        contact_email: x.contact_email || u.email || "",
+        contact_name: x.contact_name || name,
+        contact_phone: x.contact_phone || phone,
+        contact_whatsapp: x.contact_whatsapp || phone,
+        contact_company: x.contact_company || company,
+      }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Distance / overnight lookup — runs when we know the artist origin + destination
+  const [distance, setDistance] = useState<{
+    km: number;
+    minutes: number;
+    overnight: boolean;
+    origin: string;
+    destination: string;
+  } | null>(null);
+  const [distanceLoading, setDistanceLoading] = useState(false);
+  const [distanceError, setDistanceError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const artistOrigin = artist?.home_address || artist?.home_city;
+    const destination = [f.venue, f.city, f.country].filter(Boolean).join(", ");
+    if (!artistOrigin || !f.city.trim()) {
+      setDistance(null);
+      setDistanceError(null);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      setDistanceLoading(true);
+      setDistanceError(null);
+      try {
+        const r = await fetch("/api/public/distance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ origin: artistOrigin, destination }),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error ?? "Distance lookup failed");
+        setDistance({
+          km: j.distance_km,
+          minutes: j.duration_min,
+          overnight: !!j.overnight_recommended,
+          origin: artistOrigin,
+          destination,
+        });
+        if (j.overnight_recommended) {
+          setF((x) => (x.ends_after_10pm ? x : { ...x, ends_after_10pm: true }));
+        }
+      } catch (err) {
+        setDistance(null);
+        setDistanceError(err instanceof Error ? err.message : "Distance lookup failed");
+      } finally {
+        setDistanceLoading(false);
+      }
+    }, 600);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [artist?.home_address, artist?.home_city, f.city, f.country, f.venue]);
+
 
   const steps = ["Artist & package", "Event", "Logistics & budget", "Contact", "Review"];
 
