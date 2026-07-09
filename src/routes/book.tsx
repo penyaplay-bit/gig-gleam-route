@@ -29,6 +29,7 @@ interface Artist {
   name: string;
   tagline: string | null;
   home_city: string;
+  home_address: string | null;
   base_fee: number;
   photo: string | null;
   slug: string;
