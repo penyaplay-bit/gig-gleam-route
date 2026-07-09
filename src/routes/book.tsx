@@ -587,7 +587,7 @@ function BookingForm() {
                 <Row label="Event" value={`${f.event_type} · ${f.event_name}`} />
                 <Row label="Where / when" value={`${f.venue ? f.venue + ", " : ""}${f.city}, ${f.country} · ${f.event_date}`} />
                 <Row label="Crowd" value={f.crowd_size ? `${f.crowd_size} pax` : "—"} />
-                <Row label="Offer" value={f.client_offer ? `M ${Number(f.client_offer).toLocaleString()}` : (f.budget_min ? `Min M ${Number(f.budget_min).toLocaleString()}` : "—")} />
+                <Row label="Ticket price" value={f.ticket_price ? `M ${Number(f.ticket_price).toLocaleString()}` : "—"} />
                 <Row label="Deposit-ready" value={f.deposit_ready ? "Yes" : "No"} />
                 <Row label="Contact" value={`${f.contact_name} · ${f.contact_email}`} />
               </div>
