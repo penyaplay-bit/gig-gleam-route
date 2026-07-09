@@ -1,143 +1,115 @@
-# Penya Play Bookings Engine — Revised Spec
+# Artist Intelligence Onboarding & Booking Calibration
 
-Rewriting the plan around two principles you added:
-1. **Never invent budgets.** Verified vs Discovered is a first-class distinction.
-2. **The engine learns.** Every performance, pitch, and booking feeds an Artist Intelligence layer that improves recommendations over time.
-
-Slice 1 (schema + tenant config) is already live. This plan revises slices 2–7 and adds two new slices.
+Extends the existing engine — does not rebuild. Slots into the existing build order at **Slice 4.5** (Artist Career Mapping) and lays the data foundations that Slices 5–7.5 will read from. Nothing here changes concierge, feed, or existing gigs flows.
 
 ---
 
-## 1. Opportunity Types — schema changes
+## What ships in this slice
 
-Add to `opportunities`:
-- `kind` enum: `verified` | `discovered`
-- `verified_promoter_id` (nullable, FK to `promoters`)
-- `public_website`, `public_organizer`, `public_socials_json`, `ticketing_url`
-- Keep `budget_est` / `estimates_json` — but the UI **only** reads them when `kind = 'verified'` AND the field was supplied by the promoter. Discovered rows never render a fee.
-- `attendance_public` (nullable int) — only shown if the organizer published it
+A signed-in artist can complete a 5-step "Career Map" wizard, upload proof, get an auto-generated intelligence dashboard, and see their booking DNA improve match quality on the existing `/opportunities` feed.
 
-Verified opportunities come from:
-- Promoters posting via the existing gig flow (migrate `gigs` → `opportunities` with `kind='verified'`)
-- Admin manual entry
-
-Discovered opportunities come from the Discovery Engine (public sources only).
+Steps 9–15 in the spec depend on data this slice creates. They will be built in Slices 7 and 7.5 (feed reasons, morning brief, coach, learning weights). This plan explicitly marks which pieces land now vs later so we don't over-scope.
 
 ---
 
-## 2. UI — two distinct cards
+## 1. Database (single migration)
 
-**Verified card** (green ✅ badge)
-- Full detail: fee, requirements, deadline, promoter Trust Score
-- CTA: **Apply**
+New tables, all RLS-locked to owner + service_role:
 
-**Discovered card** (blue 🔍 badge)
-- Public info only + `"Budget not publicly available."`
-- CTA: **Pitch My Artist** (opens AI outreach), **View Event** (public URL), **Save**
-- Match block explains *why* in plain language, not just a %
+- **`artist_performances`** — one row per historical show
+  - `id`, `owner_id`, `artist_id`, `event_name`, `venue_name`, `venue_address`, `city`, `province`, `country`, `event_date`, `start_time`, `end_time`, `crowd_est`, `headliner_bool`, `support_for` (text), `event_type` (enum: festival, club, corporate, wedding, government, private, university, tv, radio, brand, other), `fee_private` (int, nullable), `fee_currency`, `promoter_name`, `promoter_id` (nullable fk), `rating` (1–5, nullable), `notes_private`, `proof_urls` (text[]), `created_at`, `updated_at`
+- **`artist_venues`** — dedupe cache: `id`, `name`, `city`, `country`, `lat`, `lng`, `created_by`
+- **`artist_promoter_relations`** — rollup: `owner_id`, `promoter_name`, `promoter_id`, `booking_count`, `last_booked_at`, `avg_fee_private`, `strength_score`
+- **`artist_market_signals`** — per (owner_id, city, country): `show_count`, `repeat_bookings`, `avg_crowd`, `last_show_at`, `season_json` (monthly histogram), `updated_at`
+- **`artist_learning_events`** — append-only: `id`, `owner_id`, `kind` (pitch_sent, pitch_opened, pitch_replied, offer_received, accepted, declined, cancelled), `opportunity_id`, `meta_json`, `created_at`
 
-Both cards live in the same `/opportunities` feed with a filter chip.
+Storage bucket **`performance-proofs`** (private) for posters, contracts, photos, videos (<50 MB per file). RLS on `storage.objects` scoped to owner.
 
----
+Rollup function `public.refresh_artist_intel(_owner uuid)` (SECURITY DEFINER) recomputes `artist_market_signals` + `artist_promoter_relations` from `artist_performances`. Called on insert/update/delete of a performance via trigger, and nightly via pg_cron for all active owners.
 
-## 3. Territory Search (replaces the old "Geo Scope" step)
-
-Concierge step 4 becomes:
-- **Primary Territory** — single-select country (Lesotho, South Africa, Botswana, Namibia, Zambia, Zimbabwe, +more)
-- **Additional Territories** — multi-select
-- Optional: cities/provinces inside the primary territory
-- Toggle: "Travel if covered"
-
-Feed ranking multiplies match score by a territory weight (primary = 1.0, additional = 0.7, outside = 0 unless travel_ok).
+Grants + policies follow the standard four-step pattern (CREATE → GRANT → ENABLE RLS → POLICY). Fee/notes columns stay owner-only; the scorer reads via service role during rollup, never via anon.
 
 ---
 
-## 4. AI Booking Outreach ("Pitch My Artist")
+## 2. Server functions (`src/lib/intel/*.functions.ts`)
 
-Server fn assembles a proposal from:
-- Artist profile, awards, monthly listeners, socials, media kit
-- Rate card, technical rider, availability
-- **Personalized cover letter** — Lovable AI (`google/gemini-3-flash-preview`) explains fit using the same reasons the match engine surfaced
+- `listPerformances`, `upsertPerformance`, `deletePerformance` — owner-scoped CRUD (`requireSupabaseAuth`).
+- `searchVenues(q)`, `searchPromoters(q)` — typeahead against `artist_venues` + `promoters`.
+- `uploadPerformanceProof` — signed URL into `performance-proofs`.
+- `getIntelDashboard` — returns `{ timeline, topCities[], topCountries[], topVenues[], topPromoters[], topEventTypes[], seasonality, routes[], stats }` composed from `artist_market_signals` + `artist_promoter_relations` + raw performances.
+- `getRouteSuggestions(intentId)` — Step 7: identifies touring corridors from historical clusters (city pairs within 500 km performed within 7 days).
 
-Artist/manager edits before send. Send creates `outreach_messages` + a `booking_deals` row at "Proposal Sent".
-
-For discovered events with no contact, the proposal is queued as "Contact Needed" — admin/AI hunts a public contact, or the artist can copy/paste the message elsewhere.
-
----
-
-## 5. Artist Intelligence Engine (NEW — slices 4.5 & 7.5)
-
-### New tables
-
-- `artist_performances` — career history (venue, city, country, date, event_type, crowd_est, headliner_bool, fee_private, promoter, rating, proof_urls[]). Feeds Venue Intelligence + Fanbase Heat Map. Private by default; artist controls visibility.
-- `artist_market_signals` — cached per (artist, city|region): show_count, repeat_bookings, streaming_index, social_index, saves, inquiries, last_updated
-- `artist_learning_events` — every pitch/open/reply/accept/decline/cancel, timestamped, for the recommender
-
-### Onboarding — "Where have you performed?"
-New step in artist onboarding: search existing venues/events or add custom, capture the fields above. Uploads (posters, contracts) go to storage and can be surfaced to the verifier.
-
-### Venue Intelligence + Fanbase Heat Map
-`/artist/intelligence` page:
-- Top markets (city + show count)
-- Repeat promoters
-- Best-converting event types
-- Heat map of demand by city (aggregated signals)
-
-### Opportunity Score with reasons
-Match engine returns not just a number but a `reasons[]` array:
-> "96% Booking Probability — You've performed in Johannesburg 21 times · The organizer books Amapiano · Your audience overlaps · You're available · Your fee fits event scale"
-
-### AI Career Advisor (on `/brief`)
-Nightly job composes advisory prompts from `artist_market_signals` diffs:
-> "Streaming in Durban up 38% — consider KZN events"
-> "6 uni shows, 100% repeat rate — 4 similar opportunities this semester"
-
-### Smart Learning
-`artist_learning_events` feeds weights into the scorer: promoter response rate, accepted fee ranges, converting cities, seasonal patterns.
-
-### Privacy
-- Fees and contracts private by default
-- Artist toggles per-field visibility
-- AI uses private data internally to score, but never surfaces it to other users
+All read-heavy dashboard calls memoize a `?since=updated_at` cursor so we don't recompute on every page load.
 
 ---
 
-## 6. Revised Build Order
+## 3. Onboarding wizard (`/artist/intelligence/onboarding`)
 
-| # | Slice | Status |
-|---|-------|--------|
-| 1 | Schema + tenant config | ✅ done |
-| 2 | Concierge wizard + Territory search + `booking_intents` | next |
-| 3 | Match engine (with reasons) + `/opportunities` feed with Verified/Discovered cards | |
-| 4 | Discovery Engine v1 (3 public-source parsers, no budget invention) + admin manual entry | |
-| **4.5** | **Artist Career Mapping onboarding + `artist_performances` table** | new |
-| 5 | Watchlists + notifications (in-app + email) | |
-| 6 | Pipeline CRM + Pitch My Artist outreach | |
-| 7 | Daily brief + promoter intel pages | |
-| **7.5** | **Artist Intelligence dashboard (Venue Intelligence, Heat Map, Career Advisor) + Smart Learning weights** | new |
+New route under `_signedin/`. 5 steps mapped to the spec:
 
-Ship each slice end-to-end before starting the next.
+1. **Profile top-up** — reads existing `artist_owner_profiles`; only asks for fields still empty (booking contact, riders, socials, media kit).
+2. **Territory** — pulls from `booking_intents` if concierge is done; otherwise primary + additional (Step 10). Writes back to `booking_intents`.
+3. **Performance history** — repeatable form. Search-or-create for venue/promoter/city. Bulk "Add another" + CSV paste fallback for artists with long histories. File uploads deferred but supported.
+4. **Review & confirm** — shows count, oldest/newest show, "we found N repeat venues".
+5. **Career map preview** — renders the dashboard (below) inline as the completion screen.
+
+Optional, with the nudge copy from the earlier plan ("You'll get better matches"). A dismissible banner on `/artist` links back until at least 3 performances exist.
+
+---
+
+## 4. Intelligence dashboard (`/artist/intelligence`)
+
+Single page, sections match spec Steps 3–8:
+
+- **Career timeline** — vertical timeline grouped by year.
+- **Fanbase heat map** — table of top cities (rank, show count, last show, avg crowd). Map view deferred; table ships now.
+- **Venue intelligence** — cards with relationship score, last booked, repeat count.
+- **Promoter intelligence** — same shape for promoters.
+- **Route intelligence** — detected corridors (from `getRouteSuggestions`) with a "prioritize nearby opportunities" toggle that writes `booking_intents.filters_json.prefer_corridors = true`.
+- **Calendar calibration** — monthly histogram (busy/free months). Historical dates do NOT block future bookings; a note explains that.
+
+Empty states point back to onboarding.
+
+---
+
+## 5. Match engine hook-in (minimal now, full in Slice 7.5)
+
+Extend the existing (or stub) scorer signature to `matchScore(artist, opp, availability, intel) → { score, subscores, reasons[] }`. `intel` is the artist's `artist_market_signals` + `artist_promoter_relations`. New reason strings surface in the feed:
+
+- "You've performed in {city} {N} times"
+- "You've booked with {promoter} {N} times"
+- "Fits your {month} touring pattern"
+- "Efficient routing from {recentCity}"
+
+Actual re-ranking weights land in Slice 7.5's Smart Learning; this slice just wires the data through so reasons appear on Verified + Discovered cards.
+
+---
+
+## 6. What is explicitly deferred
+
+- **AI Career Coach** copy generation (Step 15) — Slice 7 (`ai_briefs` already exists).
+- **Morning brief page** (Step 11) — Slice 7.
+- **Smart Outreach / Pitch My Artist** (Steps 12–13) — Slice 6 as previously planned.
+- **Learning weight tuning** (Step 14) — Slice 7.5 once we have signal volume.
+- Real geocoding for the heat map — table view now, `mapbox`/`maplibre` layer later.
 
 ---
 
 ## Technical section
 
-- New enum `opportunity_kind` (`verified` | `discovered`); migrate existing rows to `verified`.
-- Discovery parsers under `src/lib/engine/discovery/sources/*.ts`; each returns `RawOpportunity` with `kind='discovered'` and never sets `budget_est`.
-- Territory: reuse existing `africa-locations.ts`; add `booking_intents.primary_territory` (text) + `additional_territories` (text[]).
-- Match score signature becomes `matchScore(artist, opportunity, availability, intel) → { score, subscores, reasons[] }` where `intel` is `artist_market_signals`.
-- Career Advisor: `createServerFn` with Lovable AI `Output.object`, cached in `ai_briefs`.
-- Learning events: single append-only table, nightly rollup into `artist_market_signals` (pg_cron → `/api/public/cron/rollup-intel`).
-- Privacy: `artist_performances.fee_private`, `.notes_private` are hidden by RLS from anyone except owner + service role; the scorer reads via service role during rollup.
-- Cloudflare Workers-safe: `fetch` + `linkedom`, no puppeteer/sharp.
+- Migration: one file, adds enums (`performance_event_type`), tables above, `refresh_artist_intel` function, trigger on `artist_performances`, storage bucket via `supabase--storage_create_bucket`, storage.objects RLS.
+- Server fns live in `src/lib/intel/*.functions.ts`; a `.server.ts` sibling holds the rollup helpers so `supabaseAdmin` never imports at module scope of the functions file.
+- pg_cron: nightly `SELECT public.refresh_artist_intel(owner_id) FROM booking_intents WHERE active` via `/api/public/cron/rollup-intel` (apikey auth).
+- Route files: `src/routes/_signedin/artist.intelligence.tsx`, `src/routes/_signedin/artist.intelligence.onboarding.tsx`. Both use `useSuspenseQuery` + loader `ensureQueryData` pattern.
+- Wizard is a client component (form-heavy); server fns handle persistence per step so a refresh doesn't lose progress.
+- Types regenerate after migration approval; wizard + dashboard code lands after that.
+- No changes to `find-gigs`, `concierge`, admin, or existing gigs flows.
 
 ---
 
-## Questions before I build slice 2
+## Open questions (defaults in brackets — say "defaults" and I'll pick)
 
-1. **Primary territory default** — Lesotho, or read from artist profile country?
-2. **Career mapping** — mandatory in onboarding, or optional with a "You'll get better matches" prompt?
-3. **Pitch My Artist for verified events** — always show it as a secondary CTA alongside Apply, or only on Discovered?
-4. **Discovered → Verified promotion** — if a discovered event's organizer later signs up and claims it, do we merge the row (keeping history) or replace?
-
-Say "defaults" and I'll pick: (1) profile country → Lesotho fallback, (2) optional with nudge, (3) Discovered only, (4) merge and keep history.
+1. **Wizard placement** — nudge from `/artist` dashboard only, or interstitial after first sign-in? [dashboard nudge, dismissible]
+2. **CSV bulk import** for performance history — ship now or Slice 7.5? [ship now, simple paste-parse, no file upload]
+3. **Fee privacy default** — private per-row with owner toggle, or always private? [always private; artist toggles per-field visibility later in profile settings]
+4. **Proof uploads in v1** — enable full upload UI, or store URLs only and add uploader in a follow-up? [URLs only now, uploader in a small follow-up so this slice ships fast]
