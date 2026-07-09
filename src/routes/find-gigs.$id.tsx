@@ -36,7 +36,8 @@ function GigDetail() {
   const gig = data?.gig;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
+      <div className="fixed inset-0 z-0 pointer-events-none"><CinematicBackdrop variant="ambient" /></div>
       <header className="sticky top-0 z-40 border-b border-primary/10 bg-background/70 backdrop-blur">
         <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
           <Link to="/find-gigs" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
