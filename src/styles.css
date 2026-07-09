@@ -227,6 +227,25 @@
   50% { opacity: 1; }
 }
 
+/* Cinematic backdrop keyframes */
+@keyframes particle-float {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(12px, -28px, 0) scale(1.35); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes ray-sweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes portal-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes constellation-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 1; }
+}
+
 /* Legacy CSS-only reveal (kept for admin pages that use `.reveal`) */
 .reveal {
   opacity: 0;

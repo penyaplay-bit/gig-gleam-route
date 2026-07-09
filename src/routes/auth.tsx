@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { LogoLockup } from "@/components/brand/logo-mark";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 import { useServerFn } from "@tanstack/react-start";
 import { bootstrapProfile } from "@/lib/gigs/profile.functions";
 
@@ -123,14 +124,14 @@ function AuthPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
-      <div className="pointer-events-none absolute left-1/2 top-1/3 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[120px]" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 text-foreground">
+      <CinematicBackdrop variant="hero" />
       <div className="relative w-full max-w-md">
         <Link to="/" className="mb-8 flex justify-center">
           <LogoLockup />
         </Link>
 
-        <Card className="p-6 border-primary/20 bg-card/60 backdrop-blur">
+        <Card className="border-primary/25 bg-card/50 p-6 shadow-cinema backdrop-blur-2xl">
           <h1 className="text-xl font-display mb-1">{mode === "signin" ? "Welcome back" : "Join Fare Deal"}</h1>
           <p className="text-sm text-muted-foreground mb-6">
             {mode === "signin" ? "Sign in to your marketplace account." : "Create your account to start booking."}

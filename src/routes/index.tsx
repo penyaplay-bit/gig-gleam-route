@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { ArrowRight, Sparkles, Shield, Zap, Calendar, Music, Radio, Users } from "lucide-react";
 import { LogoMark, LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
+import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/reveal";
 import { NumberTicker } from "@/components/motion/number-ticker";
 import { MarqueeStrip } from "@/components/motion/marquee-strip";
@@ -96,18 +97,9 @@ function Hero() {
 
   return (
     <section ref={ref} className="relative overflow-hidden">
-      {/* Radial gold spotlight */}
-      <motion.div
-        style={{ opacity: glowOpacity }}
-        className="pointer-events-none absolute left-1/2 top-0 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/3 rounded-full opacity-70 blur-3xl"
-      >
-        <div
-          className="h-full w-full"
-          style={{
-            background:
-              "radial-gradient(circle, oklch(0.82 0.16 88 / 0.35), transparent 60%)",
-          }}
-        />
+      {/* Cinematic environment behind the hero */}
+      <motion.div style={{ opacity: glowOpacity }} className="absolute inset-0">
+        <CinematicBackdrop variant="portal" />
       </motion.div>
 
       <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-24 sm:pt-24 sm:pb-32">
