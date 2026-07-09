@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
+import { supabase } from "@/integrations/supabase/client";
+import { BedDouble, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/book")({
   head: () => ({
