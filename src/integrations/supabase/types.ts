@@ -247,6 +247,8 @@ export type Database = {
           genres: string[]
           hospitality_rider: string | null
           id: string
+          instagram_followers: number | null
+          instagram_handle: string | null
           last_schedule_update_at: string | null
           location_city: string | null
           location_country: string | null
@@ -254,14 +256,28 @@ export type Database = {
           media_links: string[]
           photo_url: string | null
           profile_completed: boolean
+          reach_updated_at: string | null
           regional_strength: string[]
           rider_notes: string | null
+          spotify_artist_id: string | null
+          spotify_followers: number | null
+          spotify_genres: string[] | null
+          spotify_image_url: string | null
+          spotify_monthly_listeners_est: number | null
+          spotify_popularity: number | null
+          spotify_top_city: string | null
           stage_name: string
           technical_rider: string | null
+          tiktok_followers: number | null
+          tiktok_handle: string | null
+          tiktok_video_views: number | null
           updated_at: string
           user_id: string
           venue_fit_json: Json
           whatsapp_number: string | null
+          youtube_handle: string | null
+          youtube_subscribers: number | null
+          youtube_views: number | null
         }
         Insert: {
           active?: boolean
@@ -282,6 +298,8 @@ export type Database = {
           genres?: string[]
           hospitality_rider?: string | null
           id?: string
+          instagram_followers?: number | null
+          instagram_handle?: string | null
           last_schedule_update_at?: string | null
           location_city?: string | null
           location_country?: string | null
@@ -289,14 +307,28 @@ export type Database = {
           media_links?: string[]
           photo_url?: string | null
           profile_completed?: boolean
+          reach_updated_at?: string | null
           regional_strength?: string[]
           rider_notes?: string | null
+          spotify_artist_id?: string | null
+          spotify_followers?: number | null
+          spotify_genres?: string[] | null
+          spotify_image_url?: string | null
+          spotify_monthly_listeners_est?: number | null
+          spotify_popularity?: number | null
+          spotify_top_city?: string | null
           stage_name: string
           technical_rider?: string | null
+          tiktok_followers?: number | null
+          tiktok_handle?: string | null
+          tiktok_video_views?: number | null
           updated_at?: string
           user_id: string
           venue_fit_json?: Json
           whatsapp_number?: string | null
+          youtube_handle?: string | null
+          youtube_subscribers?: number | null
+          youtube_views?: number | null
         }
         Update: {
           active?: boolean
@@ -317,6 +349,8 @@ export type Database = {
           genres?: string[]
           hospitality_rider?: string | null
           id?: string
+          instagram_followers?: number | null
+          instagram_handle?: string | null
           last_schedule_update_at?: string | null
           location_city?: string | null
           location_country?: string | null
@@ -324,14 +358,28 @@ export type Database = {
           media_links?: string[]
           photo_url?: string | null
           profile_completed?: boolean
+          reach_updated_at?: string | null
           regional_strength?: string[]
           rider_notes?: string | null
+          spotify_artist_id?: string | null
+          spotify_followers?: number | null
+          spotify_genres?: string[] | null
+          spotify_image_url?: string | null
+          spotify_monthly_listeners_est?: number | null
+          spotify_popularity?: number | null
+          spotify_top_city?: string | null
           stage_name?: string
           technical_rider?: string | null
+          tiktok_followers?: number | null
+          tiktok_handle?: string | null
+          tiktok_video_views?: number | null
           updated_at?: string
           user_id?: string
           venue_fit_json?: Json
           whatsapp_number?: string | null
+          youtube_handle?: string | null
+          youtube_subscribers?: number | null
+          youtube_views?: number | null
         }
         Relationships: [
           {
