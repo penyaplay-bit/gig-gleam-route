@@ -1,16 +1,15 @@
 "use client";
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
-import stage01 from "@/assets/penya-stage-01.jpg.asset.json";
-import stage02 from "@/assets/penya-stage-02.jpg.asset.json";
-import stage03 from "@/assets/penya-stage-03.jpg.asset.json";
+import stage01 from "@/assets/penya-stage-01.jpg";
+import stage02 from "@/assets/penya-stage-02.jpg";
+import stage03 from "@/assets/penya-stage-03.jpg";
 
-const FRAMES = [stage01.url, stage02.url, stage03.url];
+const FRAMES = [stage01, stage02, stage03];
 
 /**
- * Scroll-scrub cinematic hero. Replaces the heavy autoplay video with three
- * cross-fading, lightly-parallaxed stage stills served from the CDN.
- * ~90% smaller payload, no video decode, instant paint.
+ * Scroll-scrub cinematic hero. Three cross-fading, lightly-parallaxed stage
+ * stills served as ~60KB CDN images (down from 780KB each).
  */
 export function ScrollScrubVideo() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -25,7 +24,6 @@ export function ScrollScrubVideo() {
   const textOpacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
   const textY = useTransform(scrollYProgress, [0, 1], reduce ? ["0px", "0px"] : ["30px", "-30px"]);
 
-  // Cross-fade three frames across scroll progress.
   const op0 = useTransform(scrollYProgress, [0.0, 0.15, 0.38, 0.48], [1, 1, 1, 0]);
   const op1 = useTransform(scrollYProgress, [0.38, 0.48, 0.68, 0.78], [0, 1, 1, 0]);
   const op2 = useTransform(scrollYProgress, [0.68, 0.78, 1.0, 1.0], [0, 1, 1, 1]);
@@ -40,6 +38,8 @@ export function ScrollScrubVideo() {
             src={src}
             alt=""
             aria-hidden
+            width={1600}
+            height={900}
             loading={i === 0 ? "eager" : "lazy"}
             decoding="async"
             fetchPriority={i === 0 ? "high" : "low"}
