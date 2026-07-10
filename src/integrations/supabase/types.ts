@@ -233,6 +233,8 @@ export type Database = {
           artist_id: string | null
           availability_status: string
           bio: string | null
+          booking_fee_ceiling_cents: number | null
+          booking_fee_floor_cents: number | null
           booking_fee_max_cents: number | null
           booking_fee_min_cents: number | null
           contact_email: string | null
@@ -240,7 +242,10 @@ export type Database = {
           currency: string
           demographics_json: Json
           external_bookings_note: string | null
+          featured_performance_thumb: string | null
+          featured_performance_url: string | null
           genres: string[]
+          hospitality_rider: string | null
           id: string
           last_schedule_update_at: string | null
           location_city: string | null
@@ -252,6 +257,7 @@ export type Database = {
           regional_strength: string[]
           rider_notes: string | null
           stage_name: string
+          technical_rider: string | null
           updated_at: string
           user_id: string
           venue_fit_json: Json
@@ -262,6 +268,8 @@ export type Database = {
           artist_id?: string | null
           availability_status?: string
           bio?: string | null
+          booking_fee_ceiling_cents?: number | null
+          booking_fee_floor_cents?: number | null
           booking_fee_max_cents?: number | null
           booking_fee_min_cents?: number | null
           contact_email?: string | null
@@ -269,7 +277,10 @@ export type Database = {
           currency?: string
           demographics_json?: Json
           external_bookings_note?: string | null
+          featured_performance_thumb?: string | null
+          featured_performance_url?: string | null
           genres?: string[]
+          hospitality_rider?: string | null
           id?: string
           last_schedule_update_at?: string | null
           location_city?: string | null
@@ -281,6 +292,7 @@ export type Database = {
           regional_strength?: string[]
           rider_notes?: string | null
           stage_name: string
+          technical_rider?: string | null
           updated_at?: string
           user_id: string
           venue_fit_json?: Json
@@ -291,6 +303,8 @@ export type Database = {
           artist_id?: string | null
           availability_status?: string
           bio?: string | null
+          booking_fee_ceiling_cents?: number | null
+          booking_fee_floor_cents?: number | null
           booking_fee_max_cents?: number | null
           booking_fee_min_cents?: number | null
           contact_email?: string | null
@@ -298,7 +312,10 @@ export type Database = {
           currency?: string
           demographics_json?: Json
           external_bookings_note?: string | null
+          featured_performance_thumb?: string | null
+          featured_performance_url?: string | null
           genres?: string[]
+          hospitality_rider?: string | null
           id?: string
           last_schedule_update_at?: string | null
           location_city?: string | null
@@ -310,6 +327,7 @@ export type Database = {
           regional_strength?: string[]
           rider_notes?: string | null
           stage_name?: string
+          technical_rider?: string | null
           updated_at?: string
           user_id?: string
           venue_fit_json?: Json
@@ -2383,6 +2401,33 @@ export type Database = {
           },
         ]
       }
+      handles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          handle: string
+          kind: Database["public"]["Enums"]["handle_kind"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          handle: string
+          kind: Database["public"]["Enums"]["handle_kind"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          handle?: string
+          kind?: Database["public"]["Enums"]["handle_kind"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       manager_profiles: {
         Row: {
           agency_name: string | null
@@ -2882,6 +2927,24 @@ export type Database = {
           },
         ]
       }
+      profile_intents: {
+        Row: {
+          created_at: string
+          intent: Database["public"]["Enums"]["profile_intent"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          intent: Database["public"]["Enums"]["profile_intent"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          intent?: Database["public"]["Enums"]["profile_intent"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       promoter_intel: {
         Row: {
           city: string | null
@@ -3225,6 +3288,45 @@ export type Database = {
         }
         Relationships: []
       }
+      performer_public: {
+        Row: {
+          availability_status: string | null
+          bio: string | null
+          featured_performance_thumb: string | null
+          featured_performance_url: string | null
+          genres: string[] | null
+          location_city: string | null
+          location_country: string | null
+          photo_url: string | null
+          stage_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          availability_status?: string | null
+          bio?: string | null
+          featured_performance_thumb?: string | null
+          featured_performance_url?: string | null
+          genres?: string[] | null
+          location_city?: string | null
+          location_country?: string | null
+          photo_url?: string | null
+          stage_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          availability_status?: string | null
+          bio?: string | null
+          featured_performance_thumb?: string | null
+          featured_performance_url?: string | null
+          genres?: string[] | null
+          location_city?: string | null
+          location_country?: string | null
+          photo_url?: string | null
+          stage_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -3276,6 +3378,13 @@ export type Database = {
         | "completed"
         | "review_collected"
       deposit_status: "uploaded" | "verified" | "rejected"
+      handle_kind:
+        | "performer"
+        | "venue"
+        | "promoter"
+        | "supplier"
+        | "brand"
+        | "manager"
       opportunity_category:
         | "festival"
         | "corporate"
@@ -3315,6 +3424,14 @@ export type Database = {
         | "radio"
         | "brand"
         | "other"
+      profile_intent:
+        | "get_booked"
+        | "hire_talent"
+        | "list_venue"
+        | "organize_events"
+        | "provide_services"
+        | "manage_talent"
+        | "represent_brand"
       watchlist_cadence: "realtime" | "daily" | "weekly"
     }
     CompositeTypes: {
@@ -3483,6 +3600,14 @@ export const Constants = {
         "review_collected",
       ],
       deposit_status: ["uploaded", "verified", "rejected"],
+      handle_kind: [
+        "performer",
+        "venue",
+        "promoter",
+        "supplier",
+        "brand",
+        "manager",
+      ],
       opportunity_category: [
         "festival",
         "corporate",
@@ -3524,6 +3649,15 @@ export const Constants = {
         "radio",
         "brand",
         "other",
+      ],
+      profile_intent: [
+        "get_booked",
+        "hire_talent",
+        "list_venue",
+        "organize_events",
+        "provide_services",
+        "manage_talent",
+        "represent_brand",
       ],
       watchlist_cadence: ["realtime", "daily", "weekly"],
     },
