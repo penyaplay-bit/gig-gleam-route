@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PayRefRouteImport } from './routes/pay.$ref'
 import { Route as FindGigsIdRouteImport } from './routes/find-gigs.$id'
+import { Route as SignedinWelcomeRouteImport } from './routes/_signedin/welcome'
 import { Route as SignedinPostGigRouteImport } from './routes/_signedin/post-gig'
 import { Route as SignedinMyRosterRouteImport } from './routes/_signedin/my-roster'
 import { Route as SignedinMyGigsRouteImport } from './routes/_signedin/my-gigs'
@@ -93,6 +94,11 @@ const FindGigsIdRoute = FindGigsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => FindGigsRoute,
+} as any)
+const SignedinWelcomeRoute = SignedinWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => SignedinRoute,
 } as any)
 const SignedinPostGigRoute = SignedinPostGigRouteImport.update({
   id: '/post-gig',
@@ -281,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/my-gigs': typeof SignedinMyGigsRouteWithChildren
   '/my-roster': typeof SignedinMyRosterRoute
   '/post-gig': typeof SignedinPostGigRoute
+  '/welcome': typeof SignedinWelcomeRoute
   '/find-gigs/$id': typeof FindGigsIdRoute
   '/pay/$ref': typeof PayRefRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
@@ -321,6 +328,7 @@ export interface FileRoutesByTo {
   '/my-gigs': typeof SignedinMyGigsRouteWithChildren
   '/my-roster': typeof SignedinMyRosterRoute
   '/post-gig': typeof SignedinPostGigRoute
+  '/welcome': typeof SignedinWelcomeRoute
   '/find-gigs/$id': typeof FindGigsIdRoute
   '/pay/$ref': typeof PayRefRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
@@ -365,6 +373,7 @@ export interface FileRoutesById {
   '/_signedin/my-gigs': typeof SignedinMyGigsRouteWithChildren
   '/_signedin/my-roster': typeof SignedinMyRosterRoute
   '/_signedin/post-gig': typeof SignedinPostGigRoute
+  '/_signedin/welcome': typeof SignedinWelcomeRoute
   '/find-gigs/$id': typeof FindGigsIdRoute
   '/pay/$ref': typeof PayRefRoute
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/my-gigs'
     | '/my-roster'
     | '/post-gig'
+    | '/welcome'
     | '/find-gigs/$id'
     | '/pay/$ref'
     | '/admin/bookings'
@@ -448,6 +458,7 @@ export interface FileRouteTypes {
     | '/my-gigs'
     | '/my-roster'
     | '/post-gig'
+    | '/welcome'
     | '/find-gigs/$id'
     | '/pay/$ref'
     | '/admin/bookings'
@@ -491,6 +502,7 @@ export interface FileRouteTypes {
     | '/_signedin/my-gigs'
     | '/_signedin/my-roster'
     | '/_signedin/post-gig'
+    | '/_signedin/welcome'
     | '/find-gigs/$id'
     | '/pay/$ref'
     | '/_authenticated/admin/bookings'
@@ -603,6 +615,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/find-gigs/$id'
       preLoaderRoute: typeof FindGigsIdRouteImport
       parentRoute: typeof FindGigsRoute
+    }
+    '/_signedin/welcome': {
+      id: '/_signedin/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof SignedinWelcomeRouteImport
+      parentRoute: typeof SignedinRoute
     }
     '/_signedin/post-gig': {
       id: '/_signedin/post-gig'
@@ -933,6 +952,7 @@ interface SignedinRouteChildren {
   SignedinMyGigsRoute: typeof SignedinMyGigsRouteWithChildren
   SignedinMyRosterRoute: typeof SignedinMyRosterRoute
   SignedinPostGigRoute: typeof SignedinPostGigRoute
+  SignedinWelcomeRoute: typeof SignedinWelcomeRoute
 }
 
 const SignedinRouteChildren: SignedinRouteChildren = {
@@ -942,6 +962,7 @@ const SignedinRouteChildren: SignedinRouteChildren = {
   SignedinMyGigsRoute: SignedinMyGigsRouteWithChildren,
   SignedinMyRosterRoute: SignedinMyRosterRoute,
   SignedinPostGigRoute: SignedinPostGigRoute,
+  SignedinWelcomeRoute: SignedinWelcomeRoute,
 }
 
 const SignedinRouteWithChildren = SignedinRoute._addFileChildren(
