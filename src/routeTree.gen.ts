@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PayRefRouteImport } from './routes/pay.$ref'
 import { Route as FindGigsIdRouteImport } from './routes/find-gigs.$id'
+import { Route as BookHandleRouteImport } from './routes/book.$handle'
 import { Route as SignedinWelcomeRouteImport } from './routes/_signedin/welcome'
 import { Route as SignedinPostGigRouteImport } from './routes/_signedin/post-gig'
 import { Route as SignedinMyRosterRouteImport } from './routes/_signedin/my-roster'
@@ -94,6 +95,11 @@ const FindGigsIdRoute = FindGigsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => FindGigsRoute,
+} as any)
+const BookHandleRoute = BookHandleRouteImport.update({
+  id: '/$handle',
+  path: '/$handle',
+  getParentRoute: () => BookRoute,
 } as any)
 const SignedinWelcomeRoute = SignedinWelcomeRouteImport.update({
   id: '/welcome',
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/my-roster': typeof SignedinMyRosterRoute
   '/post-gig': typeof SignedinPostGigRoute
   '/welcome': typeof SignedinWelcomeRoute
+  '/book/$handle': typeof BookHandleRoute
   '/find-gigs/$id': typeof FindGigsIdRoute
   '/pay/$ref': typeof PayRefRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
@@ -329,6 +336,7 @@ export interface FileRoutesByTo {
   '/my-roster': typeof SignedinMyRosterRoute
   '/post-gig': typeof SignedinPostGigRoute
   '/welcome': typeof SignedinWelcomeRoute
+  '/book/$handle': typeof BookHandleRoute
   '/find-gigs/$id': typeof FindGigsIdRoute
   '/pay/$ref': typeof PayRefRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
@@ -374,6 +382,7 @@ export interface FileRoutesById {
   '/_signedin/my-roster': typeof SignedinMyRosterRoute
   '/_signedin/post-gig': typeof SignedinPostGigRoute
   '/_signedin/welcome': typeof SignedinWelcomeRoute
+  '/book/$handle': typeof BookHandleRoute
   '/find-gigs/$id': typeof FindGigsIdRoute
   '/pay/$ref': typeof PayRefRoute
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRouteWithChildren
@@ -418,6 +427,7 @@ export interface FileRouteTypes {
     | '/my-roster'
     | '/post-gig'
     | '/welcome'
+    | '/book/$handle'
     | '/find-gigs/$id'
     | '/pay/$ref'
     | '/admin/bookings'
@@ -459,6 +469,7 @@ export interface FileRouteTypes {
     | '/my-roster'
     | '/post-gig'
     | '/welcome'
+    | '/book/$handle'
     | '/find-gigs/$id'
     | '/pay/$ref'
     | '/admin/bookings'
@@ -503,6 +514,7 @@ export interface FileRouteTypes {
     | '/_signedin/my-roster'
     | '/_signedin/post-gig'
     | '/_signedin/welcome'
+    | '/book/$handle'
     | '/find-gigs/$id'
     | '/pay/$ref'
     | '/_authenticated/admin/bookings'
@@ -615,6 +627,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/find-gigs/$id'
       preLoaderRoute: typeof FindGigsIdRouteImport
       parentRoute: typeof FindGigsRoute
+    }
+    '/book/$handle': {
+      id: '/book/$handle'
+      path: '/$handle'
+      fullPath: '/book/$handle'
+      preLoaderRoute: typeof BookHandleRouteImport
+      parentRoute: typeof BookRoute
     }
     '/_signedin/welcome': {
       id: '/_signedin/welcome'
@@ -970,10 +989,12 @@ const SignedinRouteWithChildren = SignedinRoute._addFileChildren(
 )
 
 interface BookRouteChildren {
+  BookHandleRoute: typeof BookHandleRoute
   BookConfirmRefRoute: typeof BookConfirmRefRoute
 }
 
 const BookRouteChildren: BookRouteChildren = {
+  BookHandleRoute: BookHandleRoute,
   BookConfirmRefRoute: BookConfirmRefRoute,
 }
 

@@ -115,7 +115,7 @@ function BookingButtonPage() {
                 />
               ) : (
                 <div className="absolute inset-0 -rotate-45 grid place-items-center font-display text-4xl text-primary">
-                  {name.split(/\s+/).map((s) => s[0]).slice(0, 2).join("").toUpperCase()}
+                  {name.split(/\s+/).map((s: string) => s[0]).slice(0, 2).join("").toUpperCase()}
                 </div>
               )}
             </div>
