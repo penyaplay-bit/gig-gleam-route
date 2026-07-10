@@ -187,7 +187,7 @@ export const refreshReach = createServerFn({ method: "POST" })
     }
 
     const { error } = await context.supabase.from("artist_owner_profiles")
-      .update(patch).eq("user_id", context.userId);
+      .update(patch as never).eq("user_id", context.userId);
     if (error) throw error;
     return { ok: true, errors };
   });
