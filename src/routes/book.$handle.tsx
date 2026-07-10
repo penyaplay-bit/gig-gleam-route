@@ -132,7 +132,7 @@ function BookingButtonPage() {
             )}
             {profile?.genres?.length ? (
               <div className="flex flex-wrap gap-1.5 justify-center md:justify-start">
-                {profile.genres.slice(0, 6).map((g) => (
+                {profile.genres.slice(0, 6).map((g: string) => (
                   <Badge key={g} variant="secondary" className="capitalize">{g}</Badge>
                 ))}
               </div>
