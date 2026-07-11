@@ -1,75 +1,87 @@
-# Penya Play — Master Vision Rollout Plan
+## Penya Play — Progressive Trust & Friendly Booking
 
-This is an evolution of the existing app, not a rebuild. All current auth, Supabase schema, bookings, roles, gigs, intelligence engine, concierge, wallet-adjacent tables, APIs and messaging stay intact. Work is sliced so each slice ships value on its own.
+Layer risk-based verification onto the existing app. Nothing about auth, bookings, gigs, or the intelligence engine is rebuilt — we add a trust level per user, gate specific actions by level, and reshape the top of the booking funnel so casual buyers (Thato) never see "identity verification required."
 
-## Guiding principles
-- Universal roles: replace "Artist / Promoter" split with multi-role account (`I want to get booked / hire talent / list a venue / organize events / provide services / manage talent / represent a brand`). Existing `user_roles` stays; add a `profile_intents` layer.
-- Never invent budgets. Keep the Verified vs Public opportunity split already in place; extend Public with "Pitch My Talent".
-- Every performer gets a public Booking Button™ page (`/book/<handle>`) — already partially built, harden it.
-- Every recommendation must explain WHY (match reasons already exist in intelligence engine — extend everywhere).
+### Core model
 
-## Slice A — Universal onboarding & multi-role identity
-- New `/welcome` flow: "What brings you to Penya Play?" multi-select → creates the right sub-profiles.
-- Extend `artist_owner_profiles`, add `venue_profiles`, `supplier_profiles`, `brand_profiles` (promoter_profiles + manager_profiles already exist).
-- Handle (slug) + Booking Button URL reserved at signup.
+Add a single `trust_level` per user (0 Visitor → 1 Contact Verified → 2 ID Verified → 3 Business Verified) plus a separate `performer_trust` track for people receiving money. Every gated action checks the level; UI badges are derived, not hand-managed.
 
-## Slice B — Talent profile depth + Featured Performance
-- Extend performer profile: technical rider, hospitality rider, base fee, floor fee, ceiling fee, territories, travel prefs.
-- Required "Featured Performance" embed (YouTube / TikTok / IG / FB / Vimeo / upload) — first thing every buyer sees on the Booking Button page.
+New tables (all additive):
+- `user_trust` — level, phone_verified_at, email_verified_at, id_verified_at, id_provider, risk_flags[]
+- `performer_trust` — payout_identity_verified, bank_verified, background_check_status, family_event_verified, references_count
+- `trust_events` — audit log (otp_sent, otp_failed, id_submitted, risk_flag_raised, level_promoted)
+- `risk_signals` — per-request signals (ip, ua_hash, disposable_email, duplicate_device, honeypot_hit) for the fraud checks
 
-## Slice C — Venue Marketplace
-- `venues` table (capacity, rental, calendar, sound, lighting, LED, parking, accommodation, indoor/outdoor, genres, photos, reviews, trust score).
-- Routes: `/venues` (browse), `/venues/$slug` (public), `/_signedin/my-venues` (manage), `/_signedin/venues/new`.
-- Venue calendar with open dates → feeds Fill-The-Route + Venue Intelligence.
+### Slices (ship independently)
 
-## Slice D — Event Services Marketplace
-- `suppliers` table (sound, lighting, stage, decor, catering, security, transport, accommodation, ticketing, photo, video).
-- Auto-recommend suppliers when a promoter creates an event.
+**T1 — Guest browsing + friendly funnel top**
+- Home reshapes to "What are you planning?" → event type → performer type → results.
+- Public routes for browse/search/profile (no auth wall). Save/enquire buttons render an inline "Verify your number to enquire" sheet, never a hard redirect.
+- Verified-performer badges surface on cards (Identity, Family Event, Payment Protected, Booking History, Highly Rated). Tap = plain-language explainer.
 
-## Slice E — Booking Button™ page polish
-- `/book/<handle>` public route: hero, verified badge, trust score, bio, featured performance, packages, live calendar, tour status, reviews, awards, past clients, AI booking summary.
-- Smart booking form (event type, date, venue, city, country, budget, audience, duration, travel, accom, notes) → routes into existing booking pipeline.
+**T2 — Level 1: Contact verified (OTP + email)**
+- Phone OTP via Supabase Auth (SMS provider — needs one selected; Twilio is the common default).
+- Email verification link (already available via Supabase).
+- Invisible bot defence: honeypot field, submission-rate limit table, Cloudflare Turnstile (or hCaptcha) on the enquire form.
+- Friendly copy: "Quick safety check — we'll send a code to confirm you're a real person."
+- Unlocks: send enquiries, save performers, receive quotes, book low-value private events (threshold configurable, e.g. R10 000).
 
-## Slice F — AI Tour Planner + Fill-The-Route
-- `/artist/tour-planner`: input territory/cities/dates/fee floor → engine builds optimized route using `artist_market_signals`, `artist_promoter_relations`, `venues`.
-- Auto-detect "ON TOUR" when ≥2 confirmed bookings form a corridor; expose remaining open dates; nudge opted-in nearby venues.
-- Gap detection: if Fri Joburg + Sun Pretoria, recommend Sat opportunities with revenue / travel / probability estimates.
+**T3 — Level 2: ID verified (risk-triggered only)**
+- Triggered by: booking value ≥ threshold, ≥ N bookings in 24h, international travel, venue security flag, refund/credit request, risk_signals score.
+- ID + selfie/liveness via a third-party (Stripe Identity / Veriff / Onfido — pick one; Stripe Identity is simplest if you're already on Stripe).
+- Payment-method verification (small auth hold).
+- Never asked speculatively; always tied to a specific action with a reason chip ("This booking is R25 000 — one quick ID check keeps the deposit protected").
 
-## Slice G — Wallet & Escrow
-- `wallets`, `wallet_transactions`, `escrow_holds` tables.
-- Flow: Booking → Quote → Contract → Deposit → Escrow → Performance → Completion → Final Payment → Wallet → Withdrawal.
-- Dispute record type. Withdraw request queue (manual settle for now; payment rail integration deferred).
+**T4 — Level 3: Business verified**
+- Manual review flow in the existing admin (`/admin/verify` already exists — extend).
+- Fields: business reg number, authorized rep, business email/phone, bank details, venue/company ownership doc.
+- Auto-applied to promoter/venue/agency/brand kinds.
 
-## Slice H — Trust Engine (unified score)
-- Roll professionalism, on-time, cancellation rate, reviews, repeats, response time, contract completion, verification into a single `trust_score` view per user; surface on every card.
+**T5 — Performer trust track (separate from buyer levels)**
+- Phone + email + legal ID before first payout.
+- Bank account verification (micro-deposit or provider verification).
+- Featured-performance evidence + professional-name claim (already have `featured_performance_url`).
+- Optional/required background check for `children_entertainment` categories → grants **Family Event Verified** badge (never granted for ID upload alone).
+- Explicit policy: performers must never privately contact minors; surfaced in T&Cs + message-scanning warning.
 
-## Slice I — AI Business Advisor + Match Engine explainability
-- Per-role Advisor dashboard cards: artists (pricing / territories / tours / opps), venues (recommended artists, empty dates), promoters (lineup + budget + venue), suppliers (nearby events).
-- Every match card shows a `compatibility %` with reason chips (audience overlap, pricing match, venue history, tour proximity, availability, genre fit).
+**T6 — Fraud + safety signals**
+- Pre-booking: disposable-email list, repeated OTP failures, IP velocity, duplicate-device fingerprinting, photo-hash duplicate detection on performer uploads, name↔bank mismatch, sudden payout-detail changes.
+- During booking: warn banner when messages contain external payment links / phone numbers / off-platform payment keywords: "Stay protected — payments made outside Penya Play may not qualify for booking support."
+- Pre-payout: identity + bank verified, performance completed, no active dispute, 2FA for large withdrawals.
 
-## Slice J — Market Intelligence rollups
-- Nightly job (pg_cron) aggregates avg booking fees, venue rentals, seasonal + regional demand, corporate/festival pricing, audience movement, touring patterns into `market_signals_global` (read-only, powers Advisor).
+**T7 — Deposit UX simplification**
+- Replace escrow/wallet jargon on buyer surfaces with:
+  ```
+  Booking total: R2,000
+  Deposit today:  R600
+  Balance due:  R1,400
+  Payment protected by Penya Play
+  ```
+- Escrow mechanics stay under the hood; the words "escrow", "ledger", "settlement" only appear in admin / performer wallet views.
 
-## Slice K — Opportunity Discovery expansion
-- Extend existing `opportunity_sources` ingestion to cover ticketing platforms, venue calendars, festival sites, corporate/tourism/university/municipality calendars, hotels, casinos, promoter sites. Each ingested item labelled `public`, never with fabricated budget; Pitch-My-Talent CTA.
+**T8 — Copyright safety on character performers**
+- Marketplace category names: "Spider Hero", "Web Hero", "Red-and-Blue Hero Performer" (never "Spider-Man" unless licensing proof uploaded and verified).
+- Performer profile enum + validation on category selection.
 
-## Slice L — Design pass
-- Afro-futurist black + graphite + warm metallic gold across every new surface. Performer/venue/promoter is always the hero; Penya Play is the frame.
+**T9 — Reach integration finish-line** (from the previous turn)
+- Spotify + YouTube already wired at DB + server-fn level. This slice adds the profile UI (search & link Spotify artist, paste YouTube handle, manual IG/TikTok) + surfaces `spotify_followers` / `monthly_listeners_est` / `youtube_subscribers` on the performer card and in the AI booking suggestions ("Top listeners in Johannesburg — worth targeting for a tour date").
 
-## Technical details
-- Migrations are additive; no destructive changes to existing tables.
-- New tables follow the mandatory 4-step pattern (CREATE → GRANT → RLS → POLICY) with owner-scoped policies and `service_role` grants.
-- Sensitive columns (fees, private notes) stay owner-only via RLS; public views project safe columns.
-- Server logic uses `createServerFn` + `requireSupabaseAuth`; public read-only lists use the publishable-key server client with narrow `TO anon` policies.
-- Booking Button pages are public routes with loader-fed `head()` (title/description/og:image from featured performance thumbnail).
-- Discovery ingestion runs via `/api/public/cron/*` server routes gated by the existing `CRON_SECRET`/`apikey` pattern.
-- Reuse `motion/react` primitives, existing `CinematicBackdrop`, `Card`, and shadcn components; no new UI framework.
+### Technical notes
 
-## Sequencing
-Ship A → B → E first (immediate visible value: universal signup, deeper profile, live Booking Buttons). Then C + D (marketplaces). Then F + H (touring + trust). Then G (wallet/escrow). Then I + J + K (advisor + market intel + discovery expansion). Design pass (L) applied continuously.
+- Migrations additive, 4-step pattern (CREATE → GRANT → RLS → POLICY), owner-scoped policies + service_role grants.
+- `trust_level` is a derived view over `user_trust` verification timestamps + `performer_trust` flags — no hand-editing.
+- Every gated server fn calls a `requireTrustLevel(context, minLevel, action)` helper that throws a typed error the client renders as an inline verification sheet, not a redirect.
+- SMS OTP + ID provider + Turnstile are third-party — I'll ask for credentials only when you approve the slice that needs them.
+- Existing `/admin/verify` extended, not replaced.
 
-## Open questions
-1. Start with Slice A (universal onboarding) or Slice E (Booking Button polish) first? Both are foundational; A unlocks new user types, E converts existing performers immediately.
-2. Wallet & Escrow (Slice G) — settle withdrawals manually via admin in v1, or wire a payment rail (Paddle / Stripe managed payments) now?
-3. Venue Marketplace (Slice C) — launch with self-serve venue signup, or admin-curated venues only for v1 to protect quality?
-4. Trust Score (Slice H) — public numeric score, or private-to-owner + public tier badge (Bronze/Silver/Gold) only?
+### Suggested order
+
+Ship T1 + T2 + T7 + T8 together (visible experience upgrade for Thato; unlocks bookings without ID walls). Then T5 (performer trust) + T6 (fraud signals). Then T3 (Level 2 ID). T4 (business) + T9 (reach UI) in parallel afterwards.
+
+### Open questions
+
+1. **SMS provider** for OTP — Twilio, MessageBird, Vonage, or the SMS provider already wired into your Supabase auth? Needed for T2.
+2. **ID verification provider** for T3 — Stripe Identity (easiest if you'll also use Stripe payments), Veriff, or Onfido?
+3. **Level 1 → Level 2 trigger threshold** — auto-require ID above R X booking value? Suggest R25 000 as default.
+4. **Family Event Verified** — require full criminal-record check (weeks, costs money, high friction) or references + attestation for v1, upgrade later?
+5. Start with **T1+T2+T7+T8** as one bundle (the "Thato experience"), or split T1+T7+T8 (visible frontend now) from T2 (which needs the SMS provider decision)?
