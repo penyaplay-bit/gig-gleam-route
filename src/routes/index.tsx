@@ -53,6 +53,7 @@ function LandingPage() {
       <GrainOverlay />
       <TopNav />
       <Hero />
+      <FriendlyFunnel />
       <Suspense fallback={<div className="h-40" />}>
         <BelowFold />
       </Suspense>
