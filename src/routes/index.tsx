@@ -126,7 +126,7 @@ function Hero() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
               </span>
-              Now booking · 2026 season
+              We&rsquo;re open · Booking the 2026 season
             </span>
           </Reveal>
 
@@ -137,8 +137,7 @@ function Hero() {
           </h1>
 
           <Reveal delay={0.3} className="mt-8 max-w-xl text-base text-muted-foreground sm:text-lg">
-            The official booking OS for <span className="text-foreground">Ntate Stunna</span> and the
-            Penya Play roster. Quote, deposit, confirm — every step cinematic.
+            The home of <span className="text-foreground">Ntate Stunna</span> and Mzansi&rsquo;s best performers. Your local plug for gigs — from birthday jols to sold-out arenas. We handle the admin, you bring the gees.
           </Reveal>
 
           <Reveal delay={0.4} className="mt-10 flex flex-wrap items-center justify-center gap-3">
@@ -146,19 +145,19 @@ function Hero() {
               to="/book"
               className="group inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold uppercase tracking-wider text-primary-foreground shadow-quote transition hover:-translate-y-0.5 hover:shadow-cinema"
             >
-              Start a booking
+              Let&rsquo;s book it
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <a
               href="#how"
               className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-background/30 px-8 py-4 text-sm text-foreground backdrop-blur-sm transition hover:border-primary/60 hover:bg-primary/5"
             >
-              See how it works
+              How it works
             </a>
           </Reveal>
 
           <Reveal delay={0.5} className="mt-12 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-            No deposit · No date. Every booking is verified.
+            No date, no deposit · Every booking sharp sharp verified
           </Reveal>
         </motion.div>
       </div>

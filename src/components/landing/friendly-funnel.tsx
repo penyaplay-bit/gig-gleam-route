@@ -6,14 +6,14 @@ import { Cake, PartyPopper, Briefcase, School, Music2, Users2, Sparkles, Heart }
 import { Reveal } from "@/components/motion/reveal";
 
 const OPTIONS = [
-  { key: "birthday", label: "Birthday party", Icon: Cake },
-  { key: "wedding", label: "Wedding", Icon: Heart },
-  { key: "corporate", label: "Corporate event", Icon: Briefcase },
-  { key: "school", label: "School event", Icon: School },
-  { key: "club", label: "Club night", Icon: Music2 },
-  { key: "family", label: "Family celebration", Icon: Users2 },
-  { key: "festival", label: "Festival", Icon: PartyPopper },
-  { key: "other", label: "Something else", Icon: Sparkles },
+  { key: "birthday", label: "Birthday bash", sub: "Cake, candles, chaos", Icon: Cake },
+  { key: "wedding", label: "Umshado", sub: "White dress, big feels", Icon: Heart },
+  { key: "corporate", label: "Corporate gig", sub: "Boardroom to dancefloor", Icon: Briefcase },
+  { key: "school", label: "School event", sub: "Matric ball / prize day", Icon: School },
+  { key: "club", label: "Club night", sub: "Turn it up, chief", Icon: Music2 },
+  { key: "family", label: "Family jol", sub: "Ubuntu vibes only", Icon: Users2 },
+  { key: "festival", label: "Festival", sub: "Big stage energy", Icon: PartyPopper },
+  { key: "other", label: "Something else", sub: "Tell us your gees", Icon: Sparkles },
 ] as const;
 
 export function FriendlyFunnel() {
@@ -23,30 +23,31 @@ export function FriendlyFunnel() {
         <Reveal>
           <div className="text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">
-              Start here
+              Howzit 👋 · Start here
             </span>
             <h2 className="mt-4 font-display text-3xl font-black leading-tight sm:text-5xl">
-              What are you planning?
+              What&rsquo;s the <span className="text-goldleaf">vibe</span>?
             </h2>
             <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-              Pick the vibe. We&rsquo;ll match you with verified performers in seconds — no signup needed to browse.
+              Tap what you&rsquo;re planning — we&rsquo;ll line up verified performers for you, sharp sharp. No signup to browse. Asambe.
             </p>
           </div>
         </Reveal>
 
         <Reveal delay={0.1} className="mt-10">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {OPTIONS.map(({ key, label, Icon }) => (
+            {OPTIONS.map(({ key, label, sub, Icon }) => (
               <Link
                 key={key}
                 to="/book"
                 search={{ event_type: key } as never}
-                className="group flex flex-col items-center gap-3 rounded-2xl border border-primary/15 bg-background/60 p-5 text-center backdrop-blur transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5"
+                className="group flex flex-col items-center gap-2 rounded-2xl border border-primary/15 bg-background/60 p-5 text-center backdrop-blur transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5"
               >
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary/20">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary/20 group-hover:scale-110">
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="text-sm font-semibold">{label}</span>
+                <span className="text-[11px] text-muted-foreground">{sub}</span>
               </Link>
             ))}
           </div>
@@ -54,7 +55,7 @@ export function FriendlyFunnel() {
 
         <Reveal delay={0.2} className="mt-8 text-center">
           <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-            Browse freely · Verify only when it matters · Payment protected
+            Browse chilled · Verify only when it counts · Payment protected, always
           </p>
         </Reveal>
       </div>
