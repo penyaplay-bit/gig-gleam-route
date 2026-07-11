@@ -2943,6 +2943,48 @@ export type Database = {
           },
         ]
       }
+      performer_trust: {
+        Row: {
+          background_check_at: string | null
+          background_check_status: string
+          bank_verified_at: string | null
+          created_at: string
+          family_event_verified_at: string | null
+          featured_evidence_at: string | null
+          payout_identity_verified_at: string | null
+          professional_name_claimed_at: string | null
+          references_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          background_check_at?: string | null
+          background_check_status?: string
+          bank_verified_at?: string | null
+          created_at?: string
+          family_event_verified_at?: string | null
+          featured_evidence_at?: string | null
+          payout_identity_verified_at?: string | null
+          professional_name_claimed_at?: string | null
+          references_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          background_check_at?: string | null
+          background_check_status?: string
+          bank_verified_at?: string | null
+          created_at?: string
+          family_event_verified_at?: string | null
+          featured_evidence_at?: string | null
+          payout_identity_verified_at?: string | null
+          professional_name_claimed_at?: string | null
+          references_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pricing_rules: {
         Row: {
           artist_id: string
@@ -3217,6 +3259,42 @@ export type Database = {
           },
         ]
       }
+      risk_signals: {
+        Row: {
+          created_at: string
+          detail: Json
+          id: string
+          ip_hash: string | null
+          kind: string
+          score: number
+          session_id: string | null
+          ua_hash: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          ip_hash?: string | null
+          kind: string
+          score?: number
+          session_id?: string | null
+          ua_hash?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          ip_hash?: string | null
+          kind?: string
+          score?: number
+          session_id?: string | null
+          ua_hash?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       saved_gigs: {
         Row: {
           gig_id: string
@@ -3253,6 +3331,33 @@ export type Database = {
           },
         ]
       }
+      trust_events: {
+        Row: {
+          created_at: string
+          detail: Json
+          id: string
+          ip_hash: string | null
+          kind: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          ip_hash?: string | null
+          kind: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          ip_hash?: string | null
+          kind?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3270,6 +3375,45 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_trust: {
+        Row: {
+          business_verified_at: string | null
+          created_at: string
+          email_verified_at: string | null
+          id_provider: string | null
+          id_verified_at: string | null
+          level: number
+          phone_verified_at: string | null
+          risk_flags: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_verified_at?: string | null
+          created_at?: string
+          email_verified_at?: string | null
+          id_provider?: string | null
+          id_verified_at?: string | null
+          level?: number
+          phone_verified_at?: string | null
+          risk_flags?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_verified_at?: string | null
+          created_at?: string
+          email_verified_at?: string | null
+          id_provider?: string | null
+          id_verified_at?: string | null
+          level?: number
+          phone_verified_at?: string | null
+          risk_flags?: string[]
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
