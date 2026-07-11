@@ -16,13 +16,13 @@ export type TrustBadgeKind =
 const CONFIG: Record<TrustBadgeKind, { label: string; explain: string; Icon: typeof ShieldCheck; tone: string }> = {
   identity: {
     label: "Identity Verified",
-    explain: "We&rsquo;ve confirmed this performer is who they say they are. Real name, real person, sharp sharp.",
+    explain: "We’ve confirmed this performer is who they say they are. Real name, real person, sharp sharp.",
     Icon: ShieldCheck,
     tone: "text-emerald-300 border-emerald-400/40 bg-emerald-500/10",
   },
   family_event: {
     label: "Family Event Ready",
-    explain: "Extra checks and references done. Safe hands for kids&rsquo; parties, family jols, and school events.",
+    explain: "Extra checks and references done. Safe hands for kids’ parties, family jols, and school events.",
     Icon: Baby,
     tone: "text-pink-200 border-pink-400/40 bg-pink-500/10",
   },
@@ -34,7 +34,7 @@ const CONFIG: Record<TrustBadgeKind, { label: string; explain: string; Icon: typ
   },
   payment_protected: {
     label: "Payment Protected",
-    explain: "Pay through Penya Play and your deposit is safe. No stories, no eish moments — we&rsquo;ve got you.",
+    explain: "Pay through Penya Play and your deposit is safe. No stories, no eish moments — we’ve got you.",
     Icon: CreditCard,
     tone: "text-primary border-primary/40 bg-primary/10",
   },
