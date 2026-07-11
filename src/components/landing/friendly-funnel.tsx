@@ -6,14 +6,14 @@ import { Cake, PartyPopper, Briefcase, School, Music2, Users2, Sparkles, Heart }
 import { Reveal } from "@/components/motion/reveal";
 
 const OPTIONS = [
-  { key: "birthday", label: "Birthday party", Icon: Cake },
-  { key: "wedding", label: "Wedding", Icon: Heart },
-  { key: "corporate", label: "Corporate event", Icon: Briefcase },
-  { key: "school", label: "School event", Icon: School },
-  { key: "club", label: "Club night", Icon: Music2 },
-  { key: "family", label: "Family celebration", Icon: Users2 },
-  { key: "festival", label: "Festival", Icon: PartyPopper },
-  { key: "other", label: "Something else", Icon: Sparkles },
+  { key: "birthday", label: "Birthday bash", sub: "Cake, candles, chaos", Icon: Cake },
+  { key: "wedding", label: "Umshado", sub: "White dress, big feels", Icon: Heart },
+  { key: "corporate", label: "Corporate gig", sub: "Boardroom to dancefloor", Icon: Briefcase },
+  { key: "school", label: "School event", sub: "Matric ball / prize day", Icon: School },
+  { key: "club", label: "Club night", sub: "Turn it up, chief", Icon: Music2 },
+  { key: "family", label: "Family jol", sub: "Ubuntu vibes only", Icon: Users2 },
+  { key: "festival", label: "Festival", sub: "Big stage energy", Icon: PartyPopper },
+  { key: "other", label: "Something else", sub: "Tell us your gees", Icon: Sparkles },
 ] as const;
 
 export function FriendlyFunnel() {
