@@ -10,6 +10,7 @@ import logoAsset from "@/assets/penya-play-logo.jpg.asset.json";
 import logoPicture from "@/assets/penya-play-logo.picture.json";
 import { StageFloor } from "@/components/brand/stage-elements";
 import { Reveal } from "@/components/motion/reveal";
+import { FriendlyFunnel } from "@/components/landing/friendly-funnel";
 
 const BelowFold = lazy(() =>
   import("@/components/landing/below-fold").then((m) => ({ default: m.BelowFold })),
