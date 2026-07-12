@@ -173,11 +173,16 @@ function loadDraft(): { f: Form; q: number } | null {
 
 function BookingFlow() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const prefilledEventType = search.event_type ? FUNNEL_TO_EVENT_TYPE[search.event_type] ?? null : null;
   const restored = useMemo(() => loadDraft(), []);
   const [q, setQ] = useState<number>(restored?.q ?? 0);
   const [dir, setDir] = useState<1 | -1>(1);
   const [busy, setBusy] = useState(false);
-  const [f, setF] = useState<Form>(restored?.f ?? EMPTY_FORM);
+  const [f, setF] = useState<Form>(() => {
+    const base = restored?.f ?? EMPTY_FORM;
+    return prefilledEventType ? { ...base, event_type: prefilledEventType } : base;
+  });
   const [savedFlash, setSavedFlash] = useState(false);
   const firstSave = useRef(true);
 
