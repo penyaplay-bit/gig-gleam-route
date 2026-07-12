@@ -36,6 +36,20 @@ const EVENT_TYPES = [
   "festival","club","corporate","wedding","government","private","university","tv","radio","brand","other",
 ] as const;
 
+const BOOKED_THROUGH = [
+  { v: "penya_play", label: "Penya Play" },
+  { v: "whatsapp", label: "WhatsApp" },
+  { v: "phone", label: "Phone" },
+  { v: "instagram", label: "Instagram" },
+  { v: "facebook", label: "Facebook" },
+  { v: "existing_client", label: "Existing client" },
+  { v: "manager", label: "Manager" },
+  { v: "referral", label: "Referral" },
+  { v: "other", label: "Other" },
+] as const;
+
+const STATUS_OPTS = ["confirmed","tentative","completed","cancelled"] as const;
+
 type Draft = Partial<PerformanceInput> & { event_name: string; event_date: string };
 
 const emptyDraft = (): Draft => ({
@@ -45,6 +59,8 @@ const emptyDraft = (): Draft => ({
   headliner_bool: false,
   fee_currency: "ZAR",
   proof_urls: [],
+  status: "confirmed",
+  booked_through: null,
 });
 
 function OnboardingWizard() {
