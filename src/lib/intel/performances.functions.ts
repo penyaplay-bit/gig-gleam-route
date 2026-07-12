@@ -7,6 +7,12 @@ const EventType = z.enum([
   "festival","club","corporate","wedding","government","private","university","tv","radio","brand","other",
 ]);
 
+const BookedThrough = z.enum([
+  "penya_play","whatsapp","phone","instagram","facebook","existing_client","manager","referral","other",
+]);
+
+const PerformanceStatus = z.enum(["confirmed","tentative","completed","cancelled"]);
+
 const PerformanceSchema = z.object({
   id: z.string().uuid().optional(),
   artist_id: z.string().uuid().nullable().optional(),
@@ -31,6 +37,9 @@ const PerformanceSchema = z.object({
   rating: z.number().int().min(1).max(5).nullable().optional(),
   notes_private: z.string().max(2000).nullable().optional(),
   proof_urls: z.array(z.string().url()).default([]),
+  booked_through: BookedThrough.nullable().optional(),
+  status: PerformanceStatus.optional(),
+  venue_type: z.string().max(80).nullable().optional(),
 });
 
 export type PerformanceInput = z.infer<typeof PerformanceSchema>;

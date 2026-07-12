@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMyRoles } from "@/lib/gigs/profile.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CalendarClock, MessageCircle, Music4, Brain } from "lucide-react";
+import { CalendarClock, MessageCircle, Music4, Brain, Coins, LineChart } from "lucide-react";
 
 export const Route = createFileRoute("/_signedin/artist")({
   head: () => ({ meta: [{ title: "Artist dashboard — Fare Deal" }, { name: "robots", content: "noindex" }] }),
@@ -62,6 +62,18 @@ function ArtistDashboard() {
       </Card>
 
       <div className="grid gap-3 md:grid-cols-3">
+        <Card className="p-4">
+          <LineChart className="w-4 h-4 text-primary mb-2" />
+          <h3 className="font-medium text-sm">Career dashboard</h3>
+          <p className="text-xs text-muted-foreground mt-1 mb-3">Monthly goal, cities, repeat clients — real data only.</p>
+          <Link to="/artist/career" className="text-primary text-sm underline underline-offset-2">Open</Link>
+        </Card>
+        <Card className="p-4">
+          <Coins className="w-4 h-4 text-primary mb-2" />
+          <h3 className="font-medium text-sm">Pricing strategy</h3>
+          <p className="text-xs text-muted-foreground mt-1 mb-3">Standard, minimum, growth, weekday and touring rates.</p>
+          <Link to="/artist/profile" className="text-primary text-sm underline underline-offset-2">Edit rates</Link>
+        </Card>
         <Card className="p-4">
           <Music4 className="w-4 h-4 text-primary mb-2" />
           <h3 className="font-medium text-sm">Find gigs</h3>
