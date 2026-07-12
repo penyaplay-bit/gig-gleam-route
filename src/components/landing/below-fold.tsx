@@ -182,7 +182,7 @@ function RosterStrip() {
       <div className="relative mx-auto max-w-6xl px-4 py-20">
         <Reveal>
           <span className="text-[10px] uppercase tracking-[0.35em] text-primary">The roster</span>
-          <h2 className="mt-3 font-display text-4xl font-black sm:text-5xl">Book the whole Penya family.</h2>
+          <h2 className="mt-3 font-display text-4xl font-black sm:text-5xl">Book the whole Penya Play universe.</h2>
         </Reveal>
         <StaggerGroup className="mt-10 grid gap-4 sm:grid-cols-3">
           {artists.map((a) => (
