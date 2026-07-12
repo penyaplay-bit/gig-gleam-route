@@ -346,19 +346,30 @@ export type Database = {
           created_at: string
           currency: string
           demographics_json: Json
+          dream_price_cents: number | null
           external_bookings_note: string | null
           featured_performance_thumb: string | null
           featured_performance_url: string | null
           genres: string[]
+          growth_price_cents: number | null
+          growth_price_enabled: boolean
+          growth_price_pct: number | null
           hospitality_rider: string | null
           id: string
           instagram_followers: number | null
           instagram_handle: string | null
+          last_minute_discount_pct: number | null
+          last_minute_enabled: boolean
+          last_minute_window_days: number
           last_schedule_update_at: string | null
           location_city: string | null
           location_country: string | null
           manager_id: string | null
           media_links: string[]
+          minimum_price_cents: number | null
+          monthly_goal_currency: string
+          monthly_income_goal_cents: number | null
+          opportunity_mode_enabled: boolean
           photo_url: string | null
           profile_completed: boolean
           reach_updated_at: string | null
@@ -372,13 +383,21 @@ export type Database = {
           spotify_popularity: number | null
           spotify_top_city: string | null
           stage_name: string
+          standard_price_cents: number | null
           technical_rider: string | null
           tiktok_followers: number | null
           tiktok_handle: string | null
           tiktok_video_views: number | null
+          tour_max_extra_km: number | null
+          tour_price_cents: number | null
+          tour_price_enabled: boolean
+          tour_radius_km: number | null
           updated_at: string
           user_id: string
           venue_fit_json: Json
+          weekday_price_cents: number | null
+          weekday_price_days: number[]
+          weekday_price_enabled: boolean
           whatsapp_number: string | null
           youtube_handle: string | null
           youtube_subscribers: number | null
@@ -397,19 +416,30 @@ export type Database = {
           created_at?: string
           currency?: string
           demographics_json?: Json
+          dream_price_cents?: number | null
           external_bookings_note?: string | null
           featured_performance_thumb?: string | null
           featured_performance_url?: string | null
           genres?: string[]
+          growth_price_cents?: number | null
+          growth_price_enabled?: boolean
+          growth_price_pct?: number | null
           hospitality_rider?: string | null
           id?: string
           instagram_followers?: number | null
           instagram_handle?: string | null
+          last_minute_discount_pct?: number | null
+          last_minute_enabled?: boolean
+          last_minute_window_days?: number
           last_schedule_update_at?: string | null
           location_city?: string | null
           location_country?: string | null
           manager_id?: string | null
           media_links?: string[]
+          minimum_price_cents?: number | null
+          monthly_goal_currency?: string
+          monthly_income_goal_cents?: number | null
+          opportunity_mode_enabled?: boolean
           photo_url?: string | null
           profile_completed?: boolean
           reach_updated_at?: string | null
@@ -423,13 +453,21 @@ export type Database = {
           spotify_popularity?: number | null
           spotify_top_city?: string | null
           stage_name: string
+          standard_price_cents?: number | null
           technical_rider?: string | null
           tiktok_followers?: number | null
           tiktok_handle?: string | null
           tiktok_video_views?: number | null
+          tour_max_extra_km?: number | null
+          tour_price_cents?: number | null
+          tour_price_enabled?: boolean
+          tour_radius_km?: number | null
           updated_at?: string
           user_id: string
           venue_fit_json?: Json
+          weekday_price_cents?: number | null
+          weekday_price_days?: number[]
+          weekday_price_enabled?: boolean
           whatsapp_number?: string | null
           youtube_handle?: string | null
           youtube_subscribers?: number | null
@@ -448,19 +486,30 @@ export type Database = {
           created_at?: string
           currency?: string
           demographics_json?: Json
+          dream_price_cents?: number | null
           external_bookings_note?: string | null
           featured_performance_thumb?: string | null
           featured_performance_url?: string | null
           genres?: string[]
+          growth_price_cents?: number | null
+          growth_price_enabled?: boolean
+          growth_price_pct?: number | null
           hospitality_rider?: string | null
           id?: string
           instagram_followers?: number | null
           instagram_handle?: string | null
+          last_minute_discount_pct?: number | null
+          last_minute_enabled?: boolean
+          last_minute_window_days?: number
           last_schedule_update_at?: string | null
           location_city?: string | null
           location_country?: string | null
           manager_id?: string | null
           media_links?: string[]
+          minimum_price_cents?: number | null
+          monthly_goal_currency?: string
+          monthly_income_goal_cents?: number | null
+          opportunity_mode_enabled?: boolean
           photo_url?: string | null
           profile_completed?: boolean
           reach_updated_at?: string | null
@@ -474,13 +523,21 @@ export type Database = {
           spotify_popularity?: number | null
           spotify_top_city?: string | null
           stage_name?: string
+          standard_price_cents?: number | null
           technical_rider?: string | null
           tiktok_followers?: number | null
           tiktok_handle?: string | null
           tiktok_video_views?: number | null
+          tour_max_extra_km?: number | null
+          tour_price_cents?: number | null
+          tour_price_enabled?: boolean
+          tour_radius_km?: number | null
           updated_at?: string
           user_id?: string
           venue_fit_json?: Json
+          weekday_price_cents?: number | null
+          weekday_price_days?: number[]
+          weekday_price_enabled?: boolean
           whatsapp_number?: string | null
           youtube_handle?: string | null
           youtube_subscribers?: number | null
