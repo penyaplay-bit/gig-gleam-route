@@ -138,7 +138,7 @@ const EMPTY_FORM: Form = {
   contact_phone: "",
   contact_whatsapp: "",
   contact_company: "",
-  contact_channels: ["whatsapp"],
+  contact_channels: ["whatsapp", "email", "phone"],
   preferred_contact: "whatsapp",
   description: "",
 };
