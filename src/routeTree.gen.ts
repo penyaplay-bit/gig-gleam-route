@@ -37,6 +37,7 @@ import { Route as ApiPublicArtistsRouteImport } from './routes/api/public/artist
 import { Route as SignedinMyGigsIdRouteImport } from './routes/_signedin/my-gigs.$id'
 import { Route as SignedinArtistProfileRouteImport } from './routes/_signedin/artist.profile'
 import { Route as SignedinArtistIntelligenceRouteImport } from './routes/_signedin/artist.intelligence'
+import { Route as SignedinArtistCareerRouteImport } from './routes/_signedin/artist.career'
 import { Route as AuthenticatedAdminVerifyRouteImport } from './routes/_authenticated/admin.verify'
 import { Route as AuthenticatedAdminPromotersRouteImport } from './routes/_authenticated/admin.promoters'
 import { Route as AuthenticatedAdminPipelineRouteImport } from './routes/_authenticated/admin.pipeline'
@@ -192,6 +193,11 @@ const SignedinArtistIntelligenceRoute =
     path: '/intelligence',
     getParentRoute: () => SignedinArtistRoute,
   } as any)
+const SignedinArtistCareerRoute = SignedinArtistCareerRouteImport.update({
+  id: '/career',
+  path: '/career',
+  getParentRoute: () => SignedinArtistRoute,
+} as any)
 const AuthenticatedAdminVerifyRoute =
   AuthenticatedAdminVerifyRouteImport.update({
     id: '/verify',
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
   '/admin/promoters': typeof AuthenticatedAdminPromotersRoute
   '/admin/verify': typeof AuthenticatedAdminVerifyRoute
+  '/artist/career': typeof SignedinArtistCareerRoute
   '/artist/intelligence': typeof SignedinArtistIntelligenceRouteWithChildren
   '/artist/profile': typeof SignedinArtistProfileRoute
   '/my-gigs/$id': typeof SignedinMyGigsIdRoute
@@ -346,6 +353,7 @@ export interface FileRoutesByTo {
   '/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
   '/admin/promoters': typeof AuthenticatedAdminPromotersRoute
   '/admin/verify': typeof AuthenticatedAdminVerifyRoute
+  '/artist/career': typeof SignedinArtistCareerRoute
   '/artist/intelligence': typeof SignedinArtistIntelligenceRouteWithChildren
   '/artist/profile': typeof SignedinArtistProfileRoute
   '/my-gigs/$id': typeof SignedinMyGigsIdRoute
@@ -392,6 +400,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/pipeline': typeof AuthenticatedAdminPipelineRoute
   '/_authenticated/admin/promoters': typeof AuthenticatedAdminPromotersRoute
   '/_authenticated/admin/verify': typeof AuthenticatedAdminVerifyRoute
+  '/_signedin/artist/career': typeof SignedinArtistCareerRoute
   '/_signedin/artist/intelligence': typeof SignedinArtistIntelligenceRouteWithChildren
   '/_signedin/artist/profile': typeof SignedinArtistProfileRoute
   '/_signedin/my-gigs/$id': typeof SignedinMyGigsIdRoute
@@ -437,6 +446,7 @@ export interface FileRouteTypes {
     | '/admin/pipeline'
     | '/admin/promoters'
     | '/admin/verify'
+    | '/artist/career'
     | '/artist/intelligence'
     | '/artist/profile'
     | '/my-gigs/$id'
@@ -479,6 +489,7 @@ export interface FileRouteTypes {
     | '/admin/pipeline'
     | '/admin/promoters'
     | '/admin/verify'
+    | '/artist/career'
     | '/artist/intelligence'
     | '/artist/profile'
     | '/my-gigs/$id'
@@ -524,6 +535,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/pipeline'
     | '/_authenticated/admin/promoters'
     | '/_authenticated/admin/verify'
+    | '/_signedin/artist/career'
     | '/_signedin/artist/intelligence'
     | '/_signedin/artist/profile'
     | '/_signedin/my-gigs/$id'
@@ -761,6 +773,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignedinArtistIntelligenceRouteImport
       parentRoute: typeof SignedinArtistRoute
     }
+    '/_signedin/artist/career': {
+      id: '/_signedin/artist/career'
+      path: '/career'
+      fullPath: '/artist/career'
+      preLoaderRoute: typeof SignedinArtistCareerRouteImport
+      parentRoute: typeof SignedinArtistRoute
+    }
     '/_authenticated/admin/verify': {
       id: '/_authenticated/admin/verify'
       path: '/verify'
@@ -939,11 +958,13 @@ const SignedinArtistIntelligenceRouteWithChildren =
   )
 
 interface SignedinArtistRouteChildren {
+  SignedinArtistCareerRoute: typeof SignedinArtistCareerRoute
   SignedinArtistIntelligenceRoute: typeof SignedinArtistIntelligenceRouteWithChildren
   SignedinArtistProfileRoute: typeof SignedinArtistProfileRoute
 }
 
 const SignedinArtistRouteChildren: SignedinArtistRouteChildren = {
+  SignedinArtistCareerRoute: SignedinArtistCareerRoute,
   SignedinArtistIntelligenceRoute: SignedinArtistIntelligenceRouteWithChildren,
   SignedinArtistProfileRoute: SignedinArtistProfileRoute,
 }
