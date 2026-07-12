@@ -1,87 +1,120 @@
-## Penya Play — Progressive Trust & Friendly Booking
 
-Layer risk-based verification onto the existing app. Nothing about auth, bookings, gigs, or the intelligence engine is rebuilt — we add a trust level per user, gate specific actions by level, and reshape the top of the booking funnel so casual buyers (Thato) never see "identity verification required."
+# Sprint 3 — Intelligent Pricing & Career Growth Engine
 
-### Core model
+Additive extension of the existing artist profile + performances tables. No live AI claims, no fabricated forecasts, no public exposure of internal rates. Existing `base_fee` stays as-is and is mirrored into a new `standard_price` field so quotes keep working unchanged.
 
-Add a single `trust_level` per user (0 Visitor → 1 Contact Verified → 2 ID Verified → 3 Business Verified) plus a separate `performer_trust` track for people receiving money. Every gated action checks the level; UI badges are derived, not hand-managed.
+## 1. Data model (one migration)
 
-New tables (all additive):
-- `user_trust` — level, phone_verified_at, email_verified_at, id_verified_at, id_provider, risk_flags[]
-- `performer_trust` — payout_identity_verified, bank_verified, background_check_status, family_event_verified, references_count
-- `trust_events` — audit log (otp_sent, otp_failed, id_submitted, risk_flag_raised, level_promoted)
-- `risk_signals` — per-request signals (ip, ua_hash, disposable_email, duplicate_device, honeypot_hit) for the fraud checks
+Extend `public.artist_profiles` with a **Pricing Strategy** block (all cents, nullable except standard which defaults from `base_fee`):
 
-### Slices (ship independently)
+- `standard_price` int — default rate (mirrors `base_fee` on first save)
+- `dream_price` int — aspirational, never auto-quoted
+- `minimum_price` int — hard floor; AI suggestions clamp here
+- `growth_price` int, `growth_price_pct` smallint, `growth_price_enabled` bool — internal only
+- `weekday_price` int, `weekday_price_days` smallint[] (0=Sun…6=Sat), `weekday_price_enabled` bool
+- `last_minute_discount_pct` smallint, `last_minute_enabled` bool, `last_minute_window_days` smallint default 7
+- `tour_price` int, `tour_radius_km` int, `tour_max_extra_km` int, `tour_price_enabled` bool
+- `monthly_income_goal` bigint (cents), `monthly_goal_currency` text default 'ZAR'
+- `opportunity_mode_enabled` bool default false
 
-**T1 — Guest browsing + friendly funnel top**
-- Home reshapes to "What are you planning?" → event type → performer type → results.
-- Public routes for browse/search/profile (no auth wall). Save/enquire buttons render an inline "Verify your number to enquire" sheet, never a hard redirect.
-- Verified-performer badges surface on cards (Identity, Family Event, Payment Protected, Booking History, Highly Rated). Tap = plain-language explainer.
+Extend `public.artist_performances` (already the calendar table) with:
 
-**T2 — Level 1: Contact verified (OTP + email)**
-- Phone OTP via Supabase Auth (SMS provider — needs one selected; Twilio is the common default).
-- Email verification link (already available via Supabase).
-- Invisible bot defence: honeypot field, submission-rate limit table, Cloudflare Turnstile (or hCaptcha) on the enquire form.
-- Friendly copy: "Quick safety check — we'll send a code to confirm you're a real person."
-- Unlocks: send enquiries, save performers, receive quotes, book low-value private events (threshold configurable, e.g. R10 000).
+- `booked_through` enum (`penya_play`, `whatsapp`, `phone`, `instagram`, `facebook`, `existing_client`, `manager`, `referral`, `other`)
+- `status` enum (`confirmed`, `tentative`, `completed`, `cancelled`) default `confirmed`
+- `province` already exists; add `venue_type` text nullable
 
-**T3 — Level 2: ID verified (risk-triggered only)**
-- Triggered by: booking value ≥ threshold, ≥ N bookings in 24h, international travel, venue security flag, refund/credit request, risk_signals score.
-- ID + selfie/liveness via a third-party (Stripe Identity / Veriff / Onfido — pick one; Stripe Identity is simplest if you're already on Stripe).
-- Payment-method verification (small auth hold).
-- Never asked speculatively; always tied to a specific action with a reason chip ("This booking is R25 000 — one quick ID check keeps the deposit protected").
+New table `public.pricing_suggestions` (advisory log, never auto-applied):
 
-**T4 — Level 3: Business verified**
-- Manual review flow in the existing admin (`/admin/verify` already exists — extend).
-- Fields: business reg number, authorized rep, business email/phone, bank details, venue/company ownership doc.
-- Auto-applied to promoter/venue/agency/brand kinds.
+- `owner_id`, `kind` (`enable_weekday`, `use_growth_price`, `enable_last_minute`, `update_standard`), `title`, `body`, `dismissed_at`, timestamps
+- RLS: owner-only SELECT/UPDATE/DELETE; service_role INSERT for future job.
 
-**T5 — Performer trust track (separate from buyer levels)**
-- Phone + email + legal ID before first payout.
-- Bank account verification (micro-deposit or provider verification).
-- Featured-performance evidence + professional-name claim (already have `featured_performance_url`).
-- Optional/required background check for `children_entertainment` categories → grants **Family Event Verified** badge (never granted for ID upload alone).
-- Explicit policy: performers must never privately contact minors; surfaced in T&Cs + message-scanning warning.
+All new tables get GRANTs + RLS scoped to `auth.uid() = owner_id`. Migration is additive; no destructive changes to `base_fee` (kept as legacy alias, sync trigger writes `base_fee := standard_price` on update so `computeQuote` keeps working).
 
-**T6 — Fraud + safety signals**
-- Pre-booking: disposable-email list, repeated OTP failures, IP velocity, duplicate-device fingerprinting, photo-hash duplicate detection on performer uploads, name↔bank mismatch, sudden payout-detail changes.
-- During booking: warn banner when messages contain external payment links / phone numbers / off-platform payment keywords: "Stay protected — payments made outside Penya Play may not qualify for booking support."
-- Pre-payout: identity + bank verified, performance completed, no active dispute, 2FA for large withdrawals.
+## 2. Copy (`src/lib/brand/copy.ts`)
 
-**T7 — Deposit UX simplification**
-- Replace escrow/wallet jargon on buyer surfaces with:
-  ```
-  Booking total: R2,000
-  Deposit today:  R600
-  Balance due:  R1,400
-  Payment protected by Penya Play
-  ```
-- Escrow mechanics stay under the hood; the words "escrow", "ledger", "settlement" only appear in admin / performer wallet views.
+Add keys for every user-facing string in this sprint (pricing questions, calendar prompts, dashboard empty states, suggestion cards, opportunity mode explainer). Enforce advisory language: `Recommended`, `Suggested`, `Based on your preferences`. Ban list stays enforced by review, not runtime.
 
-**T8 — Copyright safety on character performers**
-- Marketplace category names: "Spider Hero", "Web Hero", "Red-and-Blue Hero Performer" (never "Spider-Man" unless licensing proof uploaded and verified).
-- Performer profile enum + validation on category selection.
+## 3. UI — Pricing Profile
 
-**T9 — Reach integration finish-line** (from the previous turn)
-- Spotify + YouTube already wired at DB + server-fn level. This slice adds the profile UI (search & link Spotify artist, paste YouTube handle, manual IG/TikTok) + surfaces `spotify_followers` / `monthly_listeners_est` / `youtube_subscribers` on the performer card and in the AI booking suggestions ("Top listeners in Johannesburg — worth targeting for a tour date").
+New tab **"Pricing strategy"** in `src/routes/_signedin/artist.profile.tsx`, wired to a new `updatePricingStrategy` server fn in `src/lib/artists/pricing.functions.ts`.
 
-### Technical notes
+Sections (each collapsible card, each independently saveable):
 
-- Migrations additive, 4-step pattern (CREATE → GRANT → RLS → POLICY), owner-scoped policies + service_role grants.
-- `trust_level` is a derived view over `user_trust` verification timestamps + `performer_trust` flags — no hand-editing.
-- Every gated server fn calls a `requireTrustLevel(context, minLevel, action)` helper that throws a typed error the client renders as an inline verification sheet, not a redirect.
-- SMS OTP + ID provider + Turnstile are third-party — I'll ask for credentials only when you approve the slice that needs them.
-- Existing `/admin/verify` extended, not replaced.
+1. Standard Booking Price (required, prefilled from `base_fee`)
+2. Dream Price (optional) — badge "Never auto-quoted"
+3. Minimum Acceptable Price (required) — badge "AI never suggests below this"
+4. Growth Price — toggle + fixed/percent picker + "Internal only, never shown publicly"
+5. Weekday Price — toggle + day multi-select + rate
+6. Last-Minute Discount — toggle + preset chips (5/10/15/custom) + window days
+7. Touring Price — toggle + rate + radius + max extra km
+8. Monthly Income Goal — currency-aware input + rationale note
 
-### Suggested order
+Validation: `minimum_price ≤ standard_price ≤ dream_price` (warn, don't block). All prices show currency code (no bare monetary numbers).
 
-Ship T1 + T2 + T7 + T8 together (visible experience upgrade for Thato; unlocks bookings without ID walls). Then T5 (performer trust) + T6 (fraud signals). Then T3 (Level 2 ID). T4 (business) + T9 (reach UI) in parallel afterwards.
+## 4. UI — Calendar & Off-platform Performances
 
-### Open questions
+Extend the existing performances UI (`src/lib/intel/performances.functions.ts` + its page) with:
 
-1. **SMS provider** for OTP — Twilio, MessageBird, Vonage, or the SMS provider already wired into your Supabase auth? Needed for T2.
-2. **ID verification provider** for T3 — Stripe Identity (easiest if you'll also use Stripe payments), Veriff, or Onfido?
-3. **Level 1 → Level 2 trigger threshold** — auto-require ID above R X booking value? Suggest R25 000 as default.
-4. **Family Event Verified** — require full criminal-record check (weeks, costs money, high friction) or references + attestation for v1, upgrade later?
-5. Start with **T1+T2+T7+T8** as one bundle (the "Thato experience"), or split T1+T7+T8 (visible frontend now) from T2 (which needs the SMS provider decision)?
+- Add-performance form gains `booked_through` select (default `penya_play` for Penya bookings, else prompt), `status`, and honest copy: *"Add performances booked through WhatsApp, your manager, referrals or any other source. This information helps build your career history."*
+- Bulk quick-add mode for past performances (date + venue + city + booked_through only).
+- Penya-Play–originated bookings auto-write a performance row on `confirmed` with `booked_through = 'penya_play'`.
+
+## 5. UI — Career Dashboard
+
+New route `src/routes/_signedin/artist.career.tsx` (linked from artist dashboard). Cards render only real data pulled from `artist_performances` + `bookings`:
+
+- Monthly Income Goal — progress bar of `sum(confirmed fees this month) / goal`. If no goal set → CTA to set one. If no confirmed fees → "No confirmed bookings yet this month."
+- Confirmed Bookings (count, this month + next 90 days)
+- Calendar Occupancy (weekends booked / weekends in period)
+- Cities Performed (distinct count + list)
+- Repeat Clients (promoters with ≥2 bookings)
+- Average Booking Value (only counts rows with `fee_private`)
+- Profile Views / Booking Enquiries — pull from existing counters if present, else hide the card (no zeros framed as insight)
+- Empty state everywhere: *"More insights will appear as you complete more performances."*
+
+No forecasts. No "predicted income." No fake trend lines.
+
+## 6. Pricing Suggestions (advisory only)
+
+Client-side derivation in `src/lib/pricing/suggestions.ts` — pure function over the loaded profile + performances. No cron, no AI call. Rules:
+
+- If ≥3 unbooked weekdays in next 30 days AND `weekday_price_enabled = false` → suggest enable weekday.
+- If new city detected on next confirmed booking AND `growth_price_enabled = false` → suggest growth price.
+- If this Saturday unbooked AND `last_minute_enabled = false` → suggest last-minute.
+- If avg confirmed fee last 90 days > standard_price × 1.1 → suggest reviewing standard rate.
+
+Rendered as dismissible cards on career dashboard. "Apply" jumps to the pricing tab with that section highlighted — never mutates prices automatically.
+
+## 7. Opportunity Mode
+
+Toggle on career dashboard + pricing tab. Persists to `opportunity_mode_enabled`. Copy: *"When enabled, Penya Play prioritises showing you suitable opportunities during periods when your calendar is relatively open."* Filtering logic hooks into the existing gigs list ranking (light ordering nudge, not a new engine).
+
+## 8. Reputation labeling
+
+Wherever the artist card shows "Popularity" / follower counts as the headline metric, rename to **Professional Reputation** and compose from: completed performances, review count, response rate, repeat clients, calendar accuracy (% of past performances with completed status). Follower counts move to a secondary "Reach" strip.
+
+## Files touched
+
+- Migration: `supabase/migrations/…_pricing_strategy.sql`
+- `src/lib/artists/pricing.functions.ts` (new)
+- `src/lib/pricing/suggestions.ts` (new, pure)
+- `src/routes/_signedin/artist.profile.tsx` (new tab)
+- `src/routes/_signedin/artist.career.tsx` (new route)
+- `src/lib/intel/performances.functions.ts` + its page (new fields)
+- `src/lib/bookings.functions.ts` — on booking `confirmed`, mirror into `artist_performances` with `booked_through = 'penya_play'`
+- `src/lib/brand/copy.ts` — new keys
+- `src/components/artist/reputation-summary.tsx` — reputation composition
+
+## Explicitly out of scope this sprint
+
+- Live AI pricing agent (data collection only)
+- Public exposure of dream/growth/minimum prices
+- Automatic price changes
+- Forecasts, predicted income, guaranteed earnings language
+- OAuth follower ingestion (existing follow-up slice)
+
+## Confirm before I build
+
+1. Keep `base_fee` as the field the quote engine reads and auto-sync it from `standard_price` on save? (Alternative: swap the quote engine to read `standard_price` directly and drop `base_fee` in a follow-up.)
+2. Career dashboard as a new sibling route `/artist/career`, or as a tab inside the existing `/artist` dashboard?
+3. For pricing suggestions v1, pure client-side derivation is enough — agreed? (No cron, no AI call this sprint.)
