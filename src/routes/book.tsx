@@ -195,6 +195,20 @@ function BookingFlow() {
     return () => window.clearTimeout(handle);
   }, [f, q]);
 
+  // On step change, glide the card into view so the next question feels rewarding
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const rect = el.getBoundingClientRect();
+    // Only scroll if the top of the card isn't comfortably in view
+    if (rect.top < 0 || rect.top > 140) {
+      window.scrollTo({ top: window.scrollY + rect.top - 88, behavior: prefersReduced ? "auto" : "smooth" });
+    }
+  }, [q]);
+
+
   useEffect(() => {
     const onBeforeUnload = () => {
       try { window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ f, q })); } catch { /* ignore */ }
@@ -482,18 +496,40 @@ function BookingFlow() {
       </header>
 
       <main ref={containerRef} className="mx-auto max-w-2xl px-4 py-10 sm:py-16">
-        <Card className="relative overflow-hidden border-primary/15 bg-card/60 p-6 sm:p-10 shadow-quote min-h-[420px]">
+        <Card ref={cardRef} className="relative overflow-hidden border-primary/15 bg-card/60 p-6 sm:p-10 shadow-quote min-h-[420px]">
           <AnimatePresence mode="wait" initial={false} custom={dir}>
             <motion.div
               key={current?.id ?? q}
               custom={dir}
-              initial={{ opacity: 0, x: dir * 60 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -dir * 60 }}
-              transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, x: dir * 48, filter: "blur(6px)" }}
+              animate={{
+                opacity: 1,
+                x: 0,
+                filter: "blur(0px)",
+                transition: {
+                  duration: 0.55,
+                  ease: [0.16, 1, 0.3, 1],
+                  when: "beforeChildren",
+                  staggerChildren: 0.06,
+                  delayChildren: 0.04,
+                },
+              }}
+              exit={{
+                opacity: 0,
+                x: -dir * 48,
+                filter: "blur(6px)",
+                transition: { duration: 0.28, ease: [0.7, 0, 0.84, 0] },
+              }}
               className="space-y-6"
             >
-              <div>
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
+                }}
+                initial="hidden"
+                animate="visible"
+              >
                 <div className="text-[10px] uppercase tracking-[0.28em] text-primary mb-2">
                   Question {q + 1}
                 </div>
@@ -503,26 +539,36 @@ function BookingFlow() {
                 {current?.sub && (
                   <p className="mt-2 text-sm text-muted-foreground">{current.sub}</p>
                 )}
-              </div>
+              </motion.div>
 
-              <QuestionBody
-                q={current}
-                f={f}
-                set={set}
-                pickAndAdvance={pickAndAdvance}
-                toggleChannel={toggleChannel}
-                artists={artists}
-                packagesFor={packagesFor}
-                artist={artist}
-                pkg={pkg}
-                distance={distance}
-                distanceLoading={distanceLoading}
-                onDownloadQuote={downloadDraftQuote}
-                onSubmit={submit}
-                busy={busy}
-              />
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 16 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
+                }}
+                initial="hidden"
+                animate="visible"
+              >
+                <QuestionBody
+                  q={current}
+                  f={f}
+                  set={set}
+                  pickAndAdvance={pickAndAdvance}
+                  toggleChannel={toggleChannel}
+                  artists={artists}
+                  packagesFor={packagesFor}
+                  artist={artist}
+                  pkg={pkg}
+                  distance={distance}
+                  distanceLoading={distanceLoading}
+                  onDownloadQuote={downloadDraftQuote}
+                  onSubmit={submit}
+                  busy={busy}
+                />
+              </motion.div>
             </motion.div>
           </AnimatePresence>
+
 
           <div className="mt-10 flex items-center justify-between gap-3">
             <Button type="button" variant="ghost" onClick={() => go(-1)} disabled={q === 0 || busy}>
