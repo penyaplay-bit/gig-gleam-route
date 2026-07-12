@@ -60,11 +60,12 @@ export const updatePricingStrategy = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => PricingSchema.parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    // Days array: pg smallint[] — pass through as-is.
-    const patch: Record<string, unknown> = { ...data };
-    // If standard set and legacy min blank, keep min in sync for older UI paths.
+    const patch = { ...data } as Parameters<
+      ReturnType<typeof supabase.from<"artist_owner_profiles">>["update"]
+    >[0];
     if (typeof data.standard_price_cents === "number") {
-      patch.booking_fee_min_cents = data.standard_price_cents;
+      (patch as { booking_fee_min_cents?: number }).booking_fee_min_cents =
+        data.standard_price_cents;
     }
     const { error } = await supabase
       .from("artist_owner_profiles")
