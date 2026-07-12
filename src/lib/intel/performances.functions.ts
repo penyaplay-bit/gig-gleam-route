@@ -38,7 +38,7 @@ const PerformanceSchema = z.object({
   notes_private: z.string().max(2000).nullable().optional(),
   proof_urls: z.array(z.string().url()).default([]),
   booked_through: BookedThrough.nullable().optional(),
-  status: PerformanceStatus.default("confirmed"),
+  status: PerformanceStatus.optional(),
   venue_type: z.string().max(80).nullable().optional(),
 });
 
