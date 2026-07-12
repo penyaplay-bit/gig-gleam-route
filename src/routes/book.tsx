@@ -335,7 +335,7 @@ function BookingFlow() {
     qs.push({ id: "notes", kind: "textarea", title: "Anything else we should know?", sub: "Stage plot, dress code, wild dreams — all welcome. Optional.", field: "description", optional: true });
     qs.push({ id: "review", kind: "review", title: "Sharp — let's double-check", sub: "One last read before we buzz the team. Nothing's locked yet." });
     return qs;
-  }, [f.artist_id]);
+  }, [f.artist_id, prefilledEventType]);
 
   const total = questions.length;
   const current = questions[Math.min(q, total - 1)];
