@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMyRoles } from "@/lib/gigs/profile.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CalendarClock, MessageCircle, Music4, Brain } from "lucide-react";
+import { CalendarClock, MessageCircle, Music4, Brain, Coins, LineChart } from "lucide-react";
 
 export const Route = createFileRoute("/_signedin/artist")({
   head: () => ({ meta: [{ title: "Artist dashboard — Fare Deal" }, { name: "robots", content: "noindex" }] }),
