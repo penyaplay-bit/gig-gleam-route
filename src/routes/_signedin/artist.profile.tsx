@@ -86,6 +86,7 @@ function EditArtistProfile() {
       <Tabs defaultValue="basics" className="w-full">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="basics"><User className="w-3 h-3 mr-1" />Basics</TabsTrigger>
+          <TabsTrigger value="pricing"><Coins className="w-3 h-3 mr-1" />Pricing strategy</TabsTrigger>
           <TabsTrigger value="reach"><BarChart3 className="w-3 h-3 mr-1" />Reach</TabsTrigger>
           <TabsTrigger value="awards"><Trophy className="w-3 h-3 mr-1" />Awards</TabsTrigger>
           <TabsTrigger value="media"><ImgIcon className="w-3 h-3 mr-1" />Media kit</TabsTrigger>
@@ -94,6 +95,7 @@ function EditArtistProfile() {
         </TabsList>
 
         <TabsContent value="basics"><BasicsTab profile={data.profile} onSaved={invalidate} /></TabsContent>
+        <TabsContent value="pricing"><PricingStrategyTab /></TabsContent>
         <TabsContent value="reach"><ReachTab socials={data.socials} onChanged={invalidate} /></TabsContent>
         <TabsContent value="awards"><AwardsTab awards={data.awards} onChanged={invalidate} /></TabsContent>
         <TabsContent value="media"><MediaTab media={data.media} onChanged={invalidate} /></TabsContent>
