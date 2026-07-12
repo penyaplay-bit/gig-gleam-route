@@ -24,7 +24,22 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { SADC_COUNTRIES, OTHER_AFRICA, citiesFor } from "@/lib/africa-locations";
 import { jsPDF } from "jspdf";
 
+// Landing funnel keys → booking event_type values
+const FUNNEL_TO_EVENT_TYPE: Record<string, string> = {
+  birthday: "Private party",
+  wedding: "Wedding",
+  corporate: "Corporate",
+  school: "Private party",
+  club: "Concert",
+  family: "Private party",
+  festival: "Festival",
+  other: "Other",
+};
+
 export const Route = createFileRoute("/book")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    event_type: typeof s.event_type === "string" ? s.event_type : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Book a gig — Penya Play" },
@@ -158,11 +173,16 @@ function loadDraft(): { f: Form; q: number } | null {
 
 function BookingFlow() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const prefilledEventType = search.event_type ? FUNNEL_TO_EVENT_TYPE[search.event_type] ?? null : null;
   const restored = useMemo(() => loadDraft(), []);
   const [q, setQ] = useState<number>(restored?.q ?? 0);
   const [dir, setDir] = useState<1 | -1>(1);
   const [busy, setBusy] = useState(false);
-  const [f, setF] = useState<Form>(restored?.f ?? EMPTY_FORM);
+  const [f, setF] = useState<Form>(() => {
+    const base = restored?.f ?? EMPTY_FORM;
+    return prefilledEventType ? { ...base, event_type: prefilledEventType } : base;
+  });
   const [savedFlash, setSavedFlash] = useState(false);
   const firstSave = useRef(true);
 
@@ -295,7 +315,7 @@ function BookingFlow() {
     const qs: Question[] = [];
     qs.push({ id: "artist", kind: "artist", title: "Howzit 👋 — who's headlining?", sub: "Tap the one you want on stage. No wrong answers." });
     if (f.artist_id) qs.push({ id: "package", kind: "package", title: "Pick a package to start from", sub: "This is just the baseline — travel & event size adjust the final quote." });
-    qs.push({ id: "event_type", kind: "event_type", title: "What kind of vibe are we cooking?", sub: "So we send the right energy your way." });
+    if (!prefilledEventType) qs.push({ id: "event_type", kind: "event_type", title: "What kind of vibe are we cooking?", sub: "So we send the right energy your way." });
     qs.push({ id: "event_name", kind: "text", title: "Give the event a name", sub: "Something you'll spot in your inbox — e.g. \"Nkopane's 40th\".", field: "event_name", placeholder: "Event name", required: true });
     qs.push({ id: "country", kind: "country", title: "Which country's it in?", sub: "Helps us line up the right crew." });
     qs.push({ id: "city", kind: "city", title: "And which city?", sub: "We'll work out the drive automatically." });
@@ -315,7 +335,7 @@ function BookingFlow() {
     qs.push({ id: "notes", kind: "textarea", title: "Anything else we should know?", sub: "Stage plot, dress code, wild dreams — all welcome. Optional.", field: "description", optional: true });
     qs.push({ id: "review", kind: "review", title: "Sharp — let's double-check", sub: "One last read before we buzz the team. Nothing's locked yet." });
     return qs;
-  }, [f.artist_id]);
+  }, [f.artist_id, prefilledEventType]);
 
   const total = questions.length;
   const current = questions[Math.min(q, total - 1)];
