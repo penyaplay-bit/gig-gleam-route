@@ -496,7 +496,7 @@ function BookingFlow() {
       </header>
 
       <main ref={containerRef} className="mx-auto max-w-2xl px-4 py-10 sm:py-16">
-        <Card className="relative overflow-hidden border-primary/15 bg-card/60 p-6 sm:p-10 shadow-quote min-h-[420px]">
+        <Card ref={cardRef} className="relative overflow-hidden border-primary/15 bg-card/60 p-6 sm:p-10 shadow-quote min-h-[420px]">
           <AnimatePresence mode="wait" initial={false} custom={dir}>
             <motion.div
               key={current?.id ?? q}
