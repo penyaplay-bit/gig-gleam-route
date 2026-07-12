@@ -150,7 +150,7 @@ function loadDraft(): { f: Form; q: number } | null {
     if (!raw) return null;
     const j = JSON.parse(raw) as { f?: Partial<Form>; q?: number };
     if (!j?.f) return null;
-    return { f: { ...EMPTY_FORM, ...j.f, contact_channels: (j.f.contact_channels?.length ? j.f.contact_channels : ["whatsapp"]) as ContactChannel[] }, q: Math.max(0, j.q ?? 0) };
+    return { f: { ...EMPTY_FORM, ...j.f, contact_channels: (j.f.contact_channels?.length ? j.f.contact_channels : ["whatsapp", "email", "phone"]) as ContactChannel[] }, q: Math.max(0, j.q ?? 0) };
   } catch {
     return null;
   }
