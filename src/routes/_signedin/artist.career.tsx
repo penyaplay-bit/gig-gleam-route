@@ -80,9 +80,7 @@ function CareerDashboard() {
             <Link to="/artist/intelligence/onboarding">Add a performance</Link>
           </Button>
           <Button asChild size="sm">
-            <Link to="/artist/profile" search={{ tab: "pricing" } as never}>
-              Pricing strategy
-            </Link>
+            <Link to="/artist/profile">Pricing strategy</Link>
           </Button>
         </div>
       </header>
