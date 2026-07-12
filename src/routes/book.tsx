@@ -315,7 +315,7 @@ function BookingFlow() {
     const qs: Question[] = [];
     qs.push({ id: "artist", kind: "artist", title: "Howzit 👋 — who's headlining?", sub: "Tap the one you want on stage. No wrong answers." });
     if (f.artist_id) qs.push({ id: "package", kind: "package", title: "Pick a package to start from", sub: "This is just the baseline — travel & event size adjust the final quote." });
-    qs.push({ id: "event_type", kind: "event_type", title: "What kind of vibe are we cooking?", sub: "So we send the right energy your way." });
+    if (!prefilledEventType) qs.push({ id: "event_type", kind: "event_type", title: "What kind of vibe are we cooking?", sub: "So we send the right energy your way." });
     qs.push({ id: "event_name", kind: "text", title: "Give the event a name", sub: "Something you'll spot in your inbox — e.g. \"Nkopane's 40th\".", field: "event_name", placeholder: "Event name", required: true });
     qs.push({ id: "country", kind: "country", title: "Which country's it in?", sub: "Helps us line up the right crew." });
     qs.push({ id: "city", kind: "city", title: "And which city?", sub: "We'll work out the drive automatically." });
