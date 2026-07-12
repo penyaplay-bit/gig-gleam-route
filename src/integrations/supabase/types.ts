@@ -41,6 +41,111 @@ export type Database = {
         }
         Relationships: []
       }
+      airport_routes: {
+        Row: {
+          active: boolean
+          airline: string | null
+          arrival_iata: string
+          created_at: string
+          departure_iata: string
+          direct_service: boolean
+          id: string
+          last_verified_at: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          airline?: string | null
+          arrival_iata: string
+          created_at?: string
+          departure_iata: string
+          direct_service?: boolean
+          id?: string
+          last_verified_at?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          airline?: string | null
+          arrival_iata?: string
+          created_at?: string
+          departure_iata?: string
+          direct_service?: boolean
+          id?: string
+          last_verified_at?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airport_routes_arrival_iata_fkey"
+            columns: ["arrival_iata"]
+            isOneToOne: false
+            referencedRelation: "airports"
+            referencedColumns: ["iata_code"]
+          },
+          {
+            foreignKeyName: "airport_routes_departure_iata_fkey"
+            columns: ["departure_iata"]
+            isOneToOne: false
+            referencedRelation: "airports"
+            referencedColumns: ["iata_code"]
+          },
+        ]
+      }
+      airports: {
+        Row: {
+          airport_name: string
+          city: string
+          country_code: string
+          created_at: string
+          has_scheduled_commercial_service: boolean
+          iata_code: string
+          id: string
+          latitude: number
+          longitude: number
+          notes: string | null
+          service_last_verified_at: string | null
+          source_url: string | null
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          airport_name: string
+          city: string
+          country_code: string
+          created_at?: string
+          has_scheduled_commercial_service?: boolean
+          iata_code: string
+          id?: string
+          latitude: number
+          longitude: number
+          notes?: string | null
+          service_last_verified_at?: string | null
+          source_url?: string | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          airport_name?: string
+          city?: string
+          country_code?: string
+          created_at?: string
+          has_scheduled_commercial_service?: boolean
+          iata_code?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          notes?: string | null
+          service_last_verified_at?: string | null
+          source_url?: string | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: []
+      }
       artist_availability: {
         Row: {
           artist_owner_id: string
@@ -513,9 +618,15 @@ export type Database = {
           active: boolean
           artist_id: string | null
           banking: Json
+          base_city: string | null
+          base_country_code: string | null
           base_fee: number
+          base_latitude: number | null
+          base_longitude: number | null
+          base_timezone: string | null
           cancellation_terms: Json
           created_at: string
+          cross_border_enabled: boolean
           currency: string
           default_team_size: number
           home_address: string | null
@@ -523,9 +634,11 @@ export type Database = {
           home_country: string
           home_country_code: string | null
           id: string
+          max_preferred_drive_minutes: number | null
           min_margin_pct: number
           name: string
           notes: string | null
+          passport_available: boolean | null
           payment_terms: Json
           per_diem_rules: Json
           profile_version: number
@@ -538,9 +651,15 @@ export type Database = {
           active?: boolean
           artist_id?: string | null
           banking?: Json
+          base_city?: string | null
+          base_country_code?: string | null
           base_fee?: number
+          base_latitude?: number | null
+          base_longitude?: number | null
+          base_timezone?: string | null
           cancellation_terms?: Json
           created_at?: string
+          cross_border_enabled?: boolean
           currency?: string
           default_team_size?: number
           home_address?: string | null
@@ -548,9 +667,11 @@ export type Database = {
           home_country?: string
           home_country_code?: string | null
           id?: string
+          max_preferred_drive_minutes?: number | null
           min_margin_pct?: number
           name: string
           notes?: string | null
+          passport_available?: boolean | null
           payment_terms?: Json
           per_diem_rules?: Json
           profile_version?: number
@@ -563,9 +684,15 @@ export type Database = {
           active?: boolean
           artist_id?: string | null
           banking?: Json
+          base_city?: string | null
+          base_country_code?: string | null
           base_fee?: number
+          base_latitude?: number | null
+          base_longitude?: number | null
+          base_timezone?: string | null
           cancellation_terms?: Json
           created_at?: string
+          cross_border_enabled?: boolean
           currency?: string
           default_team_size?: number
           home_address?: string | null
@@ -573,9 +700,11 @@ export type Database = {
           home_country?: string
           home_country_code?: string | null
           id?: string
+          max_preferred_drive_minutes?: number | null
           min_margin_pct?: number
           name?: string
           notes?: string | null
+          passport_available?: boolean | null
           payment_terms?: Json
           per_diem_rules?: Json
           profile_version?: number
@@ -1085,6 +1214,135 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      booking_logistics: {
+        Row: {
+          accommodation_override_reason: string | null
+          accommodation_reason: string | null
+          accommodation_recommended: boolean | null
+          accommodation_selected: string | null
+          actual_arrival_time: string | null
+          actual_travel_cost_minor: number | null
+          actual_travel_currency: string | null
+          actual_travel_method: string | null
+          arrival_airport_iata: string | null
+          booking_id: string
+          border_crossing_required: boolean | null
+          created_at: string
+          departure_airport_iata: string | null
+          estimated_border_delay_minutes: number | null
+          estimated_home_arrival_at: string | null
+          event_country: string | null
+          event_currency: string | null
+          flight_comparison_recommended: boolean | null
+          fx_conversion_method: string | null
+          fx_rate_effective_at: string | null
+          id: string
+          indicative_converted_amount_minor: number | null
+          indicative_fx_rate: number | null
+          original_amount_minor: number | null
+          original_currency_code: string | null
+          outbound_distance_km: number | null
+          outbound_drive_minutes: number | null
+          performance_end_at: string | null
+          performer_base_country: string | null
+          performer_home_currency: string | null
+          return_distance_km: number | null
+          return_drive_minutes: number | null
+          travel_confidence: string | null
+          travel_model_version: string | null
+          updated_at: string
+        }
+        Insert: {
+          accommodation_override_reason?: string | null
+          accommodation_reason?: string | null
+          accommodation_recommended?: boolean | null
+          accommodation_selected?: string | null
+          actual_arrival_time?: string | null
+          actual_travel_cost_minor?: number | null
+          actual_travel_currency?: string | null
+          actual_travel_method?: string | null
+          arrival_airport_iata?: string | null
+          booking_id: string
+          border_crossing_required?: boolean | null
+          created_at?: string
+          departure_airport_iata?: string | null
+          estimated_border_delay_minutes?: number | null
+          estimated_home_arrival_at?: string | null
+          event_country?: string | null
+          event_currency?: string | null
+          flight_comparison_recommended?: boolean | null
+          fx_conversion_method?: string | null
+          fx_rate_effective_at?: string | null
+          id?: string
+          indicative_converted_amount_minor?: number | null
+          indicative_fx_rate?: number | null
+          original_amount_minor?: number | null
+          original_currency_code?: string | null
+          outbound_distance_km?: number | null
+          outbound_drive_minutes?: number | null
+          performance_end_at?: string | null
+          performer_base_country?: string | null
+          performer_home_currency?: string | null
+          return_distance_km?: number | null
+          return_drive_minutes?: number | null
+          travel_confidence?: string | null
+          travel_model_version?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accommodation_override_reason?: string | null
+          accommodation_reason?: string | null
+          accommodation_recommended?: boolean | null
+          accommodation_selected?: string | null
+          actual_arrival_time?: string | null
+          actual_travel_cost_minor?: number | null
+          actual_travel_currency?: string | null
+          actual_travel_method?: string | null
+          arrival_airport_iata?: string | null
+          booking_id?: string
+          border_crossing_required?: boolean | null
+          created_at?: string
+          departure_airport_iata?: string | null
+          estimated_border_delay_minutes?: number | null
+          estimated_home_arrival_at?: string | null
+          event_country?: string | null
+          event_currency?: string | null
+          flight_comparison_recommended?: boolean | null
+          fx_conversion_method?: string | null
+          fx_rate_effective_at?: string | null
+          id?: string
+          indicative_converted_amount_minor?: number | null
+          indicative_fx_rate?: number | null
+          original_amount_minor?: number | null
+          original_currency_code?: string | null
+          outbound_distance_km?: number | null
+          outbound_drive_minutes?: number | null
+          performance_end_at?: string | null
+          performer_base_country?: string | null
+          performer_home_currency?: string | null
+          return_distance_km?: number | null
+          return_drive_minutes?: number | null
+          travel_confidence?: string | null
+          travel_model_version?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_logistics_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_logistics_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "event_financial_state"
+            referencedColumns: ["event_id"]
+          },
+        ]
       }
       booking_notes: {
         Row: {
@@ -2207,6 +2465,48 @@ export type Database = {
           },
         ]
       }
+      fx_rates: {
+        Row: {
+          base_currency: string
+          created_at: string
+          effective_at: string
+          expires_at: string | null
+          id: string
+          quote_currency: string
+          rate: number
+          source_name: string
+          source_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          base_currency: string
+          created_at?: string
+          effective_at?: string
+          expires_at?: string | null
+          id?: string
+          quote_currency: string
+          rate: number
+          source_name?: string
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          base_currency?: string
+          created_at?: string
+          effective_at?: string
+          expires_at?: string | null
+          id?: string
+          quote_currency?: string
+          rate?: number
+          source_name?: string
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gig_applications: {
         Row: {
           availability_notes: string | null
@@ -2982,6 +3282,48 @@ export type Database = {
           references_count?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      places: {
+        Row: {
+          active: boolean
+          city: string
+          country_code: string
+          created_at: string
+          id: string
+          latitude: number
+          local_currency: string
+          longitude: number
+          region: string | null
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          city: string
+          country_code: string
+          created_at?: string
+          id?: string
+          latitude: number
+          local_currency: string
+          longitude: number
+          region?: string | null
+          timezone: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          city?: string
+          country_code?: string
+          created_at?: string
+          id?: string
+          latitude?: number
+          local_currency?: string
+          longitude?: number
+          region?: string | null
+          timezone?: string
+          updated_at?: string
         }
         Relationships: []
       }
