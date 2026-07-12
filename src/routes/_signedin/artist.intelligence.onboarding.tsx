@@ -209,6 +209,28 @@ function OnboardingWizard() {
             <Field label="Booking fee (private)">
               <Input type="number" min={0} value={draft.fee_private ?? ""} onChange={(e) => setDraft({ ...draft, fee_private: e.target.value ? Number(e.target.value) : null })} placeholder="ZAR" />
             </Field>
+            <Field label="Booked through">
+              <Select
+                value={draft.booked_through ?? ""}
+                onValueChange={(v) => setDraft({ ...draft, booked_through: (v || null) as PerformanceInput["booked_through"] })}
+              >
+                <SelectTrigger><SelectValue placeholder="How was this booked?" /></SelectTrigger>
+                <SelectContent>
+                  {BOOKED_THROUGH.map(o => <SelectItem key={o.v} value={o.v}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Status">
+              <Select
+                value={draft.status ?? "confirmed"}
+                onValueChange={(v) => setDraft({ ...draft, status: v as PerformanceInput["status"] })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTS.map(s => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </Field>
             <Field label="Role">
               <div className="flex gap-2 items-center h-10">
                 <label className="flex items-center gap-2 text-sm">
