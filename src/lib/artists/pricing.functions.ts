@@ -60,16 +60,14 @@ export const updatePricingStrategy = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => PricingSchema.parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const patch = { ...data } as Parameters<
-      ReturnType<typeof supabase.from<"artist_owner_profiles">>["update"]
-    >[0];
+    const patch: Record<string, unknown> = { ...data };
     if (typeof data.standard_price_cents === "number") {
-      (patch as { booking_fee_min_cents?: number }).booking_fee_min_cents =
-        data.standard_price_cents;
+      patch.booking_fee_min_cents = data.standard_price_cents;
     }
     const { error } = await supabase
       .from("artist_owner_profiles")
-      .update(patch)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update(patch as any)
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
