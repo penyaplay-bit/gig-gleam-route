@@ -506,6 +506,9 @@ export type Database = {
       artist_performances: {
         Row: {
           artist_id: string | null
+          booked_through:
+            | Database["public"]["Enums"]["booked_through_source"]
+            | null
           city: string | null
           country: string | null
           created_at: string
@@ -526,14 +529,19 @@ export type Database = {
           province: string | null
           rating: number | null
           start_time: string | null
+          status: Database["public"]["Enums"]["performance_status"]
           support_for: string | null
           updated_at: string
           venue_address: string | null
           venue_id: string | null
           venue_name: string | null
+          venue_type: string | null
         }
         Insert: {
           artist_id?: string | null
+          booked_through?:
+            | Database["public"]["Enums"]["booked_through_source"]
+            | null
           city?: string | null
           country?: string | null
           created_at?: string
@@ -554,14 +562,19 @@ export type Database = {
           province?: string | null
           rating?: number | null
           start_time?: string | null
+          status?: Database["public"]["Enums"]["performance_status"]
           support_for?: string | null
           updated_at?: string
           venue_address?: string | null
           venue_id?: string | null
           venue_name?: string | null
+          venue_type?: string | null
         }
         Update: {
           artist_id?: string | null
+          booked_through?:
+            | Database["public"]["Enums"]["booked_through_source"]
+            | null
           city?: string | null
           country?: string | null
           created_at?: string
@@ -582,11 +595,13 @@ export type Database = {
           province?: string | null
           rating?: number | null
           start_time?: string | null
+          status?: Database["public"]["Enums"]["performance_status"]
           support_for?: string | null
           updated_at?: string
           venue_address?: string | null
           venue_id?: string | null
           venue_name?: string | null
+          venue_type?: string | null
         }
         Relationships: [
           {
@@ -629,22 +644,41 @@ export type Database = {
           cross_border_enabled: boolean
           currency: string
           default_team_size: number
+          dream_price: number | null
+          growth_price: number | null
+          growth_price_enabled: boolean
+          growth_price_pct: number | null
           home_address: string | null
           home_city: string | null
           home_country: string
           home_country_code: string | null
           id: string
+          last_minute_discount_pct: number | null
+          last_minute_enabled: boolean
+          last_minute_window_days: number
           max_preferred_drive_minutes: number | null
           min_margin_pct: number
+          minimum_price: number | null
+          monthly_goal_currency: string
+          monthly_income_goal: number | null
           name: string
           notes: string | null
+          opportunity_mode_enabled: boolean
           passport_available: boolean | null
           payment_terms: Json
           per_diem_rules: Json
           profile_version: number
           rider: Json
+          standard_price: number | null
+          tour_max_extra_km: number | null
+          tour_price: number | null
+          tour_price_enabled: boolean
+          tour_radius_km: number | null
           transport_rules: Json
           updated_at: string
+          weekday_price: number | null
+          weekday_price_days: number[]
+          weekday_price_enabled: boolean
         }
         Insert: {
           accommodation_rules?: Json
@@ -662,22 +696,41 @@ export type Database = {
           cross_border_enabled?: boolean
           currency?: string
           default_team_size?: number
+          dream_price?: number | null
+          growth_price?: number | null
+          growth_price_enabled?: boolean
+          growth_price_pct?: number | null
           home_address?: string | null
           home_city?: string | null
           home_country?: string
           home_country_code?: string | null
           id?: string
+          last_minute_discount_pct?: number | null
+          last_minute_enabled?: boolean
+          last_minute_window_days?: number
           max_preferred_drive_minutes?: number | null
           min_margin_pct?: number
+          minimum_price?: number | null
+          monthly_goal_currency?: string
+          monthly_income_goal?: number | null
           name: string
           notes?: string | null
+          opportunity_mode_enabled?: boolean
           passport_available?: boolean | null
           payment_terms?: Json
           per_diem_rules?: Json
           profile_version?: number
           rider?: Json
+          standard_price?: number | null
+          tour_max_extra_km?: number | null
+          tour_price?: number | null
+          tour_price_enabled?: boolean
+          tour_radius_km?: number | null
           transport_rules?: Json
           updated_at?: string
+          weekday_price?: number | null
+          weekday_price_days?: number[]
+          weekday_price_enabled?: boolean
         }
         Update: {
           accommodation_rules?: Json
@@ -695,22 +748,41 @@ export type Database = {
           cross_border_enabled?: boolean
           currency?: string
           default_team_size?: number
+          dream_price?: number | null
+          growth_price?: number | null
+          growth_price_enabled?: boolean
+          growth_price_pct?: number | null
           home_address?: string | null
           home_city?: string | null
           home_country?: string
           home_country_code?: string | null
           id?: string
+          last_minute_discount_pct?: number | null
+          last_minute_enabled?: boolean
+          last_minute_window_days?: number
           max_preferred_drive_minutes?: number | null
           min_margin_pct?: number
+          minimum_price?: number | null
+          monthly_goal_currency?: string
+          monthly_income_goal?: number | null
           name?: string
           notes?: string | null
+          opportunity_mode_enabled?: boolean
           passport_available?: boolean | null
           payment_terms?: Json
           per_diem_rules?: Json
           profile_version?: number
           rider?: Json
+          standard_price?: number | null
+          tour_max_extra_km?: number | null
+          tour_price?: number | null
+          tour_price_enabled?: boolean
+          tour_radius_km?: number | null
           transport_rules?: Json
           updated_at?: string
+          weekday_price?: number | null
+          weekday_price_days?: number[]
+          weekday_price_enabled?: boolean
         }
         Relationships: [
           {
@@ -3359,6 +3431,42 @@ export type Database = {
           },
         ]
       }
+      pricing_suggestions: {
+        Row: {
+          body: string | null
+          created_at: string
+          dismissed_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["pricing_suggestion_kind"]
+          meta: Json
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["pricing_suggestion_kind"]
+          meta?: Json
+          owner_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["pricing_suggestion_kind"]
+          meta?: Json
+          owner_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profile_intents: {
         Row: {
           created_at: string
@@ -3886,6 +3994,16 @@ export type Database = {
         | "cancelled"
         | "booked"
         | "completed"
+      booked_through_source:
+        | "penya_play"
+        | "whatsapp"
+        | "phone"
+        | "instagram"
+        | "facebook"
+        | "existing_client"
+        | "manager"
+        | "referral"
+        | "other"
       booking_status:
         | "new"
         | "reviewing"
@@ -3958,6 +4076,13 @@ export type Database = {
         | "radio"
         | "brand"
         | "other"
+      performance_status: "confirmed" | "tentative" | "completed" | "cancelled"
+      pricing_suggestion_kind:
+        | "enable_weekday"
+        | "use_growth_price"
+        | "enable_last_minute"
+        | "update_standard"
+        | "enable_touring"
       profile_intent:
         | "get_booked"
         | "hire_talent"
@@ -4106,6 +4231,17 @@ export const Constants = {
         "booked",
         "completed",
       ],
+      booked_through_source: [
+        "penya_play",
+        "whatsapp",
+        "phone",
+        "instagram",
+        "facebook",
+        "existing_client",
+        "manager",
+        "referral",
+        "other",
+      ],
       booking_status: [
         "new",
         "reviewing",
@@ -4183,6 +4319,14 @@ export const Constants = {
         "radio",
         "brand",
         "other",
+      ],
+      performance_status: ["confirmed", "tentative", "completed", "cancelled"],
+      pricing_suggestion_kind: [
+        "enable_weekday",
+        "use_growth_price",
+        "enable_last_minute",
+        "update_standard",
+        "enable_touring",
       ],
       profile_intent: [
         "get_booked",
