@@ -195,6 +195,20 @@ function BookingFlow() {
     return () => window.clearTimeout(handle);
   }, [f, q]);
 
+  // On step change, glide the card into view so the next question feels rewarding
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const rect = el.getBoundingClientRect();
+    // Only scroll if the top of the card isn't comfortably in view
+    if (rect.top < 0 || rect.top > 140) {
+      window.scrollTo({ top: window.scrollY + rect.top - 88, behavior: prefersReduced ? "auto" : "smooth" });
+    }
+  }, [q]);
+
+
   useEffect(() => {
     const onBeforeUnload = () => {
       try { window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ f, q })); } catch { /* ignore */ }
