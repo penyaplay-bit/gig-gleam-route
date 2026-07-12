@@ -134,6 +134,33 @@ function RootComponent() {
     return () => { mounted = false; };
   }, [queryClient, router]);
 
+  // Global reveal-on-scroll: any element with [data-reveal] eases in as it enters.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) {
+      document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => el.classList.add("is-revealed"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("is-revealed");
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+    );
+    const scan = () => document.querySelectorAll<HTMLElement>("[data-reveal]:not(.is-revealed)").forEach((el) => io.observe(el));
+    scan();
+    // Re-scan on route changes since IntersectionObserver only knows about currently-observed nodes.
+    const unsub = router.subscribe("onResolved", () => window.setTimeout(scan, 50));
+    return () => { io.disconnect(); unsub(); };
+  }, [router]);
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
