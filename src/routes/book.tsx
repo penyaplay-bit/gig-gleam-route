@@ -24,7 +24,22 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { SADC_COUNTRIES, OTHER_AFRICA, citiesFor } from "@/lib/africa-locations";
 import { jsPDF } from "jspdf";
 
+// Landing funnel keys → booking event_type values
+const FUNNEL_TO_EVENT_TYPE: Record<string, string> = {
+  birthday: "Private party",
+  wedding: "Wedding",
+  corporate: "Corporate",
+  school: "Private party",
+  club: "Concert",
+  family: "Private party",
+  festival: "Festival",
+  other: "Other",
+};
+
 export const Route = createFileRoute("/book")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    event_type: typeof s.event_type === "string" ? s.event_type : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Book a gig — Penya Play" },
