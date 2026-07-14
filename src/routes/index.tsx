@@ -1,16 +1,13 @@
 "use client";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
-import { lazy, Suspense, useRef } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
+import { lazy, Suspense } from "react";
 import { ArrowRight, Users } from "lucide-react";
-import { LogoMark, LogoLockup } from "@/components/brand/logo-mark";
+import { LogoLockup } from "@/components/brand/logo-mark";
 import { GrainOverlay } from "@/components/brand/grain";
-import { CinematicBackdrop } from "@/components/brand/cinematic-backdrop";
 import logoAsset from "@/assets/penya-play-logo.jpg.asset.json";
-import logoPicture from "@/assets/penya-play-logo.picture.json";
-import { StageFloor } from "@/components/brand/stage-elements";
-import { Reveal } from "@/components/motion/reveal";
 import { FriendlyFunnel } from "@/components/landing/friendly-funnel";
+import { CinematicVideoHero } from "@/components/landing/cinematic-video-hero";
 
 const BelowFold = lazy(() =>
   import("@/components/landing/below-fold").then((m) => ({ default: m.BelowFold })),
@@ -19,29 +16,20 @@ const BelowFold = lazy(() =>
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PenyaPlay — Book Ntate Stunna & the Penya Play roster" },
+      { title: "PenyaPlay — Africa's Live Entertainment Operating System" },
       {
         name: "description",
         content:
-          "The cinematic booking OS for Ntate Stunna and Penya Play artists. Request, quote, deposit, confirm — every step guided.",
+          "Discover performers, book venues, find events and build your booking reputation. The cinematic booking OS for Africa's live entertainment industry.",
       },
-      { property: "og:title", content: "PenyaPlay — Book the moment." },
+      { property: "og:title", content: "PenyaPlay — Africa's Live Entertainment OS" },
       {
         property: "og:description",
-        content: "Book Ntate Stunna & Penya Play artists. Serious bookings only.",
+        content: "Discover performers. Book venues. Find events. Build your booking reputation.",
       },
       { property: "og:type", content: "website" },
       { property: "og:image", content: logoAsset.url },
       { name: "twitter:image", content: logoAsset.url },
-    ],
-    links: [
-      {
-        rel: "preload",
-        as: "image",
-        href: logoPicture.sources[0].srcset[2].url,
-        type: logoPicture.sources[0].type,
-        fetchpriority: "high",
-      },
     ],
   }),
   component: LandingPage,
@@ -52,7 +40,7 @@ function LandingPage() {
     <div className="relative min-h-screen bg-background text-foreground">
       <GrainOverlay />
       <TopNav />
-      <Hero />
+      <CinematicVideoHero />
       <FriendlyFunnel />
       <Suspense fallback={<div className="h-40" />}>
         <BelowFold />
@@ -63,8 +51,17 @@ function LandingPage() {
 }
 
 function TopNav() {
+  const { scrollY } = useScroll();
+  const bg = useTransform(scrollY, [0, 120], ["rgba(0,0,0,0)", "rgba(10,10,10,0.72)"]);
+  const border = useTransform(scrollY, [0, 120], ["rgba(232,184,90,0)", "rgba(232,184,90,0.25)"]);
+  const blur = useTransform(scrollY, [0, 120], ["blur(0px)", "blur(18px)"]);
+
   return (
-    <header className="sticky top-0 z-40 border-b border-primary/10 bg-background/60 backdrop-blur-xl">
+    <motion.header
+      style={{ backgroundColor: bg, borderBottomColor: border, backdropFilter: blur, WebkitBackdropFilter: blur }}
+      transition={{ duration: 0.4 }}
+      className="fixed top-0 left-0 right-0 z-40 border-b"
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link to="/">
           <LogoLockup />
@@ -72,7 +69,7 @@ function TopNav() {
         <div className="flex items-center gap-2">
           <Link
             to="/find-gigs"
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="text-xs text-white/70 hover:text-white"
           >
             Find Gigs
           </Link>
@@ -86,83 +83,13 @@ function TopNav() {
           </Link>
           <Link
             to="/auth"
-            className="hidden text-xs text-muted-foreground hover:text-foreground sm:inline-block"
+            className="hidden text-xs text-white/70 hover:text-white sm:inline-block"
           >
             Sign in
           </Link>
         </div>
       </div>
-    </header>
-  );
-}
-
-function Hero() {
-  const ref = useRef<HTMLElement>(null);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const logoScale = useTransform(scrollYProgress, [0, 1], reduce ? [1, 1] : [1.15, 0.55]);
-  const logoY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, -80]);
-  const titleY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, -40]);
-  const glowOpacity = useTransform(scrollYProgress, [0, 1], reduce ? [1, 1] : [1, 0.15]);
-
-  return (
-    <section ref={ref} className="relative overflow-hidden">
-      <motion.div style={{ opacity: glowOpacity }} className="absolute inset-0">
-        <CinematicBackdrop variant="portal" />
-      </motion.div>
-
-      <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-24 sm:pt-24 sm:pb-32">
-        <motion.div style={{ scale: logoScale, y: logoY }} className="mx-auto flex justify-center">
-          <div className="relative">
-            <div className="absolute -inset-8 rounded-full bg-primary/30 blur-3xl" aria-hidden />
-            <LogoMark size={140} priority className="relative rounded-2xl ring-2 ring-primary/50 shadow-cinema" />
-          </div>
-        </motion.div>
-
-        <motion.div style={{ y: titleY }} className="mt-10 flex flex-col items-center text-center">
-          <Reveal delay={0.1}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-primary">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-              </span>
-              We&rsquo;re open · Booking the 2026 season
-            </span>
-          </Reveal>
-
-          <h1 className="mt-6 font-display text-[13vw] font-black leading-[0.9] sm:text-8xl md:text-[7rem]">
-            Book the
-            <br />
-            <span className="text-goldleaf">moment.</span>
-          </h1>
-
-          <Reveal delay={0.3} className="mt-8 max-w-xl text-base text-muted-foreground sm:text-lg">
-            The home of <span className="text-foreground">Ntate Stunna</span> and Mzansi&rsquo;s best performers. Your local plug for gigs — from birthday jols to sold-out arenas. We handle the admin, you bring the gees.
-          </Reveal>
-
-          <Reveal delay={0.4} className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              to="/book"
-              className="group inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold uppercase tracking-wider text-primary-foreground shadow-quote transition hover:-translate-y-0.5 hover:shadow-cinema"
-            >
-              Let&rsquo;s book it
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-            <a
-              href="#how"
-              className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-background/30 px-8 py-4 text-sm text-foreground backdrop-blur-sm transition hover:border-primary/60 hover:bg-primary/5"
-            >
-              How it works
-            </a>
-          </Reveal>
-
-          <Reveal delay={0.5} className="mt-12 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-            No date, no deposit · Every booking sharp sharp verified
-          </Reveal>
-        </motion.div>
-      </div>
-      <StageFloor />
-    </section>
+    </motion.header>
   );
 }
 
