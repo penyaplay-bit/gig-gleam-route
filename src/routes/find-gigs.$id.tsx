@@ -55,9 +55,9 @@ function GigDetail() {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Badge className="uppercase">{gig.status}</Badge>
-                {gig.promoter_profiles?.verified && (
+                {(Array.isArray(gig.promoter_profiles) ? gig.promoter_profiles[0] : gig.promoter_profiles)?.verified && (
                   <span className="inline-flex items-center gap-1 text-xs text-primary">
-                    <ShieldCheck className="w-3 h-3" /> Verified promoter · Trust {gig.promoter_profiles.trust_score}
+                    <ShieldCheck className="w-3 h-3" /> Verified promoter · Trust {(Array.isArray(gig.promoter_profiles) ? gig.promoter_profiles[0] : gig.promoter_profiles)?.trust_score}
                   </span>
                 )}
               </div>
