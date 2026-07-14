@@ -100,30 +100,53 @@ export const withdrawApplication = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+async function assertPromoterOwnsApplication(
+  supabase: any,
+  userId: string,
+  applicationId: string,
+): Promise<{ gig_id: string; manager_id: string; promoter_id: string }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: app } = await supabaseAdmin
+    .from("gig_applications")
+    .select("id, gig_id, manager_id, gigs!inner(promoter_id, promoter_profiles!inner(user_id))")
+    .eq("id", applicationId)
+    .maybeSingle();
+  if (!app) throw new Error("Application not found");
+  const gig: any = Array.isArray((app as any).gigs) ? (app as any).gigs[0] : (app as any).gigs;
+  const prof: any = Array.isArray(gig?.promoter_profiles) ? gig.promoter_profiles[0] : gig?.promoter_profiles;
+  if (!prof || prof.user_id !== userId) {
+    // Allow staff/admin as well
+    const { data: roles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    const isStaff = !!roles?.some((r: any) => r.role === "admin" || r.role === "staff");
+    if (!isStaff) throw new Error("Only the promoter who owns this gig can perform this action.");
+  }
+  return { gig_id: (app as any).gig_id, manager_id: (app as any).manager_id, promoter_id: gig.promoter_id };
+}
+
 export const shortlistApplication = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: app, error } = await supabase
+    const { userId } = context;
+    const owner = await assertPromoterOwnsApplication(context.supabase, userId, data.id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
       .from("gig_applications")
       .update({ status: "shortlisted", shortlisted_at: new Date().toISOString() })
-      .eq("id", data.id)
-      .select("gig_id, manager_id")
-      .maybeSingle();
+      .eq("id", data.id);
     if (error) throw error;
-    if (app) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      await supabaseAdmin.from("gigs").update({ status: "shortlisted" }).eq("id", app.gig_id);
-      await supabaseAdmin.from("notifications").insert({
-        rule: "gig_application_shortlisted",
-        target_role: "manager",
-        severity: "success",
-        title: "You've been shortlisted!",
-        body: "The promoter shortlisted your application.",
-        meta: { application_id: data.id, gig_id: app.gig_id },
-      });
-    }
+    await supabaseAdmin.from("gigs").update({ status: "shortlisted" }).eq("id", owner.gig_id);
+    await supabaseAdmin.from("notifications").insert({
+      rule: "gig_application_shortlisted",
+      target_role: "manager",
+      severity: "success",
+      title: "You've been shortlisted!",
+      body: "The promoter shortlisted your application.",
+      meta: { application_id: data.id, gig_id: owner.gig_id },
+    });
     return { ok: true };
   });
 
@@ -131,13 +154,14 @@ export const rejectApplication = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { error } = await supabase
+    const { userId } = context;
+    await assertPromoterOwnsApplication(context.supabase, userId, data.id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
       .from("gig_applications")
       .update({ status: "rejected" })
       .eq("id", data.id);
     if (error) throw error;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("notifications").insert({
       rule: "gig_application_rejected",
       target_role: "manager",
@@ -153,8 +177,10 @@ export const bookApplication = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: app, error } = await supabase
+    const { userId } = context;
+    const owner = await assertPromoterOwnsApplication(context.supabase, userId, data.id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: app, error } = await supabaseAdmin
       .from("gig_applications")
       .update({ status: "booked", booked_at: new Date().toISOString() })
       .eq("id", data.id)
@@ -162,39 +188,28 @@ export const bookApplication = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw error;
     if (!app) throw new Error("Application not found");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Mark gig booked, store winning application
     await supabaseAdmin
       .from("gigs")
       .update({ status: "booked", booked_application_id: app.id })
       .eq("id", app.gig_id);
-    // Reject all other applications
     await supabaseAdmin
       .from("gig_applications")
       .update({ status: "rejected" })
       .eq("gig_id", app.gig_id)
       .neq("id", app.id)
       .in("status", ["submitted", "shortlisted"]);
-    // Bump promoter trust score
-    const { data: gig } = await supabaseAdmin
-      .from("gigs")
-      .select("promoter_id")
-      .eq("id", app.gig_id)
+    const { data: prof } = await supabaseAdmin
+      .from("promoter_profiles")
+      .select("confirmed_bookings, verified")
+      .eq("id", owner.promoter_id)
       .maybeSingle();
-    if (gig) {
-      const { data: prof } = await supabaseAdmin
+    if (prof) {
+      const nextConfirmed = (prof.confirmed_bookings ?? 0) + 1;
+      const trust = (prof.verified ? 60 : 0) + Math.min(40, nextConfirmed * 5);
+      await supabaseAdmin
         .from("promoter_profiles")
-        .select("confirmed_bookings, verified")
-        .eq("id", gig.promoter_id)
-        .maybeSingle();
-      if (prof) {
-        const nextConfirmed = (prof.confirmed_bookings ?? 0) + 1;
-        const trust = (prof.verified ? 60 : 0) + Math.min(40, nextConfirmed * 5);
-        await supabaseAdmin
-          .from("promoter_profiles")
-          .update({ confirmed_bookings: nextConfirmed, trust_score: trust })
-          .eq("id", gig.promoter_id);
-      }
+        .update({ confirmed_bookings: nextConfirmed, trust_score: trust })
+        .eq("id", owner.promoter_id);
     }
     await supabaseAdmin.from("notifications").insert({
       rule: "gig_application_booked",
@@ -206,3 +221,4 @@ export const bookApplication = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
