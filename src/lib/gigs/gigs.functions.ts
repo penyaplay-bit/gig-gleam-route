@@ -120,7 +120,7 @@ export const listOpenGigs = createServerFn({ method: "GET" })
     const today = new Date().toISOString().slice(0, 10);
     let query = supabase
       .from("gigs")
-      .select("*, promoter_profiles(id, company_name, contact_name, verified, trust_score)")
+      .select("id, event_name, event_type, event_date, venue, city, country, crowd_size, budget_low_cents, budget_high_cents, currency, genre_needed, artist_type_needed, application_deadline, status, description, boost_until, created_at, promoter_profiles(id, company_name, contact_name, verified, trust_score)")
       .in("status", ["open", "reviewing", "shortlisted"])
       .gte("application_deadline", today)
       .order("boost_until", { ascending: false, nullsFirst: false })
@@ -147,7 +147,7 @@ export const getPublicGig = createServerFn({ method: "GET" })
     });
     const { data: gig, error } = await supabase
       .from("gigs")
-      .select("*, promoter_profiles(id, company_name, contact_name, verified, trust_score, country, city)")
+      .select("id, event_name, event_type, event_date, venue, city, country, crowd_size, budget_low_cents, budget_high_cents, currency, genre_needed, artist_type_needed, application_deadline, status, description, boost_until, created_at, promoter_profiles(id, company_name, contact_name, verified, trust_score, country, city)")
       .eq("id", data.id)
       .in("status", ["open", "reviewing", "shortlisted"])
       .maybeSingle();
